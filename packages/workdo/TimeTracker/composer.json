@@ -1,0 +1,23 @@
+{
+    "name": "workdo/timetracker",
+    "description": "Time Tracker module for ERPGo SaaS",
+    "type": "laravel-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Workdo"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Workdo\\TimeTracker\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Workdo\\TimeTracker\\Providers\\TimeTrackerServiceProvider"
+            ]
+        }
+    }
+}
