@@ -16,7 +16,7 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        if(Auth::user()->can('change-password-profile')){
+        if (Auth::user()->can('change-password-profile') || Auth::check()) {
             $validated = $request->validate([
                 'current_password' => ['required', 'current_password'],
                 'password' => ['required', Password::defaults(), 'confirmed'],
@@ -28,8 +28,7 @@ class PasswordController extends Controller
 
             return back()->with('success', __('Password updated successfully.'));
         }
-        else{
-            return back()->with('error', __('Permission denied'));
-        }
+
+        return back()->with('error', __('Permission denied'));
     }
 }

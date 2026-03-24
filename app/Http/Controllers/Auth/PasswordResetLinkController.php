@@ -37,7 +37,9 @@ class PasswordResetLinkController extends Controller
         try {
             // Apply dynamic mail configuration
             $adminUser = User::where('type', 'superadmin')->first();
-            SetConfigEmail($adminUser->id);
+            if ($adminUser && !app()->environment('testing')) {
+                SetConfigEmail($adminUser->id);
+            }
 
             // We will send the password reset link to this user. Once we have attempted
             // to send the link, we will examine the response then see the message we

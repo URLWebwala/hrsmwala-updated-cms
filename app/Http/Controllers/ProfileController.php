@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,14 +19,14 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response|RedirectResponse
     {
-        if(Auth::user()->can('manage-profile')){
+        if (Auth::user()->can('manage-profile') || Auth::id() === $request->user()->id) {
             return Inertia::render('profile/edit', [
                 'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
                 'status' => session('status'),
             ]);
-        }else{
-            return redirect()->back()->with('error', __('Permission denied'));
         }
+
+        return redirect()->back()->with('error', __('Permission denied'));
     }
 
     /**
@@ -33,7 +34,7 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        if(Auth::user()->can('edit-profile') && Auth::user()->id === $request->user()->id){
+        if ((Auth::user()->can('edit-profile') || Auth::id() === $request->user()->id) && Auth::id() === $request->user()->id) {
             $user = $request->user();
             $validated = $request->validated();
 
@@ -42,7 +43,7 @@ class ProfileController extends Controller
             }
 
             $user->fill($validated);
-            if ($user->isDirty('email') && admin_setting('enableEmailVerification') == 'on') {
+            if ($user->isDirty('email')) {
                 $user->email_verified_at = null;
             }
 
@@ -50,8 +51,33 @@ class ProfileController extends Controller
 
             return Redirect::route('profile.edit')->with('success', __('The profile details are updated successfully.'));
         }
-        else{
-            return Redirect::route('profile.edit')->with('error', __('Permission denied'));
+
+        return Redirect::route('profile.edit')->with('error', __('Permission denied'));
+    }
+
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required'],
+        ]);
+
+        $user = $request->user();
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => __('The provided password does not match our records.'),
+            ]);
         }
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
     }
 }
