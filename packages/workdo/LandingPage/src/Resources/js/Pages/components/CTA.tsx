@@ -1,6 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { getImagePath } from '@/utils/helpers';
 import { useTranslation } from 'react-i18next';
+import AnimateOnScroll from './AnimateOnScroll';
+import SectionHeading from './SectionHeading';
 
 interface CTAProps {
     settings?: any;
@@ -56,14 +58,14 @@ export default function CTA({ settings }: CTAProps) {
     const config = CTA_VARIANTS[variant as keyof typeof CTA_VARIANTS] || CTA_VARIANTS.cta1;
     
     const title = sectionData.title || 'Ready to Transform Your Business?';
-    const subtitle = sectionData.subtitle || 'Join thousands of businesses already using ERPGo SaaS to streamline their operations.';
+    const subtitle = sectionData.subtitle || 'Join thousands of businesses already using Hrmswala SaaS to streamline their operations.';
     const primaryButton = sectionData.primary_button || 'Start Free Trial';
     const secondaryButton = sectionData.secondary_button || 'Contact Sales';
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
 
     const getBackgroundStyle = () => {
         if (config.layout === 'centered') {
-            return { backgroundColor: colors.primary };
+            return { backgroundColor: `${colors.primary}12` };
         }
         if (config.layout === 'gradient') {
             return { 
@@ -77,6 +79,7 @@ export default function CTA({ settings }: CTAProps) {
     const renderButtons = () => {
         const primaryLink = sectionData.primary_button_link || '#';
         const secondaryLink = sectionData.secondary_button_link || '#';
+        const isCenteredLight = config.layout === 'centered';
         
         return (
             <div className={config.buttons}>
@@ -88,9 +91,16 @@ export default function CTA({ settings }: CTAProps) {
                             : config.layout === 'card'
                                 ? 'text-base px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                                 : 'text-lg'
-                    } ${config.layout === 'split' ? 'shadow-lg hover:shadow-xl' : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'}`}
+                    } ${
+                        config.layout === 'split' || isCenteredLight
+                            ? 'shadow-lg hover:shadow-xl'
+                            : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
+                    }`}
                     style={{ 
-                        backgroundColor: config.layout === 'split' || config.layout === 'minimal' || config.layout === 'card' ? colors.primary : undefined,
+                        backgroundColor:
+                            config.layout === 'split' || config.layout === 'minimal' || config.layout === 'card' || isCenteredLight
+                                ? colors.primary
+                                : undefined,
                         boxShadow: config.layout === 'minimal' || config.layout === 'card' ? `0 4px 14px 0 ${colors.primary}40` : undefined
                     }}
                 >
@@ -106,8 +116,28 @@ export default function CTA({ settings }: CTAProps) {
                                 ? 'text-base px-10 py-4 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl shadow-sm hover:shadow-lg transform hover:-translate-y-1'
                                 : config.layout === 'split'
                                     ? 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 shadow-md hover:shadow-lg'
-                                    : 'border-white text-white hover:bg-white hover:text-gray-900 backdrop-blur-sm'
+                                    : isCenteredLight
+                                        ? 'hover:text-white shadow-sm hover:shadow-md'
+                                        : 'border-white text-white hover:bg-white hover:text-gray-900 backdrop-blur-sm'
                     }`}
+                    style={
+                        isCenteredLight
+                            ? {
+                                  borderColor: colors.primary,
+                                  color: colors.primary,
+                              }
+                            : undefined
+                    }
+                    onMouseEnter={(e) => {
+                        if (!isCenteredLight) return;
+                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = colors.primary;
+                        (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                        if (!isCenteredLight) return;
+                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+                        (e.currentTarget as HTMLAnchorElement).style.color = colors.primary;
+                    }}
                 >
                     {secondaryButton}
                 </a>
@@ -121,11 +151,18 @@ export default function CTA({ settings }: CTAProps) {
                 <div className={config.container}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div>
-                            <h2 className={config.title}>{title}</h2>
-                            <p className={config.subtitle}>{subtitle}</p>
-                            {renderButtons()}
+                            <SectionHeading
+                                title={title}
+                                subtitle={subtitle}
+                                align="left"
+                                accentColor={colors.primary}
+                                className="mb-8"
+                            />
+                            <AnimateOnScroll direction="up" delayMs={160}>
+                                {renderButtons()}
+                            </AnimateOnScroll>
                         </div>
-                        <div className="relative overflow-hidden rounded-xl shadow-2xl">
+                        <AnimateOnScroll direction="up" delayMs={140} className="relative overflow-hidden rounded-xl shadow-2xl">
                             {sectionData.image ? (
                                 <img 
                                     src={sectionData.image.startsWith('http') ? sectionData.image : getImagePath(sectionData.image)}
@@ -144,7 +181,7 @@ export default function CTA({ settings }: CTAProps) {
                                     </div>
                                 </div>
                             )}
-                        </div>
+                        </AnimateOnScroll>
                     </div>
                 </div>
             </section>
@@ -186,10 +223,15 @@ export default function CTA({ settings }: CTAProps) {
         return (
             <section className={config.section}>
                 <div className={config.container}>
-                    <div className="w-16 h-1 mx-auto mb-6 rounded-full" style={{ backgroundColor: colors.primary }}></div>
-                    <h2 className={`${config.title} leading-tight tracking-tight`}>{title}</h2>
-                    <p className={`${config.subtitle} max-w-2xl mx-auto leading-relaxed`}>{subtitle}</p>
-                    {renderButtons()}
+                    <SectionHeading
+                        title={title}
+                        subtitle={subtitle}
+                        accentColor={colors.primary}
+                        className="mb-8"
+                    />
+                    <AnimateOnScroll direction="up" delayMs={160}>
+                        {renderButtons()}
+                    </AnimateOnScroll>
                 </div>
             </section>
         );
@@ -201,9 +243,16 @@ export default function CTA({ settings }: CTAProps) {
                 <div className="absolute inset-0 bg-black/20"></div>
             )}
             <div className={`${config.container} relative z-10`}>
-                <h2 className={config.title}>{title}</h2>
-                <p className={config.subtitle}>{subtitle}</p>
-                {renderButtons()}
+                <SectionHeading
+                    title={title}
+                    subtitle={subtitle}
+                    accentColor={colors.primary}
+                    className="mb-8"
+                    tone={config.layout === 'gradient' ? 'dark' : 'light'}
+                />
+                <AnimateOnScroll direction="up" delayMs={160}>
+                    {renderButtons()}
+                </AnimateOnScroll>
             </div>
         </section>
     );

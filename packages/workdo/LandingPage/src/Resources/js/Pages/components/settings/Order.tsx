@@ -35,9 +35,11 @@ export default function Order({ data, setData, updateSectionVisibility }: OrderP
                                 hero: t('Hero'),
                                 stats: t('Stats'),
                                 features: t('Features'),
+                                tracker_features: t('Tracker Features'),
                                 modules: t('Modules'),
                                 benefits: t('Benefits'),
                                 gallery: t('Gallery'),
+                                how_works_videos: t('How Works Videos'),
                                 cta: t('CTA'),
                                 footer: t('Footer')
                             };

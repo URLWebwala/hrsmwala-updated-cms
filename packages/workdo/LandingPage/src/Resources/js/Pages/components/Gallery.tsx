@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getImagePath } from '@/utils/helpers';
 import { useTranslation } from 'react-i18next';
+import AnimateOnScroll from './AnimateOnScroll';
+import SectionHeading from './SectionHeading';
 
 interface GalleryProps {
     settings?: any;
@@ -55,6 +57,24 @@ export default function Gallery({ settings }: GalleryProps) {
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [lightboxOpen, setLightboxOpen] = useState(false);
+
+    // How Works Videos (rendered next to gallery)
+    const videosSectionVisible = settings?.config_sections?.section_visibility?.how_works_videos !== false;
+    const howWorksData = settings?.config_sections?.sections?.how_works_videos || {};
+    const videosTitle = howWorksData.title || 'How it works';
+    const videosSubtitle = howWorksData.subtitle || 'See Hrmswala Tracker in action';
+    const videos = useMemo(() => {
+        const raw = howWorksData.videos || [];
+        if (!Array.isArray(raw)) return [];
+        return raw
+            .map((v: any) => (typeof v === 'string' ? { url: v } : { url: v?.url || v?.video || '', title: v?.title }))
+            .filter((v: any) => typeof v.url === 'string' && v.url.length > 0);
+    }, [howWorksData]);
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
+    const isSideBySide = videosSectionVisible && videos.length > 0;
+    const sideBySideMediaHeight = 'h-[320px] md:h-[420px]';
+    const sideBySideFooterHeight = 'h-10';
     
     const defaultImages = [
         'packages/workdo/LandingPage/src/Resources/assets/img/gallery1.jpeg',
@@ -66,9 +86,10 @@ export default function Gallery({ settings }: GalleryProps) {
         'packages/workdo/LandingPage/src/Resources/assets/img/gallery7.jpeg'
     ];
     
-    const galleryImages = (sectionData.images?.filter((img: string) => img) || []).length > 0 
-        ? sectionData.images.filter((img: string) => img) 
-        : defaultImages;
+    const galleryImages: string[] =
+        (sectionData.images?.filter((img: string) => img) || []).length > 0
+            ? (sectionData.images.filter((img: string) => img) as string[])
+            : defaultImages;
     
     const nextImage = () => {
         setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
@@ -78,54 +99,90 @@ export default function Gallery({ settings }: GalleryProps) {
         setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
     };
 
+    // Auto-scroll gallery (not videos). Only for slider/carousel layouts.
+    useEffect(() => {
+        if (lightboxOpen) return;
+        if (!['slider', 'carousel'].includes(config.layout)) return;
+        if (galleryImages.length <= 1) return;
+
+        const interval = setInterval(() => {
+            nextImage();
+        }, 4000);
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [config.layout, galleryImages.length, lightboxOpen]);
+
+    const nextVideo = () => {
+        setCurrentVideoIndex((prev) => (prev + 1) % videos.length);
+    };
+    const previousVideo = () => {
+        setCurrentVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
+    };
+
     const renderSlider = () => (
         <div className="relative max-w-6xl mx-auto">
-            <div className="overflow-hidden rounded-xl shadow-2xl">
+            <div
+                className={`overflow-hidden rounded-xl shadow-2xl ${
+                    isSideBySide ? sideBySideMediaHeight : 'h-[500px] md:h-[600px]'
+                }`}
+            >
                 <img 
                     src={galleryImages[currentImageIndex]?.startsWith('http') ? galleryImages[currentImageIndex] : getImagePath(galleryImages[currentImageIndex] || '')} 
                     alt={`Gallery image ${currentImageIndex + 1}`}
-                    className="w-full h-[500px] md:h-[600px] object-fill"
+                    className="w-full h-full object-cover"
                 />
             </div>
             
-            <button 
-                onClick={previousImage}
-                className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
-            >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
+            {/* Remove gallery arrows in side-by-side layout (clean look) */}
+            {!isSideBySide && (
+                <>
+                    <button 
+                        onClick={previousImage}
+                        className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                        aria-label={t('Previous image')}
+                    >
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    
+                    <button 
+                        onClick={nextImage}
+                        className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                        aria-label={t('Next image')}
+                    >
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </>
+            )}
             
-            <button 
-                onClick={nextImage}
-                className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
-            >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-            
-            <div className="flex justify-center mt-8 space-x-3">
-                {galleryImages.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                            index === currentImageIndex 
-                                ? 'scale-125' 
-                                : 'bg-gray-300 hover:bg-gray-500 hover:scale-110'
-                        }`}
-                        style={index === currentImageIndex ? { backgroundColor: colors.primary } : {}}
-                    />
-                ))}
-            </div>
+            {/* Remove dots in side-by-side layout (clean) */}
+            {!isSideBySide && (
+                <div className="flex justify-center mt-6 space-x-3">
+                    {galleryImages.map((_: string, index: number) => (
+                        <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                                index === currentImageIndex
+                                    ? 'scale-125'
+                                    : 'bg-gray-300 hover:bg-gray-500 hover:scale-110'
+                            }`}
+                            style={index === currentImageIndex ? { backgroundColor: colors.primary } : {}}
+                            aria-label={t('Go to image {{n}}', { n: index + 1 })}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 
     const renderGrid = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryImages.map((image, index) => (
+            {galleryImages.map((image: string, index: number) => (
                 <div key={index} className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                     <img
                         src={image?.startsWith('http') ? image : getImagePath(image || '')}
@@ -141,7 +198,7 @@ export default function Gallery({ settings }: GalleryProps) {
     const renderStacked = () => (
         <div className="relative max-w-4xl mx-auto">
             <div className="space-y-8">
-                {galleryImages.map((image, index) => (
+                {galleryImages.map((image: string, index: number) => (
                     <div key={index} className={`relative group ${
                         index % 2 === 0 ? 'ml-0 mr-16' : 'ml-16 mr-0'
                     }`}>
@@ -172,7 +229,7 @@ export default function Gallery({ settings }: GalleryProps) {
     const renderCarousel = () => (
         <div className="relative">
             <div className="flex space-x-8 overflow-x-auto pb-8 px-4 scrollbar-hide snap-x snap-mandatory">
-                {galleryImages.map((image, index) => (
+                {galleryImages.map((image: string, index: number) => (
                     <div key={index} className="flex-shrink-0 w-96 h-80 relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 snap-center group">
                         <img
                             src={image?.startsWith('http') ? image : getImagePath(image || '')}
@@ -191,7 +248,7 @@ export default function Gallery({ settings }: GalleryProps) {
                 ))}
             </div>
             <div className="flex justify-center mt-8 space-x-2">
-                {galleryImages.map((_, index) => (
+                {galleryImages.map((_: string, index: number) => (
                     <div key={index} className="w-2 h-2 rounded-full bg-gray-400 transition-all duration-300" style={{ backgroundColor: colors.primary, opacity: 0.6 }}></div>
                 ))}
             </div>
@@ -215,7 +272,7 @@ export default function Gallery({ settings }: GalleryProps) {
         return (
             <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {galleryImages.map((image, index) => (
+                    {galleryImages.map((image: string, index: number) => (
                         <div 
                             key={index} 
                             className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-gradient-to-br from-gray-800 to-gray-900 transform hover:-translate-y-2"
@@ -301,7 +358,7 @@ export default function Gallery({ settings }: GalleryProps) {
                             
                             {/* Thumbnail Strip */}
                             <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 backdrop-blur-md rounded-full p-3 border border-white/20">
-                                {galleryImages.slice(Math.max(0, currentImageIndex - 2), currentImageIndex + 3).map((image, idx) => {
+                                {galleryImages.slice(Math.max(0, currentImageIndex - 2), currentImageIndex + 3).map((image: string, idx: number) => {
                                     const actualIndex = Math.max(0, currentImageIndex - 2) + idx;
                                     return (
                                         <button
@@ -350,12 +407,101 @@ export default function Gallery({ settings }: GalleryProps) {
     return (
         <section className={config.section}>
             <div className={config.container}>
-                <div className="text-center mb-16">
-                    <h2 className={config.title}>{title}</h2>
-                    <p className={config.subtitle}>{subtitle}</p>
-                </div>
-                
-                {renderGalleryContent()}
+                {isSideBySide ? (
+                    <>
+                        {/* Single aligned header row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start mb-10">
+                            <div className="text-center">
+                                <SectionHeading
+                                    title={title}
+                                    subtitle={subtitle}
+                                    accentColor={colors.primary}
+                                />
+                            </div>
+                            <div className="text-center">
+                                <SectionHeading
+                                    title={t(videosTitle)}
+                                    subtitle={t(videosSubtitle)}
+                                    accentColor={colors.primary}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                            <AnimateOnScroll direction="up" delayMs={140}>
+                                <div>{renderGalleryContent()}</div>
+                            </AnimateOnScroll>
+
+                            <AnimateOnScroll direction="up" delayMs={180} className="relative max-w-xl mx-auto w-full">
+                                <div className={`overflow-hidden rounded-xl shadow-2xl border border-gray-100 bg-white ${sideBySideMediaHeight}`}>
+                                    <video
+                                        src={videos[currentVideoIndex]?.url?.startsWith('http') ? videos[currentVideoIndex].url : getImagePath(videos[currentVideoIndex]?.url || '')}
+                                        className="w-full h-full object-cover"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                    />
+                                </div>
+
+                                {/* Manual slide controls (no autoplay) */}
+                                {videos.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={previousVideo}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                                            aria-label={t('Previous video')}
+                                        >
+                                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={nextVideo}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                                            aria-label={t('Next video')}
+                                        >
+                                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+
+                                        <div className={`flex justify-center mt-6 ${sideBySideFooterHeight} items-center space-x-3`}>
+                                            {videos.map((_, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => setCurrentVideoIndex(index)}
+                                                    className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                                                        index === currentVideoIndex
+                                                            ? 'scale-125'
+                                                            : 'bg-gray-300 hover:bg-gray-500 hover:scale-110'
+                                                    }`}
+                                                    style={index === currentVideoIndex ? { backgroundColor: colors.primary } : {}}
+                                                    aria-label={t('Go to video {{n}}', { n: index + 1 })}
+                                                />
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Remove video title under player in side-by-side layout */}
+                            </AnimateOnScroll>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center mb-16">
+                        <SectionHeading
+                            title={title}
+                            subtitle={subtitle}
+                            accentColor={colors.primary}
+                        />
+                        <AnimateOnScroll direction="up" delayMs={160}>
+                            <div className="mt-12">{renderGalleryContent()}</div>
+                        </AnimateOnScroll>
+                    </div>
+                )}
             </div>
         </section>
     );

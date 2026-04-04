@@ -11,6 +11,7 @@ import Modules from './components/Modules';
 import Benefits from './components/Benefits';
 import Gallery from './components/Gallery';
 import TrackerFeatures from './components/TrackerFeatures';
+import HowWorksVideos from './components/HowWorksVideos';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 
@@ -57,7 +58,7 @@ export default function Landing({ settings }: LandingProps) {
     };
     
     const sectionOrder = settings?.config_sections?.section_order || 
-        ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'cta', 'footer'];
+        ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer'];
     
     const renderSection = useCallback((sectionKey: string) => {
         if (!isSectionVisible(sectionKey)) return null;
@@ -79,6 +80,8 @@ export default function Landing({ settings }: LandingProps) {
                 return <Benefits key={sectionKey} settings={settings} />;
             case 'gallery':
                 return <Gallery key={sectionKey} settings={settings} />;
+            case 'how_works_videos':
+                return <HowWorksVideos key={sectionKey} settings={settings} />;
             case 'cta':
                 return <CTA key={sectionKey} settings={settings} />;
             case 'footer':
@@ -90,7 +93,7 @@ export default function Landing({ settings }: LandingProps) {
 
     return (
         <div className="min-h-screen bg-white">
-            <Head title={`${settings?.company_name || 'ERPGo SaaS'} - All-in-One Business Management Solution`}>
+            <Head title={`${settings?.company_name || 'Hrmswala SaaS'} - All-in-One Business Management Solution`}>
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             

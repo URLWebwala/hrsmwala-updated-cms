@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ChevronDown, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getImagePath } from '@/utils/helpers';
+import AnimateOnScroll from './AnimateOnScroll';
+import SectionHeading from './SectionHeading';
 
 interface ModulesProps {
     settings?: any;
@@ -245,9 +247,16 @@ export default function Modules({ settings }: ModulesProps) {
     return (
         <section className={config.section}>
             <div className={config.container}>
-                <h2 className={config.title}>{title}</h2>
-                <p className={config.subtitle}>{subtitle}</p>
-                {renderContent()}
+                <div className="mb-16">
+                    <SectionHeading
+                        title={title}
+                        subtitle={subtitle}
+                        accentColor={colors.primary}
+                    />
+                </div>
+                <AnimateOnScroll direction="up" delayMs={160}>
+                    {renderContent()}
+                </AnimateOnScroll>
             </div>
         </section>
     );

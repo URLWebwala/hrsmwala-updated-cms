@@ -34,7 +34,7 @@ class MarketplaceSettingSeeder extends Seeder
                 'sections' => [
                     'hero' => [
                         'variant' => 'hero1',
-                        'title' => 'Landing Page Builder for ERPGo SaaS',
+                            'title' => 'Landing Page Builder for Hrmswala SaaS',
                         'subtitle' => 'Create beautiful, responsive landing pages with our drag-and-drop builder and professional templates.',
                         'primary_button_text' => 'Install Builder',
                         'primary_button_link' => '#install',

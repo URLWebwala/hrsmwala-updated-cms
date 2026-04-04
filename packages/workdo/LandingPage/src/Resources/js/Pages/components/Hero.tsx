@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { getImagePath } from '@/utils/helpers';
 import { useTranslation } from 'react-i18next';
+import AnimateOnScroll from './AnimateOnScroll';
 
 interface HeroProps {
     settings?: any;
@@ -59,7 +60,7 @@ export default function Hero({ settings }: HeroProps) {
     const variant = sectionData.variant || 'hero1';
     const config = HERO_VARIANTS[variant as keyof typeof HERO_VARIANTS] || HERO_VARIANTS.hero1;
     
-    const title = sectionData.title || 'Transform Your Business with ERPGo SaaS';
+    const title = sectionData.title || 'Transform Your Business with Hrmswala SaaS';
     const subtitle = sectionData.subtitle || 'The complete all-in-one business management solution that combines ERP, Accounting, CRM, POS, HRM, and Project Management into a single powerful platform.';
     const primaryButtonText = sectionData.primary_button_text || 'Start Free Trial';
     const primaryButtonLink = sectionData.primary_button_link || route('register');
@@ -142,13 +143,15 @@ export default function Hero({ settings }: HeroProps) {
 
     const renderContent = () => (
         <div className={config.layout === 'split' || config.layout === 'right-split' ? '' : 'w-full text-center'}>
-            <h1 className={config.title}>
-                {renderTitle()}
-            </h1>
-            <p className={config.subtitle}>
-                {subtitle}
-            </p>
-            {renderButtons()}
+            <AnimateOnScroll direction="up">
+                <h1 className={config.title}>{renderTitle()}</h1>
+            </AnimateOnScroll>
+            <AnimateOnScroll direction="up" delayMs={80}>
+                <p className={config.subtitle}>{subtitle}</p>
+            </AnimateOnScroll>
+            <AnimateOnScroll direction="up" delayMs={140}>
+                {renderButtons()}
+            </AnimateOnScroll>
         </div>
     );
 
@@ -160,13 +163,13 @@ export default function Hero({ settings }: HeroProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         {config.layout === 'right-split' ? (
                             <>
-                                {renderImage()}
+                                <AnimateOnScroll direction="up">{renderImage()}</AnimateOnScroll>
                                 {renderContent()}
                             </>
                         ) : (
                             <>
                                 {renderContent()}
-                                {renderImage()}
+                                <AnimateOnScroll direction="up" delayMs={120}>{renderImage()}</AnimateOnScroll>
                             </>
                         )}
                     </div>

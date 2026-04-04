@@ -257,7 +257,7 @@ export default function Features({ settings }: FeaturesProps) {
                             <ChevronRight className="w-6 h-6" />
                         </button>
                         <div className="flex justify-center mt-8 space-x-2">
-                            {features.map((_, index) => (
+                            {features.map((_: any, index: number) => (
                                 <button
                                     key={index}
                                     onClick={() => setCurrentSlide(index)}

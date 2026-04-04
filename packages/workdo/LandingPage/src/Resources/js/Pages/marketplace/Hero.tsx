@@ -64,7 +64,7 @@ export default function MarketplaceHero({ settings, title: propTitle, subtitle: 
     const config = HERO_VARIANTS[variant as keyof typeof HERO_VARIANTS] || HERO_VARIANTS.hero1;
     
     const title = propTitle || sectionData.title || 'Discover Premium Business Packages';
-    const subtitle = propSubtitle || sectionData.subtitle || 'Extend your ERPGo SaaS with powerful premium modules. From advanced CRM to specialized industry solutions.';
+    const subtitle = propSubtitle || sectionData.subtitle || 'Extend your Hrmswala SaaS with powerful premium modules. From advanced CRM to specialized industry solutions.';
     const primaryButtonText = primaryButton || sectionData.primary_button_text || 'Browse Packages';
     const primaryButtonLink = sectionData.primary_button_link || '#packages';
     const secondaryButtonText = secondaryButton || sectionData.secondary_button_text || 'View Categories';

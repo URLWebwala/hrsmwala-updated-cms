@@ -3,6 +3,7 @@ import { Link, router } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import AnimateOnScroll from './AnimateOnScroll';
 
 interface FooterProps {
     settings?: any;
@@ -74,7 +75,7 @@ export default function Footer({ settings }: FooterProps) {
     const variant = sectionData.variant || 'footer1';
     const config = FOOTER_VARIANTS[variant as keyof typeof FOOTER_VARIANTS] || FOOTER_VARIANTS.footer1;
     
-    const companyName = settings?.company_name || 'ERPGo SaaS';
+    const companyName = settings?.company_name || 'Hrmswala SaaS';
     const description = sectionData.description || 'The complete business management solution for modern enterprises.';
     const contactEmail = settings?.contact_email || 'support@erpgosaas.com';
     const phone = settings?.contact_phone || '+1 (555) 123-4567';
@@ -456,7 +457,7 @@ export default function Footer({ settings }: FooterProps) {
 
     // Standard and modern layouts
     return (
-        <footer className={config.footer} style={getBackgroundStyle()}>
+        <footer className={`${config.footer} relative overflow-hidden`} style={getBackgroundStyle()}>
             {config.layout === 'modern' && (
                 <>
                     <div className="absolute inset-0 bg-black/20"></div>
@@ -465,6 +466,14 @@ export default function Footer({ settings }: FooterProps) {
                         <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
                         <div className="absolute bottom-20 right-20 w-48 h-48 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
                         <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-white/10 rounded-full blur-2xl animate-pulse delay-500"></div>
+                    </div>
+                    {/* Big watermark brand text */}
+                    <div className="absolute inset-x-0 bottom-0 pointer-events-none select-none">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="text-[52px] sm:text-[72px] md:text-[96px] lg:text-[120px] font-black tracking-tight leading-none text-white/10">
+                                HRMSWALA
+                            </div>
+                        </div>
                     </div>
                     <style>{`
                         @keyframes gradientShift {
@@ -476,11 +485,13 @@ export default function Footer({ settings }: FooterProps) {
                 </>
             )}
             <div className={config.container}>
-                <div className={config.grid}>
-                    {renderCompanyInfo()}
-                    {renderNavigationSections()}
-                    {renderNewsletter()}
-                </div>
+                <AnimateOnScroll direction="up">
+                    <div className={config.grid}>
+                        {renderCompanyInfo()}
+                        {renderNavigationSections()}
+                        {renderNewsletter()}
+                    </div>
+                </AnimateOnScroll>
                 <div className={config.copyright}>
                     <p>{copyrightText}</p>
                 </div>

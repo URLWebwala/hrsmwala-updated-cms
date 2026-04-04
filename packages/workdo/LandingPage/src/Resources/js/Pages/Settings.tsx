@@ -13,10 +13,12 @@ import General from './components/settings/General';
 import Hero from './components/settings/Hero';
 import Header from './components/settings/Header';
 import Features from './components/settings/Features';
+import TrackerFeatures from './components/settings/TrackerFeatures';
 import Stats from './components/settings/Stats';
 import Modules from './components/settings/Modules';
 import Benefits from './components/settings/Benefits';
 import Gallery from './components/settings/Gallery';
+import HowWorksVideos from './components/settings/HowWorksVideos';
 import CTA from './components/settings/CTA';
 import Footer from './components/settings/Footer';
 import Order from './components/settings/Order';
@@ -65,7 +67,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
         
 
     const [activeTab, setActiveTab] = useState<'setup' | 'layout' | 'content' | 'social' | 'engagement' | 'page'>('setup');
-    const [activeSection, setActiveSection] = useState<'general' | 'header' | 'hero' | 'stats' | 'features' | 'modules' | 'benefits' | 'gallery' | 'cta' | 'footer' | 'order' | 'colors' | 'pricing'>('general');
+    const [activeSection, setActiveSection] = useState<'general' | 'header' | 'hero' | 'stats' | 'features' | 'tracker_features' | 'modules' | 'benefits' | 'gallery' | 'how_works_videos' | 'cta' | 'footer' | 'order' | 'colors' | 'pricing'>('general');
     const [isLoading, setIsLoading] = useState(false);
     
     const { data, setData, post, put, processing, reset } = useForm({
@@ -80,14 +82,16 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                 hero: true,
                 stats: true,
                 features: true,
+                tracker_features: true,
                 modules: true,
                 benefits: true,
                 gallery: true,
+                how_works_videos: true,
                 cta: true,
                 footer: true,
                 pricing: true
             },
-            section_order: ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'cta', 'footer']
+            section_order: ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer']
         }
     });
 
@@ -171,8 +175,8 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                             {[
                                 { key: 'setup', label: t('Setup'), sections: ['general', 'order', 'colors'] },
                                 { key: 'layout', label: t('Layout'), sections: ['header', 'hero', 'footer'] },
-                                { key: 'content', label: t('Content'), sections: ['features', 'modules', 'benefits'] },
-                                { key: 'social', label: t('Social'), sections: ['stats', 'gallery'] },
+                                { key: 'content', label: t('Content'), sections: ['features', 'tracker_features', 'modules', 'benefits'] },
+                                { key: 'social', label: t('Social'), sections: ['stats', 'gallery', 'how_works_videos'] },
                                 { key: 'engagement', label: t('Engagement'), sections: ['cta'] },
                                 { key: 'page', label: t('Page'), sections: ['pricing'] }
                             ].map(tab => (
@@ -203,8 +207,8 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                 const tabSections = {
                                     setup: [{ key: 'general', label: t('General') }, { key: 'order', label: t('Order') }, { key: 'colors', label: t('Colors') }],
                                     layout: [{ key: 'header', label: t('Header') }, { key: 'hero', label: t('Hero') }, { key: 'footer', label: t('Footer') }],
-                                    content: [{ key: 'features', label: t('Features') }, { key: 'modules', label: t('Modules') }, { key: 'benefits', label: t('Benefits') }],
-                                    social: [{ key: 'stats', label: t('Stats') }, { key: 'gallery', label: t('Gallery') }],
+                                    content: [{ key: 'features', label: t('Features') }, { key: 'tracker_features', label: t('Tracker Features') }, { key: 'modules', label: t('Modules') }, { key: 'benefits', label: t('Benefits') }],
+                                    social: [{ key: 'stats', label: t('Stats') }, { key: 'gallery', label: t('Gallery') }, { key: 'how_works_videos', label: t('How Works Videos') }],
                                     engagement: [{ key: 'cta', label: t('CTA') }],
                                     page: [{ key: 'pricing', label: t('Pricing') }]
                                 };
@@ -252,6 +256,15 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                             />
                         )}
 
+                        {activeSection === 'tracker_features' && (
+                            <TrackerFeatures
+                                data={data}
+                                getSectionData={getSectionData}
+                                updateSectionData={updateSectionData}
+                                updateSectionVisibility={updateSectionVisibility}
+                            />
+                        )}
+
                         {activeSection === 'header' && (
                             <Header 
                                 data={data} 
@@ -292,6 +305,15 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                         {activeSection === 'gallery' && (
                             <Gallery 
                                 data={data} 
+                                getSectionData={getSectionData}
+                                updateSectionData={updateSectionData}
+                                updateSectionVisibility={updateSectionVisibility}
+                            />
+                        )}
+
+                        {activeSection === 'how_works_videos' && (
+                            <HowWorksVideos
+                                data={data}
                                 getSectionData={getSectionData}
                                 updateSectionData={updateSectionData}
                                 updateSectionVisibility={updateSectionVisibility}

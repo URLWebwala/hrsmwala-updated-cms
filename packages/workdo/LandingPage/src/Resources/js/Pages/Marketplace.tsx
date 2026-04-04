@@ -103,7 +103,7 @@ export default function Marketplace({ packages = [], settings, landingPageSettin
             '--color-secondary': colorScheme.secondary,
             '--color-accent': colorScheme.accent
         } as React.CSSProperties}>
-            <Head title={`${settings?.title || 'ERPGo SaaS Marketplace'} - Premium Packages`}>
+            <Head title={`${settings?.title || 'Hrmswala SaaS Marketplace'} - Premium Packages`}>
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             

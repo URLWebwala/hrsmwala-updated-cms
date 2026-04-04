@@ -34,7 +34,7 @@ export function LandingPreview({ settings }: LandingPreviewProps) {
         return (
           <div key={sectionKey} className="flex justify-between items-center p-3 bg-white border-b shadow-sm">
             <div className="text-sm font-bold" style={{ color: colors.primary }}>
-              {sectionData.company_name || settings?.company_name || 'ERPGo SaaS'}
+              {sectionData.company_name || settings?.company_name || 'Hrmswala SaaS'}
             </div>
             <div className="text-xs text-white px-3 py-1 rounded-full shadow-sm transition-colors" style={{ backgroundColor: colors.primary }}>
               {sectionData.cta_text || t('Get Started')}

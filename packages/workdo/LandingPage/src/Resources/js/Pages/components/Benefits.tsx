@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, CheckCircle, ArrowRight } from 'lucide-react';
+import AnimateOnScroll from './AnimateOnScroll';
+import SectionHeading from './SectionHeading';
 
 interface BenefitsProps {
     settings?: any;
@@ -43,7 +45,7 @@ export default function Benefits({ settings }: BenefitsProps) {
     const variant = sectionData.variant || 'benefits1';
     const config = BENEFITS_VARIANTS[variant as keyof typeof BENEFITS_VARIANTS] || BENEFITS_VARIANTS.benefits1;
     
-    const title = sectionData.title || 'Why Choose ERPGo SaaS?';
+    const title = sectionData.title || 'Why Choose Hrmswala SaaS?';
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     const [openAccordion, setOpenAccordion] = useState(0);
     const [activeTab, setActiveTab] = useState(0);
@@ -174,8 +176,15 @@ export default function Benefits({ settings }: BenefitsProps) {
     return (
         <section className={config.section}>
             <div className={config.container}>
-                <h2 className={config.title}>{title}</h2>
-                {renderContent()}
+                <div className="mb-12">
+                    <SectionHeading
+                        title={title}
+                        accentColor={colors.primary}
+                    />
+                </div>
+                <AnimateOnScroll direction="up" delayMs={140}>
+                    {renderContent()}
+                </AnimateOnScroll>
             </div>
         </section>
     );
