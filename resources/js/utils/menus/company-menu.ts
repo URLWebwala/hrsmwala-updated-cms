@@ -28,7 +28,7 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
             {
                 title: t('Login History'),
                 href: route('users.login-history'),
-                permission: 'manage-login-history',
+                permission: 'view-login-history',
             },
         ],
     },
