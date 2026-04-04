@@ -1,13 +1,18 @@
 @props(['url'])
+@php
+    $logo = admin_setting('logo_dark');
+    $imageUrlPrefix = getImageUrlPrefix();
+    $logo_url = $logo ? $imageUrlPrefix . $logo : null;
+@endphp
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-@if (config('mail.logo_url'))
+@if ($logo_url)
+<img src="{{ $logo_url }}" class="logo" alt="{{ config('app.name') }}" style="height: 50px;">
+@elseif (config('mail.logo_url'))
 <img src="{{ config('mail.logo_url') }}" class="logo" alt="Logo" style="height: 50px;">
-@elseif (trim($slot) === 'Laravel')
-<img src="https://laravel.com/img/notification-logo.png" class="logo" alt="Laravel Logo">
 @else
-{!! $slot !!}
+{{ config('app.name') }}
 @endif
 </a>
 </td>
