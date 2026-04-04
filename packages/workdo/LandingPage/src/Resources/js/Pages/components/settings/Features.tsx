@@ -94,7 +94,16 @@ export default function Features({ data, getSectionData, updateSectionData, upda
                                         { value: 'Users', label: 'Users' },
                                         { value: 'CreditCard', label: 'Credit Card' },
                                         { value: 'UserCheck', label: 'User Check' },
-                                        { value: 'FolderOpen', label: 'Folder' }
+                                        { value: 'FolderOpen', label: 'Folder' },
+                                        { value: 'DollarSign', label: 'Dollar / Finance' },
+                                        { value: 'Briefcase', label: 'Briefcase / Project' },
+                                        { value: 'Clock', label: 'Clock / Time' },
+                                        { value: 'UserPlus', label: 'User Plus / Recruitment' },
+                                        { value: 'TrendingUp', label: 'Trending Up / Performance' },
+                                        { value: 'Headphones', label: 'Headphones / Support' },
+                                        { value: 'ShoppingCart', label: 'Shopping Cart / POS' },
+                                        { value: 'Cpu', label: 'AI / CPU' },
+                                        { value: 'Link', label: 'Link / Integration' }
                                     ],
                                     required: true
                                 }
