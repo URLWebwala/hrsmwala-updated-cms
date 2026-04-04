@@ -16,6 +16,16 @@ use Illuminate\Support\Facades\Auth;
 
 class LandingPageController extends Controller
 {
+    private function getCareerDefaultSlug(): ?string
+    {
+        try {
+            // Recruitment frontend expects an existing user slug.
+            return User::whereNotNull('slug')->where('slug', '!=', '')->value('slug');
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function index(Request $request)
     {
         $settings = Cache::remember('landing_page_settings', 3600, function () {
@@ -37,6 +47,8 @@ class LandingPageController extends Controller
         $settingsData = $settings ? $settings->toArray() : [];
         $settingsData['enable_registration'] = $enableRegistration === 'on';
         $settingsData['is_authenticated'] = $request->user() !== null;
+        $settingsData = $this->normalizeLandingSettings($settingsData);
+        $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
 
         return Inertia::render('LandingPage/Landing', [
             'auth' => [
@@ -66,6 +78,8 @@ class LandingPageController extends Controller
         $settingsData = $landingPageSettings ? $landingPageSettings->toArray() : [];
         $settingsData['enable_registration'] = $enableRegistration === 'on';
         $settingsData['is_authenticated'] = $request->user() !== null;
+        $settingsData = $this->normalizeLandingSettings($settingsData);
+        $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
 
         return Inertia::render('LandingPage/Pricing', [
             'plans' => $plans->map(function($plan) {
@@ -95,6 +109,13 @@ class LandingPageController extends Controller
         if(Auth::user()->can('manage-landing-page')){
             $settings = LandingPageSetting::first();
             $customPages = CustomPage::where('is_active', true)->select('id', 'title', 'slug')->get();
+
+            if ($settings) {
+                $settingsArray = $this->normalizeLandingSettings($settings->toArray());
+                $settings = new LandingPageSetting($settingsArray);
+                $settings->id = $settingsArray['id'] ?? 1;
+            }
+
             return Inertia::render('LandingPage/Settings', [
                 'settings' => $settings ?: [
                     'company_name' => '',
@@ -108,13 +129,15 @@ class LandingPageController extends Controller
                             'hero' => true,
                             'stats' => true,
                             'features' => true,
+                            'tracker_features' => true,
                             'modules' => true,
                             'benefits' => true,
                             'gallery' => true,
+                            'how_works_videos' => true,
                             'cta' => true,
                             'footer' => true
                         ],
-                        'section_order' => ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'cta', 'footer']
+                        'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer']
                     ]
                 ],
                 'customPages' => $customPages
@@ -142,6 +165,7 @@ class LandingPageController extends Controller
             }
 
             LandingPageSetting::updateOrCreate(['id' => 1], $validated);
+            Cache::forget('landing_page_settings');
 
             return back()->with('success', __('Settings saved successfully'));
         }
@@ -158,10 +182,32 @@ class LandingPageController extends Controller
                 if (isset($sectionData['image'])) {
                     $sectionData['image'] = $this->processImagePath($sectionData['image']);
                 }
+                // Handle single video
+                if (isset($sectionData['video'])) {
+                    $sectionData['video'] = $this->processImagePath($sectionData['video']);
+                }
                 
                 // Handle gallery images array
                 if (isset($sectionData['images']) && is_array($sectionData['images'])) {
                     $sectionData['images'] = array_map([$this, 'processImagePath'], $sectionData['images']);
+                }
+
+                // Handle videos array
+                if (isset($sectionData['videos']) && is_array($sectionData['videos'])) {
+                    $sectionData['videos'] = array_map(function ($videoItem) {
+                        // supports string[] OR {url,title}[] OR {video,title}[]
+                        if (is_string($videoItem)) {
+                            return $this->processImagePath($videoItem);
+                        }
+                        if (is_array($videoItem)) {
+                            $url = $videoItem['url'] ?? $videoItem['video'] ?? null;
+                            if (is_string($url)) {
+                                $videoItem['url'] = $this->processImagePath($url);
+                            }
+                            return $videoItem;
+                        }
+                        return $videoItem;
+                    }, $sectionData['videos']);
                 }
             }
         }
@@ -169,9 +215,65 @@ class LandingPageController extends Controller
 
     private function processImagePath($imagePath)
     {
+        if (! is_string($imagePath) || $imagePath === '') {
+            return $imagePath;
+        }
         if (strpos($imagePath, 'packages/workdo') !== false) {
             return $imagePath;
         }
         return basename($imagePath);
+    }
+
+    private function normalizeLandingSettings(array $settingsData): array
+    {
+        $defaults = [
+            'sections' => [],
+            'section_visibility' => [
+                'header' => true,
+                'hero' => true,
+                'stats' => true,
+                'features' => true,
+                'tracker_features' => true,
+                'modules' => true,
+                'benefits' => true,
+                'gallery' => true,
+                'how_works_videos' => true,
+                'cta' => true,
+                'footer' => true,
+            ],
+            'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer'],
+        ];
+
+        $config = $settingsData['config_sections'] ?? [];
+        $config['sections'] = is_array($config['sections'] ?? null) ? $config['sections'] : [];
+        $config['section_visibility'] = is_array($config['section_visibility'] ?? null) ? $config['section_visibility'] : [];
+        $config['section_order'] = is_array($config['section_order'] ?? null) ? $config['section_order'] : [];
+
+        // Merge visibility defaults (don't override existing explicit false/true)
+        $config['section_visibility'] = array_merge($defaults['section_visibility'], $config['section_visibility']);
+
+        // Merge order defaults while preserving existing order
+        $order = $config['section_order'];
+        foreach ($defaults['section_order'] as $key) {
+            if (! in_array($key, $order, true)) {
+                // Place tracker_features after features, how_works_videos after gallery if possible.
+                if ($key === 'tracker_features' && in_array('features', $order, true)) {
+                    $pos = array_search('features', $order, true);
+                    array_splice($order, $pos + 1, 0, [$key]);
+                    continue;
+                }
+                if ($key === 'how_works_videos' && in_array('gallery', $order, true)) {
+                    $pos = array_search('gallery', $order, true);
+                    array_splice($order, $pos + 1, 0, [$key]);
+                    continue;
+                }
+                $order[] = $key;
+            }
+        }
+        $config['section_order'] = $order;
+
+        $settingsData['config_sections'] = array_merge($defaults, $config);
+
+        return $settingsData;
     }
 }
