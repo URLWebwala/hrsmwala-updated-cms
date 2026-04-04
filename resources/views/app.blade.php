@@ -51,16 +51,14 @@
         }
         </script>
 
-        <!-- Google Analytics Placeholder (Replace with your actual ID) -->
-        <!-- 
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <!-- Google Analytics (G-SSK2G4XLS3) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-SSK2G4XLS3"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-XXXXXXXXXX');
+          gtag('config', 'G-SSK2G4XLS3');
         </script>
-        -->
 
         <title inertia>{{ config('app.name', 'HRMswala SaaS') }}</title>
 
