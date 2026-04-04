@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Building2, Calculator, Users, CreditCard, UserCheck, FolderOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, Calculator, Users, CreditCard, UserCheck, FolderOpen, ChevronLeft, ChevronRight, DollarSign, Briefcase, Clock, UserPlus, TrendingUp, Headphones, ShoppingCart, Cpu, Link } from 'lucide-react';
+import AnimateOnScroll from './AnimateOnScroll';
+import SectionHeading from './SectionHeading';
 
 interface FeaturesProps {
     settings?: any;
@@ -85,7 +87,23 @@ export default function Features({ settings }: FeaturesProps) {
     }, [config.layout, features.length]);
 
     const getIcon = (iconName: string) => {
-        const icons = { Building2, Calculator, Users, CreditCard, UserCheck, FolderOpen };
+        const icons = { 
+            Building2, 
+            Calculator, 
+            Users, 
+            CreditCard, 
+            UserCheck, 
+            FolderOpen,
+            DollarSign,
+            Briefcase,
+            Clock,
+            UserPlus,
+            TrendingUp,
+            Headphones,
+            ShoppingCart,
+            Cpu,
+            Link
+        };
         return icons[iconName as keyof typeof icons] || Building2;
     };
 
@@ -168,12 +186,16 @@ export default function Features({ settings }: FeaturesProps) {
                 <div className={config.container}>
                     <div className={config.grid}>
                         <div>
-                            <h2 className={config.title}>{title}</h2>
-                            <p className={config.subtitle}>{subtitle}</p>
+                            <SectionHeading
+                                title={title}
+                                subtitle={subtitle}
+                                align={config.layout === 'split' ? 'left' : 'center'}
+                                accentColor={colors.primary}
+                            />
                         </div>
-                        <div className="space-y-4">
+                        <AnimateOnScroll direction="up" delayMs={160} className="space-y-4">
                             {features.map((feature: any, index: number) => renderFeature(feature, index))}
-                        </div>
+                        </AnimateOnScroll>
                     </div>
                 </div>
             </section>
@@ -206,17 +228,22 @@ export default function Features({ settings }: FeaturesProps) {
         return (
             <section className={config.section}>
                 <div className={config.container}>
-                    <h2 className={config.title}>{title}</h2>
-                    <p className={config.subtitle}>{subtitle}</p>
+                    <SectionHeading
+                        title={title}
+                        subtitle={subtitle}
+                        accentColor={colors.primary}
+                    />
                     <div className="relative">
-                        <div className={config.grid}>
+                        <AnimateOnScroll direction="up" delayMs={160}>
+                            <div className={config.grid}>
                             <div 
                                 className={`flex transition-transform duration-500 ease-in-out ${currentSlide >= features.length ? 'transition-none' : ''}`}
                                 style={{ transform: `translateX(-${currentSlide * 344}px)` }}
                             >
                                 {duplicatedFeatures.map((feature: any, index: number) => renderFeature(feature, index))}
                             </div>
-                        </div>
+                            </div>
+                        </AnimateOnScroll>
                         <button
                             onClick={prevSlide}
                             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110 z-10"
@@ -250,11 +277,16 @@ export default function Features({ settings }: FeaturesProps) {
     return (
         <section className={config.section}>
             <div className={config.container}>
-                <h2 className={config.title}>{title}</h2>
-                <p className={config.subtitle}>{subtitle}</p>
-                <div className={config.grid}>
-                    {features.map((feature: any, index: number) => renderFeature(feature, index))}
-                </div>
+                <SectionHeading
+                    title={title}
+                    subtitle={subtitle}
+                    accentColor={colors.primary}
+                />
+                <AnimateOnScroll direction="up" delayMs={160}>
+                    <div className={config.grid}>
+                        {features.map((feature: any, index: number) => renderFeature(feature, index))}
+                    </div>
+                </AnimateOnScroll>
             </div>
         </section>
     );
