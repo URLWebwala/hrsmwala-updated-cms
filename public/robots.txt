@@ -1,4 +1,5 @@
 # Robots.txt for HRMswala SaaS
+# version 1.1
 User-agent: *
 Allow: /
 
