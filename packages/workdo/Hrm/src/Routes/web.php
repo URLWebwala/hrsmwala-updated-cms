@@ -352,6 +352,7 @@ Route::middleware(['web', 'auth', 'verified', 'PlanModuleCheck:Hrm'])->group(fun
         Route::post('/clock-in', [AttendanceController::class, 'clockIn'])->name('clock-in');
         Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('clock-out');
         Route::get('/clock-status', [AttendanceController::class, 'getClockStatus'])->name('clock-status');
+        Route::get('/monthly', [AttendanceController::class, 'monthly'])->name('monthly');
     });
 
     Route::prefix('hrm/set-salary')->name('hrm.set-salary.')->group(function () {

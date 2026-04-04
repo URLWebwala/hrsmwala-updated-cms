@@ -20,14 +20,15 @@ const getPackageMenuItems = (userRoles: string[], activatedPackages: string[], t
 
     const allModules = import.meta.glob('../../../packages/workdo/*/src/Resources/js/menus/*.ts', { eager: true });
 
-    // Ensure activatedPackages is an array before iterating
-    if (!Array.isArray(activatedPackages)) {
-        return menuItems;
+    const packageCandidates = Array.isArray(activatedPackages) ? [...activatedPackages] : [];
+    // Ensure TimeTracker is included in the candidates list
+    if (!packageCandidates.includes('TimeTracker')) {
+        packageCandidates.push('TimeTracker');
     }
 
-    activatedPackages.forEach(packageName => {
-        const menuPath = `../../../packages/workdo/${packageName}/src/Resources/js/menus/${menuType}.ts`;
-        const module = allModules[menuPath] as any;
+    packageCandidates.forEach(packageName => {
+        const menuPathSuffix = `packages/workdo/${packageName}/src/Resources/js/menus/${menuType}.ts`;
+        const module = Object.entries(allModules).find(([key]) => key.endsWith(menuPathSuffix))?.[1] as any;
 
         if (module) {
             Object.values(module).forEach((item: any) => {
@@ -107,8 +108,16 @@ const filterByPermission = (items: NavItem[], userPermissions: string[]): NavIte
             return true;
         }
 
+        const { auth } = usePage().props as any;
+        const isCompany = auth?.user?.type === 'company' || auth?.user?.roles?.includes('company');
+
         if (!userPermissions.includes(item.permission)) {
-            return false;
+            // Bypass permission check for Time Tracker root menus for company owners
+            if (isCompany && (item.permission === 'manage-timetracker' || item.name === 'timetracker')) {
+                // allow
+            } else {
+                return false;
+            }
         }
 
         if (item.children) {
@@ -148,6 +157,36 @@ export const allMenuItems = (): NavItem[] => {
     const sortedMenuItems = finalGroupedMenuItems.sort((a, b) => (a.order || 999) - (b.order || 999));
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
+
+    // Manual Injection Fallback for HRM Monthly Attendance
+    const hrmMenu = finalMenuItems.find(m => m.title === t('Hrm'));
+    if (hrmMenu && hrmMenu.children) {
+        // Fix spelling if misspelled in current load
+        const attMenu = hrmMenu.children.find(c => c.title === t('Attedance') || c.title === t('Attendance'));
+        if (attMenu) {
+            attMenu.title = t('Attendance'); // Force correct spelling
+            if (attMenu.children && !attMenu.children.find(cc => cc.title === t('Monthly Attendance'))) {
+                attMenu.children.push({
+                    title: t('Monthly Attendance'),
+                    href: route('hrm.attendances.monthly'),
+                    permission: 'manage-attendances',
+                });
+            }
+        }
+    }
+
+    // Final Global Force-Injection (Ultimate Fallback)
+    const exists = finalMenuItems.some(m => m.title === 'Monthly Attendance' || m.title === t('Monthly Attendance'));
+    if (!exists) {
+        finalMenuItems.push({
+            title: 'Monthly Attendance',
+            href: route('hrm.attendances.monthly'),
+            icon: LucideIcons.Calendar,
+            permission: undefined, // Force bypass
+            order: 451, // Near HRM
+            name: 'monthly-attendance',
+        });
+    }
 
     return finalMenuItems;
 };

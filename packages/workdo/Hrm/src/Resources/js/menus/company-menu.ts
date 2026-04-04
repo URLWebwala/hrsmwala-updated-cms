@@ -40,7 +40,7 @@ export const hrmCompanyMenu = (t: (key: string) => string) => [
                 ],
             },
             {
-                title: t('Attedance'),
+                title: t('Attendance'),
                 permission: 'manage-attendances',
                 children: [
                     {
@@ -51,6 +51,11 @@ export const hrmCompanyMenu = (t: (key: string) => string) => [
                     {
                         title: t('Attendances'),
                         href: route('hrm.attendances.index'),
+                        permission: 'manage-attendances',
+                    },
+                    {
+                        title: t('Monthly Attendance'),
+                        href: route('hrm.attendances.monthly'),
                         permission: 'manage-attendances',
                     },
                 ],

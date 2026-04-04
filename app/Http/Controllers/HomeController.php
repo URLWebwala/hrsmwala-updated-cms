@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -23,12 +24,19 @@ class HomeController extends Controller
 
     private function superAdminDashboard()
     {
-        $orderData = Order::selectRaw('MONTH(created_at) as month, COUNT(*) as count, SUM(price) as payments')
+        $driver = DB::getDriverName();
+        $selectRaw = $driver === 'sqlite' 
+            ? "strftime('%m', created_at) as month, COUNT(*) as count, SUM(price) as payments"
+            : "MONTH(created_at) as month, COUNT(*) as count, SUM(price) as payments";
+
+        $orderData = Order::selectRaw($selectRaw)
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')
             ->get()
-            ->keyBy('month');
+            ->keyBy(function ($item) {
+                return (int)$item->month;
+            });
 
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $chartData = [];

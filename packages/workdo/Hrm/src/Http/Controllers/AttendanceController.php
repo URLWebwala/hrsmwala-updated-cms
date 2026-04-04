@@ -561,16 +561,125 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function monthly(\Illuminate\Http\Request $request)
+    {
+        if (Auth::user()->can('manage-attendances')) {
+            $monthYear = $request->month ? \Carbon\Carbon::parse($request->month) : \Carbon\Carbon::now();
+            $month = $monthYear->month;
+            $year = $monthYear->year;
+
+            $branchId = $request->branch_id;
+            $departmentId = $request->department_id;
+            $employeeId = $request->employee_id;
+
+            $employeesQuery = Employee::with('user')->where('created_by', creatorId());
+            if ($branchId) $employeesQuery->where('branch_id', $branchId);
+            if ($departmentId) $employeesQuery->where('department_id', $departmentId);
+            if ($employeeId) $employeesQuery->where('user_id', $employeeId);
+            
+            $employees = $employeesQuery->get();
+            $employeeIds = $employees->pluck('user_id')->toArray();
+
+            // Bulk data fetching to avoid N+1
+            $allAttendances = Attendance::whereIn('employee_id', $employeeIds)
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->groupBy(['employee_id', function ($item) {
+                    return \Carbon\Carbon::parse($item->date)->day;
+                }]);
+
+            $leaves = LeaveApplication::whereIn('employee_id', $employeeIds)
+                ->where('status', 'approved')
+                ->whereYear('start_date', '<=', $year) // Simplified date check
+                ->get();
+            
+            $holidays = Holiday::where('created_by', creatorId())
+                ->whereYear('start_date', '<=', $year)
+                ->get();
+
+            $daysInMonth = $monthYear->daysInMonth;
+            $attendanceData = [];
+
+            $totalPresent = 0;
+            $totalLeave = 0;
+            $totalOvertimeHours = 0;
+            $totalLateCount = 0;
+            $totalEarlyCount = 0;
+
+            foreach ($employees as $employee) {
+                $employeeAttendance = [];
+                for ($day = 1; $day <= $daysInMonth; $day++) {
+                    $date = \Carbon\Carbon::createFromDate($year, $month, $day)->format('Y-m-d');
+                    
+                    $status = '';
+                    $empDayAtt = isset($allAttendances[$employee->user_id][$day]) ? $allAttendances[$employee->user_id][$day]->first() : null;
+                    
+                    if ($empDayAtt) {
+                        if ($empDayAtt->status === 'present') {
+                            $status = 'P';
+                            $totalPresent++;
+                        } elseif ($empDayAtt->status === 'half day') {
+                            $status = 'H';
+                        } else {
+                            $status = 'A';
+                        }
+                        
+                        $totalOvertimeHours += $empDayAtt->overtime_hours ?? 0;
+                        if ($empDayAtt->clock_in > "09:15:00") $totalLateCount++; // Example late logic
+                    } else {
+                        // Check if leave
+                        $onLeave = $leaves->where('employee_id', $employee->user_id)
+                            ->filter(fn($l) => $date >= $l->start_date && $date <= $l->end_date)
+                            ->isNotEmpty();
+                        if ($onLeave) {
+                            $status = 'L';
+                            $totalLeave++;
+                        } else {
+                            // Check if holiday
+                            $isHoliday = $holidays->filter(fn($h) => $date >= $h->start_date && $date <= $h->end_date)->isNotEmpty();
+                            if ($isHoliday) $status = 'O';
+                        }
+                    }
+                    
+                    $employeeAttendance[$day] = $status;
+                }
+
+                $attendanceData[] = [
+                    'id' => $employee->id,
+                    'name' => $employee->user->name,
+                    'attendance' => $employeeAttendance
+                ];
+            }
+
+            return Inertia::render('Hrm/Attendances/Monthly', [
+                'attendanceData' => $attendanceData,
+                'daysInMonth' => $daysInMonth,
+                'month' => $monthYear->format('F Y'),
+                'branches' => \Workdo\Hrm\Models\Branch::where('created_by', creatorId())->get(),
+                'departments' => \Workdo\Hrm\Models\Department::where('created_by', creatorId())->get(),
+                'employees' => $this->getFilteredEmployees(),
+                'summary' => [
+                    'total_present' => $totalPresent,
+                    'total_leave' => $totalLeave,
+                    'total_overtime' => round($totalOvertimeHours, 2),
+                    'total_late' => $totalLateCount, 
+                    'total_early' => $totalEarlyCount,
+                    'duration' => $monthYear->format('M-Y')
+                ]
+            ]);
+        }
+        return back()->with('error', __('Permission denied'));
+    }
+
     private function getFilteredEmployees()
     {
         $employeeQuery = Employee::where('created_by', creatorId());
-
         if (Auth::user()->can('manage-own-attendances') && !Auth::user()->can('manage-any-attendances')) {
             $employeeQuery->where(function ($q) {
                 $q->where('creator_id', Auth::id())->orWhere('user_id', Auth::id());
             });
         }
-
         return User::emp()->where('created_by', creatorId())
             ->whereIn('id', $employeeQuery->pluck('user_id'))
             ->select('id', 'name')->get();
