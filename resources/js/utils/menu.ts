@@ -158,38 +158,6 @@ export const allMenuItems = (): NavItem[] => {
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 
-    // Manual Injection Fallback for HRM Monthly Attendance
-    const hrmMenu = finalMenuItems.find(m => m.title === t('Hrm'));
-    if (hrmMenu && hrmMenu.children) {
-        // Fix spelling if misspelled in current load
-        const attMenu = hrmMenu.children.find(c => c.title === t('Attedance') || c.title === t('Attendance'));
-        if (attMenu) {
-            attMenu.title = t('Attendance'); // Force correct spelling
-            if (attMenu.children && !attMenu.children.find(cc => cc.title === t('Monthly Attendance'))) {
-                attMenu.children.push({
-                    title: t('Monthly Attendance'),
-                    href: route('hrm.attendances.monthly'),
-                    permission: 'manage-attendances',
-                });
-            }
-        }
-    }
-
-    // Final Global Force-Injection (Ultimate Fallback for Company users)
-    const isCompany = auth?.user?.type === 'company';
-    if (isCompany) {
-        const exists = finalMenuItems.some(m => m.title === 'Monthly Attendance' || m.title === t('Monthly Attendance'));
-        if (!exists) {
-            finalMenuItems.push({
-                title: 'Monthly Attendance',
-                href: route('hrm.attendances.monthly'),
-                icon: LucideIcons.Calendar,
-                permission: 'manage-attendances', // Use real permission
-                order: 451, // Near HRM
-                name: 'monthly-attendance',
-            });
-        }
-    }
-
     return finalMenuItems;
-};
+}
+;
