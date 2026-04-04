@@ -11,10 +11,21 @@ export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
     },
     {
         title: t('Users'),
-        href: route('users.index'),
         icon: Users,
         permission: 'manage-users',
         order: 20,
+        children: [
+            {
+                title: t('Users List'),
+                href: route('users.index'),
+                permission: 'manage-users',
+            },
+            {
+                title: t('Login History'),
+                href: route('users.login-history'),
+                permission: 'manage-login-history',
+            },
+        ]
     },
     {
         title: t('Helpdesk'),

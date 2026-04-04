@@ -6,8 +6,8 @@ import { getCompanyMenu } from './menus/company-menu';
 import * as LucideIcons from 'lucide-react';
 
 // Get role-based core menu items
-const getCoreMenuItems = (userRoles: string[], t: (key: string) => string): NavItem[] => {
-    if (userRoles.includes('superadmin')) {
+const getCoreMenuItems = (userRoles: string[], userType: string, t: (key: string) => string): NavItem[] => {
+    if (userRoles.includes('super admin') || userRoles.includes('superadmin') || userType === 'superadmin') {
         return getSuperAdminMenu(t);
     }
     return getCompanyMenu(t);
@@ -137,7 +137,7 @@ export const allMenuItems = (): NavItem[] => {
     const userRoles = auth?.user?.roles || [];
     const activatedPackages = auth?.user?.activatedPackages || [];
 
-    const coreMenuItems = getCoreMenuItems(userRoles, t);
+    const coreMenuItems = getCoreMenuItems(userRoles, auth?.user?.type, t);
 
     const packageMenuItems = getPackageMenuItems(userRoles, activatedPackages, t);
     
@@ -175,17 +175,20 @@ export const allMenuItems = (): NavItem[] => {
         }
     }
 
-    // Final Global Force-Injection (Ultimate Fallback)
-    const exists = finalMenuItems.some(m => m.title === 'Monthly Attendance' || m.title === t('Monthly Attendance'));
-    if (!exists) {
-        finalMenuItems.push({
-            title: 'Monthly Attendance',
-            href: route('hrm.attendances.monthly'),
-            icon: LucideIcons.Calendar,
-            permission: undefined, // Force bypass
-            order: 451, // Near HRM
-            name: 'monthly-attendance',
-        });
+    // Final Global Force-Injection (Ultimate Fallback for Company users)
+    const isCompany = auth?.user?.type === 'company';
+    if (isCompany) {
+        const exists = finalMenuItems.some(m => m.title === 'Monthly Attendance' || m.title === t('Monthly Attendance'));
+        if (!exists) {
+            finalMenuItems.push({
+                title: 'Monthly Attendance',
+                href: route('hrm.attendances.monthly'),
+                icon: LucideIcons.Calendar,
+                permission: 'manage-attendances', // Use real permission
+                order: 451, // Near HRM
+                name: 'monthly-attendance',
+            });
+        }
     }
 
     return finalMenuItems;

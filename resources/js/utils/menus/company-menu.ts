@@ -1,4 +1,4 @@
-import { LayoutGrid, Users, Warehouse,ArrowRightLeft, Package, Tag, Tags, Shield, Settings, Image, CreditCard, Headphones, ShoppingCart, Kanban, Calendar, MessageCircle, Replace ,Receipt} from 'lucide-react';
+import { LayoutGrid, Users, Warehouse,ArrowRightLeft, Package, Tag, Tags, Shield, Settings, Image, CreditCard, Headphones, ShoppingCart, Kanban, Calendar, MessageCircle, Replace ,Receipt, Monitor} from 'lucide-react';
 import { NavItem } from '@/types';
 
 export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
@@ -24,6 +24,11 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
                 title: t('Users'),
                 href: route('users.index'),
                 permission: 'manage-users',
+            },
+            {
+                title: t('Login History'),
+                href: route('users.login-history'),
+                permission: 'manage-login-history',
             },
         ],
     },
