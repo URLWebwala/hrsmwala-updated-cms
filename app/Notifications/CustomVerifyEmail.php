@@ -35,6 +35,6 @@ class CustomVerifyEmail extends BaseVerifyEmail
             ->action(Lang::get('Verify Email Address'), $verificationUrl)
             ->line(Lang::get('If you did not create an account, no further action is required.'))
             ->line(Lang::get('Best regards,'))
-            ->salutation(new HtmlString('<strong>' . config('app.name') . ' Team</strong>'));
+            ->salutation(new HtmlString('<strong>' . (admin_setting('titleText') ?: config('app.name')) . ' Team</strong>'));
     }
 }
