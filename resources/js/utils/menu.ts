@@ -157,6 +157,11 @@ export const allMenuItems = (): NavItem[] => {
     const sortedMenuItems = finalGroupedMenuItems.sort((a, b) => (a.order || 999) - (b.order || 999));
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
+    
+    // Super Admin Bypass: Ensure they see all items in their menu regardless of database permissions
+    if (userRoles.includes('super admin') || userRoles.includes('superadmin') || auth?.user?.type === 'superadmin') {
+        return sortedMenuItems;
+    }
 
     return finalMenuItems;
 }
