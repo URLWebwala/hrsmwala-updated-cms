@@ -33,18 +33,18 @@
         <!-- JSON-LD Structured Data for Google -->
         <script type="application/ld+json">
         {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
+          "@@context": "https://schema.org",
+          "@@type": "SoftwareApplication",
           "name": "HRMswala SaaS",
           "operatingSystem": "Web, Windows, macOS, Linux, Mobile",
           "applicationCategory": "BusinessApplication",
           "offers": {
-            "@type": "Offer",
+            "@@type": "Offer",
             "price": "0",
             "priceCurrency": "USD"
           },
           "aggregateRating": {
-            "@type": "AggregateRating",
+            "@@type": "AggregateRating",
             "ratingValue": "4.9",
             "ratingCount": "1024"
           }
@@ -83,8 +83,8 @@
             #app-loader .spinner{position:relative;width:3rem;height:3rem}
             #app-loader .spinner>div:first-child{width:3rem;height:3rem;border:4px solid #e5e7eb;border-radius:50%;animation:spin 1s linear infinite;border-top-color:#2563eb}
             #app-loader .spinner>div:last-child{position:absolute;inset:0;width:3rem;height:3rem;border:4px solid transparent;border-radius:50%;animation:ping 1s cubic-bezier(0,0,.2,1) infinite;border-top-color:#60a5fa;opacity:.2}
-            @keyframes spin{to{transform:rotate(360deg)}}
-            @keyframes ping{75%,100%{transform:scale(2);opacity:0}}
+            @@keyframes spin{to{transform:rotate(360deg)}}
+            @@keyframes ping{75%,100%{transform:scale(2);opacity:0}}
         </style>
         <div id="app-loader">
             <div>
