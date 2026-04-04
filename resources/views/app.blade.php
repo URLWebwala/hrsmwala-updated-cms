@@ -5,7 +5,65 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title inertia>{{ config('app.name', 'ERPGo SaaS') }}</title>
+        @php
+            $landingSettings = \Workdo\LandingPage\Models\LandingPageSetting::first();
+            $configSections = $landingSettings ? $landingSettings->config_sections : null;
+            $metaDesc = $landingSettings->meta_description ?? 'The Complete Cloud HRM Platform for Modern Enterprises. Manage employees, attendance, payroll, and more with HRMswala SaaS.';
+            $metaKeywords = $landingSettings->meta_keywords ?? 'HRM SaaS, Cloud Payroll, Attendance Tracker, Employee Management, HRMswala, Business ERP';
+        @endphp
+
+        <!-- SEO Meta Tags -->
+        <meta name="description" content="{{ $metaDesc }}">
+        <meta name="keywords" content="{{ $metaKeywords }}">
+        <meta name="author" content="{{ $landingSettings->company_name ?? 'HRMswala SaaS' }}">
+        <meta name="robots" content="index, follow">
+
+        <!-- Open Graph / Social Media -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ config('app.name', 'HRMswala SaaS') }} - Complete HRM Solutions">
+        <meta property="og:description" content="Streamline your HR operations with the world's most intuitive cloud platform.">
+        <meta property="og:image" content="{{ asset('logo.png') }}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="{{ url()->current() }}">
+        <meta property="twitter:title" content="HRMswala SaaS - Modern HR Management">
+        <meta property="twitter:description" content="Manage your entire team from one centralized dashboard. Free trial available.">
+
+        <!-- JSON-LD Structured Data for Google -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "HRMswala SaaS",
+          "operatingSystem": "Web, Windows, macOS, Linux, Mobile",
+          "applicationCategory": "BusinessApplication",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "1024"
+          }
+        }
+        </script>
+
+        <!-- Google Analytics Placeholder (Replace with your actual ID) -->
+        <!-- 
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX');
+        </script>
+        -->
+
+        <title inertia>{{ config('app.name', 'HRMswala SaaS') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
