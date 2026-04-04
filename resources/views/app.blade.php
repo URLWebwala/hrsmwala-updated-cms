@@ -5,12 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        @php
+        <?php
             $landingSettings = \Workdo\LandingPage\Models\LandingPageSetting::first();
-            $configSections = $landingSettings ? $landingSettings->config_sections : null;
             $metaDesc = $landingSettings->meta_description ?? 'The Complete Cloud HRM Platform for Modern Enterprises. Manage employees, attendance, payroll, and more with HRMswala SaaS.';
             $metaKeywords = $landingSettings->meta_keywords ?? 'HRM SaaS, Cloud Payroll, Attendance Tracker, Employee Management, HRMswala, Business ERP';
-        @endphp
+        ?>
 
         <!-- SEO Meta Tags -->
         <meta name="description" content="{{ $metaDesc }}">
