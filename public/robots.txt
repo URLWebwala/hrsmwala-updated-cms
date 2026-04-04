@@ -1,2 +1,12 @@
+# Robots.txt for HRMswala SaaS
 User-agent: *
-Disallow:
+Allow: /
+
+# Prevent indexing of sensitive or auth paths
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /internal/
+
+# Point to the sitemap for indexing
+Sitemap: https://hrmswala.com/sitemap.xml
