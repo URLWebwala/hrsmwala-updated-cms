@@ -553,6 +553,7 @@ if (!function_exists('SetConfigEmail')) {
                 'mail.mailers.smtp.username' => $company_settings['email_username'] ?? '',
                 'mail.mailers.smtp.password' => $company_settings['email_password'] ?? '',
                 'mail.from.address' => $company_settings['email_fromAddress'] ?? 'noreply@example.com',
+                'mail.from.name' => $company_settings['email_fromName'] ?? admin_setting('titleText') ?? 'HRMswala',
             ]);
             return true;
         } catch (\Exception $e) {
