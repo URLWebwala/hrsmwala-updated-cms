@@ -163,8 +163,8 @@ class PermissionRoleSeeder extends Seeder
             ['name' => 'edit-languages', 'module' => 'languages', 'label' => 'Edit Languages'],
 
             //  // Add-on management
-            //  ['name' => 'manage-add-on', 'module' => 'add-on', 'label' => 'Manage Add-on'],
-            //  ['name' => 'manage-actions', 'module' => 'add-on', 'label' => 'Manage Actions'],
+            ['name' => 'manage-add-on', 'module' => 'add-on', 'label' => 'Manage Add-on'],
+            ['name' => 'manage-actions', 'module' => 'add-on', 'label' => 'Manage Actions'],
 
             // Plan management
             ['name' => 'manage-plans', 'module' => 'plans', 'label' => 'Manage Plans'],
@@ -282,7 +282,7 @@ class PermissionRoleSeeder extends Seeder
                     'manage-coupons', 'manage-any-coupons', 'manage-own-coupons', 'view-coupons', 'create-coupons', 'edit-coupons', 'delete-coupons',
                     'manage-bank-transfer-requests', 'approve-bank-transfer-requests', 'reject-bank-transfer-requests','delete-bank-transfer-requests',
                     'manage-profile', 'edit-profile', 'change-password-profile',
-                    'manage-orders', 'view-orders'
+                    'manage-orders', 'view-orders', 'manage-add-on'
                 ]
             ],
             'company' => [
