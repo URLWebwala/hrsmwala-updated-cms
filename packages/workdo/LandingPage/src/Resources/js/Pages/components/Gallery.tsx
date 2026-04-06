@@ -130,7 +130,7 @@ export default function Gallery({ settings }: GalleryProps) {
                 <img 
                     src={galleryImages[currentImageIndex]?.startsWith('http') ? galleryImages[currentImageIndex] : getImagePath(galleryImages[currentImageIndex] || '')} 
                     alt={`Gallery image ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-white rounded-xl"
                 />
             </div>
             
@@ -187,7 +187,7 @@ export default function Gallery({ settings }: GalleryProps) {
                     <img
                         src={image?.startsWith('http') ? image : getImagePath(image || '')}
                         alt={`Gallery image ${index + 1}`}
-                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-64 object-contain bg-gray-100 p-2 group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"></div>
                 </div>
@@ -206,7 +206,7 @@ export default function Gallery({ settings }: GalleryProps) {
                             <img
                                 src={image?.startsWith('http') ? image : getImagePath(image || '')}
                                 alt={`Gallery image ${index + 1}`}
-                                className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-80 object-contain bg-white p-4 group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                             <div className="absolute bottom-6 left-6 text-white opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
@@ -234,7 +234,7 @@ export default function Gallery({ settings }: GalleryProps) {
                         <img
                             src={image?.startsWith('http') ? image : getImagePath(image || '')}
                             alt={`Gallery image ${index + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-contain bg-white p-4 group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         <div className="absolute bottom-6 left-6 right-6">
@@ -284,7 +284,7 @@ export default function Gallery({ settings }: GalleryProps) {
                             <img
                                 src={image?.startsWith('http') ? image : getImagePath(image || '')}
                                 alt={`Gallery image ${index + 1}`}
-                                className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-56 object-contain bg-white p-2 group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
