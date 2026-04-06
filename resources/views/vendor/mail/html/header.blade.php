@@ -9,9 +9,9 @@
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
 @if ($logo_url)
-<img src="{{ $logo_url }}" class="logo" alt="{{ $company_name }}" style="height: 50px;">
+<img src="{{ $logo_url }}" class="logo" alt="{{ $company_name }}" style="max-height: 70px; width: auto; display: block; margin: 0 auto;">
 @elseif (config('mail.logo_url'))
-<img src="{{ config('mail.logo_url') }}" class="logo" alt="{{ $company_name }}" style="height: 50px;">
+<img src="{{ config('mail.logo_url') }}" class="logo" alt="{{ $company_name }}" style="max-height: 70px; width: auto; display: block; margin: 0 auto;">
 @else
 <strong style="font-size: 24px; color: #3d4852;">{{ $company_name }}</strong>
 @endif

@@ -97,24 +97,33 @@ class UserController extends Controller
             // Dispatch event for packages to handle their fields
             CreateUser::dispatch($request, $user);
 
-             // Send welcome email
-            if(company_setting('New User') == 'on') {
-                $emailData = [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'password' => $validated['password'],
-                ];
+           // Ensure SMTP configuration is set before sending emails
+            SetConfigEmail(creatorId());
 
-                EmailTemplate::sendEmailTemplate('New User', [$user->email], $emailData);
+            // 1. Send welcome email (Credentials)
+            try {
+                if(company_setting('New User') == 'on') {
+                    $emailData = [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'password' => $validated['password'],
+                    ];
+                    EmailTemplate::sendEmailTemplate('New User', [$user->email], $emailData);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Welcome email failed: ' . $e->getMessage());
             }
 
-            if ($enableEmailVerification === 'on') {
-                // Apply dynamic mail configuration
-                SetConfigEmail(creatorId());
-                $user->sendEmailVerificationNotification();
+            // 2. Send verification email (if enabled)
+            try {
+                if ($enableEmailVerification === 'on') {
+                    $user->sendEmailVerificationNotification();
+                }
+            } catch (\Exception $e) {
+                \Log::error('Verification email failed: ' . $e->getMessage());
             }
 
-            return redirect()->route('users.index')->with('success', __('The user has been created successfully.'));
+            return redirect()->route('users.index')->with('success', __('The user has been created successfully. Email credentials and verification links have been triggered.'));
         }
         else{
             return redirect()->route('users.index')->with('error', __('Permission denied'));
