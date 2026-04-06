@@ -26,14 +26,14 @@ class StoreEmployeeRequest extends FormRequest
             'state' => 'required|max:100',
             'country' => 'required|max:100',
             'postal_code' => 'required|max:20',
-            'emergency_contact_name' => 'required|max:100',
-            'emergency_contact_relationship' => 'required|max:100',
-            'emergency_contact_number' => 'required|max:20',
-            'bank_name' => 'required|max:100',
-            'account_holder_name' => 'required|max:100',
-            'account_number' => 'required|max:50',
-            'bank_identifier_code' => 'required|max:50',
-            'bank_branch' => 'required|max:100',
+            'emergency_contact_name' => 'nullable|max:100',
+            'emergency_contact_relationship' => 'nullable|max:100',
+            'emergency_contact_number' => 'nullable|max:20',
+            'bank_name' => 'nullable|max:100',
+            'account_holder_name' => 'nullable|max:100',
+            'account_number' => 'nullable|max:50',
+            'bank_identifier_code' => 'nullable|max:50',
+            'bank_branch' => 'nullable|max:100',
             'tax_payer_id' => 'nullable|max:50',
             'basic_salary' => 'required|numeric|min:0',
             'hours_per_day' => 'required|numeric|min:0|max:24',
@@ -43,9 +43,9 @@ class StoreEmployeeRequest extends FormRequest
             'branch_id' => 'required|exists:branches,id',
             'department_id' => 'required|exists:departments,id',
             'designation_id' => 'required|exists:designations,id',
-            'documents' => 'required|array|min:1',
-            'documents.*.document_type_id' => 'required|exists:employee_document_types,id',
-            'documents.*.file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048'
+            'documents' => 'nullable|array',
+            'documents.*.document_type_id' => 'nullable|exists:employee_document_types,id',
+            'documents.*.file' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048'
         ];
     }
 }

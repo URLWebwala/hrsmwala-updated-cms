@@ -88,8 +88,7 @@ export interface CreateEmployeeFormData {
     user_id: string;
     branch_id: string;
     department_id: string;
-    designation_id: string;
-}
+    designation_id: string;`r`n    documents: any[];`r`n    [key: string]: any;`r`n}
 
 export interface EditEmployeeFormData {
     employee_id: string;
@@ -120,8 +119,7 @@ export interface EditEmployeeFormData {
     user_id: string;
     branch_id: string;
     department_id: string;
-    designation_id: string;
-}
+    designation_id: string;`r`n    documents: any[];`r`n    [key: string]: any;`r`n}
 
 export interface EmployeeFilters {
     employee_id: string;

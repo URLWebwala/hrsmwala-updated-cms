@@ -67,9 +67,9 @@ export default function Create() {
 
     useEffect(() => {
         if (data.branch_id) {
-            const branchDepartments = departments.filter(dept => dept.branch_id.toString() === data.branch_id);
+            const branchDepartments = departments.filter((dept: any) => dept.branch_id.toString() === data.branch_id);
             setFilteredDepartments(branchDepartments);
-            if (data.department_id && !branchDepartments.find(dept => dept.id.toString() === data.department_id)) {
+            if (data.department_id && !branchDepartments.find((dept: any) => dept.id.toString() === data.department_id)) {
                 setData('department_id', '');
                 setData('designation_id', '');
             }
@@ -82,9 +82,9 @@ export default function Create() {
 
     useEffect(() => {
         if (data.department_id) {
-            const departmentDesignations = designations.filter(desig => desig.department_id.toString() === data.department_id);
+            const departmentDesignations = designations.filter((desig: any) => desig.department_id.toString() === data.department_id);
             setFilteredDesignations(departmentDesignations);
-            if (data.designation_id && !departmentDesignations.find(desig => desig.id.toString() === data.designation_id)) {
+            if (data.designation_id && !departmentDesignations.find((desig: any) => desig.id.toString() === data.designation_id)) {
                 setData('designation_id', '');
             }
         } else {
@@ -113,18 +113,13 @@ export default function Create() {
             data.city.trim() !== '' &&
             data.state.trim() !== '' &&
             data.country.trim() !== '' &&
-            data.postal_code.trim() !== '' &&
-            data.emergency_contact_name.trim() !== '' &&
-            data.emergency_contact_relationship.trim() !== '' &&
-            data.emergency_contact_number.trim() !== '';
+            data.postal_code.trim() !== '';
     };
 
     const validateBankingTab = () => {
         return data.bank_name.trim() !== '' &&
             data.account_holder_name.trim() !== '' &&
-            data.account_number.trim() !== '' &&
-            data.bank_identifier_code.trim() !== '' &&
-            data.bank_branch.trim() !== '';
+            data.account_number.trim() !== '';
     };
 
     const validateHoursTab = () => {
@@ -135,7 +130,7 @@ export default function Create() {
     };
 
     const addDocument = () => {
-        setData('documents', [...data.documents, { document_type_id: '', file: '' }]);
+        setData('documents', [...(data.documents || []), { document_type_id: '', file: '' }]);
     };
 
     const removeDocument = (index: number) => {
@@ -218,12 +213,12 @@ export default function Create() {
                                     </div>
 
                                     <div>
-                                        <Label required>{t('Date Of Birth')}</Label>
+                                        <Label >{t('Date Of Birth')}</Label>
                                         <DatePicker
                                             value={data.date_of_birth}
                                             onChange={(date) => setData('date_of_birth', date)}
                                             placeholder={t('Select Date Of Birth')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.date_of_birth} />
                                     </div>
@@ -269,8 +264,8 @@ export default function Create() {
                             <TabsContent value="employment" className="space-y-6 mt-6">
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <Label htmlFor="user_id" required>{t('User')}</Label>
-                                        <Select value={data.user_id?.toString() || ''} onValueChange={(value) => setData('user_id', value)} required>
+                                        <Label htmlFor="user_id" >{t('User')}</Label>
+                                        <Select value={data.user_id?.toString() || ''} onValueChange={(value) => setData('user_id', value)} >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={t('Select User')} />
                                             </SelectTrigger>
@@ -288,8 +283,8 @@ export default function Create() {
 
 
                                     <div>
-                                        <Label htmlFor="shift_id" required>{t('Shift')}</Label>
-                                        <Select value={data.shift_id?.toString() || ''} onValueChange={(value) => setData('shift_id', value)} required>
+                                        <Label htmlFor="shift_id" >{t('Shift')}</Label>
+                                        <Select value={data.shift_id?.toString() || ''} onValueChange={(value) => setData('shift_id', value)} >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={t('Select Shift')} />
                                             </SelectTrigger>
@@ -312,14 +307,14 @@ export default function Create() {
                                             value={data.date_of_joining}
                                             onChange={(date) => setData('date_of_joining', date)}
                                             placeholder={t('Select Date Of Joining')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.date_of_joining} />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="employment_type" required>{t('Employment Type')}</Label>
-                                        <Select value={data.employment_type || 'Full Time'} onValueChange={(value) => setData('employment_type', value)} required>
+                                        <Label htmlFor="employment_type" >{t('Employment Type')}</Label>
+                                        <Select value={data.employment_type || 'Full Time'} onValueChange={(value) => setData('employment_type', value)} >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={t('Select Employment Type')} />
                                             </SelectTrigger>
@@ -335,12 +330,12 @@ export default function Create() {
 
 
                                     <div>
-                                        <Label htmlFor="branch_id" required>{t('Branch')}</Label>
+                                        <Label htmlFor="branch_id" >{t('Branch')}</Label>
                                         <Select
                                             value={data.branch_id?.toString() || ''}
                                             onValueChange={(value) => setData('branch_id', value)}
                                             disabled={!data.user_id}
-                                            required
+                                            
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={data.user_id ? t('Select Branch') : t('Select User first')} />
@@ -357,12 +352,12 @@ export default function Create() {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="department_id" required>{t('Department')}</Label>
+                                        <Label htmlFor="department_id" >{t('Department')}</Label>
                                         <Select
                                             value={data.department_id?.toString() || ''}
                                             onValueChange={(value) => setData('department_id', value)}
                                             disabled={!data.branch_id}
-                                            required
+                                            
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={data.branch_id ? t('Select Department') : t('Select Branch first')} />
@@ -379,12 +374,12 @@ export default function Create() {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="designation_id" required>{t('Designation')}</Label>
+                                        <Label htmlFor="designation_id" >{t('Designation')}</Label>
                                         <Select
                                             value={data.designation_id?.toString() || ''}
                                             onValueChange={(value) => setData('designation_id', value)}
                                             disabled={!data.department_id}
-                                            required
+                                            
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder={data.department_id ? t('Select Designation') : t('Select Department first')} />
@@ -425,7 +420,7 @@ export default function Create() {
                                             value={data.address_line_1}
                                             onChange={(e) => setData('address_line_1', e.target.value)}
                                             placeholder={t('Enter Address Line 1')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.address_line_1} />
                                     </div>
@@ -450,7 +445,7 @@ export default function Create() {
                                             value={data.city}
                                             onChange={(e) => setData('city', e.target.value)}
                                             placeholder={t('Enter City')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.city} />
                                     </div>
@@ -463,7 +458,7 @@ export default function Create() {
                                             value={data.state}
                                             onChange={(e) => setData('state', e.target.value)}
                                             placeholder={t('Enter State')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.state} />
                                     </div>
@@ -476,7 +471,7 @@ export default function Create() {
                                             value={data.country}
                                             onChange={(e) => setData('country', e.target.value)}
                                             placeholder={t('Enter Country')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.country} />
                                     </div>
@@ -489,7 +484,7 @@ export default function Create() {
                                             value={data.postal_code}
                                             onChange={(e) => setData('postal_code', e.target.value)}
                                             placeholder={t('Enter Postal Code')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.postal_code} />
                                     </div>
@@ -502,7 +497,7 @@ export default function Create() {
                                             value={data.emergency_contact_name}
                                             onChange={(e) => setData('emergency_contact_name', e.target.value)}
                                             placeholder={t('Enter Emergency Contact Name')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.emergency_contact_name} />
                                     </div>
@@ -515,7 +510,7 @@ export default function Create() {
                                             value={data.emergency_contact_relationship}
                                             onChange={(e) => setData('emergency_contact_relationship', e.target.value)}
                                             placeholder={t('Enter Emergency Contact Relationship')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.emergency_contact_relationship} />
                                     </div>
@@ -527,7 +522,7 @@ export default function Create() {
                                         value={data.emergency_contact_number}
                                         onChange={(value) => setData('emergency_contact_number', value || '')}
                                         error={errors.emergency_contact_number}
-                                        required
+                                        
                                     />
                                 </div>
 
@@ -555,7 +550,7 @@ export default function Create() {
                                             value={data.bank_name}
                                             onChange={(e) => setData('bank_name', e.target.value)}
                                             placeholder={t('Enter Bank Name')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.bank_name} />
                                     </div>
@@ -568,7 +563,7 @@ export default function Create() {
                                             value={data.account_holder_name}
                                             onChange={(e) => setData('account_holder_name', e.target.value)}
                                             placeholder={t('Enter Account Holder Name')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.account_holder_name} />
                                     </div>
@@ -581,7 +576,7 @@ export default function Create() {
                                             value={data.account_number}
                                             onChange={(e) => setData('account_number', e.target.value)}
                                             placeholder={t('Enter Account Number')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.account_number} />
                                     </div>
@@ -594,7 +589,7 @@ export default function Create() {
                                             value={data.bank_identifier_code}
                                             onChange={(e) => setData('bank_identifier_code', e.target.value)}
                                             placeholder={t('Enter Bank Identifier Code')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.bank_identifier_code} />
                                     </div>
@@ -607,7 +602,7 @@ export default function Create() {
                                             value={data.bank_branch}
                                             onChange={(e) => setData('bank_branch', e.target.value)}
                                             placeholder={t('Enter Bank Branch')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.bank_branch} />
                                     </div>
@@ -642,7 +637,7 @@ export default function Create() {
                             <TabsContent value="hours" className="space-y-6 mt-6">
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                                     <div>
-                                        <Label htmlFor="basic_salary" required>{t('Basic Salary')}</Label>
+                                        <Label htmlFor="basic_salary" >{t('Basic Salary')}</Label>
                                         <Input
                                             id="basic_salary"
                                             type="number"
@@ -651,13 +646,13 @@ export default function Create() {
                                             value={data.basic_salary}
                                             onChange={(e) => setData('basic_salary', e.target.value)}
                                             placeholder={t('Enter Basic Salary')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.basic_salary} />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="hours_per_day" required>{t('Hours Per Day')}</Label>
+                                        <Label htmlFor="hours_per_day" >{t('Hours Per Day')}</Label>
                                         <Input
                                             id="hours_per_day"
                                             type="number"
@@ -667,13 +662,13 @@ export default function Create() {
                                             value={data.hours_per_day}
                                             onChange={(e) => setData('hours_per_day', e.target.value)}
                                             placeholder={t('Enter Hours Per Day')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.hours_per_day} />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="days_per_week" required>{t('Days Per Week')}</Label>
+                                        <Label htmlFor="days_per_week" >{t('Days Per Week')}</Label>
                                         <Input
                                             id="days_per_week"
                                             type="number"
@@ -683,13 +678,13 @@ export default function Create() {
                                             value={data.days_per_week}
                                             onChange={(e) => setData('days_per_week', e.target.value)}
                                             placeholder={t('Enter Days Per Week')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.days_per_week} />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="rate_per_hour" required>{t('Rate Per Hour')}</Label>
+                                        <Label htmlFor="rate_per_hour" >{t('Rate Per Hour')}</Label>
                                         <Input
                                             id="rate_per_hour"
                                             type="number"
@@ -698,7 +693,7 @@ export default function Create() {
                                             value={data.rate_per_hour}
                                             onChange={(e) => setData('rate_per_hour', e.target.value)}
                                             placeholder={t('Enter Rate Per Hour')}
-                                            required
+                                            
                                         />
                                         <InputError message={errors.rate_per_hour} />
                                     </div>
@@ -730,7 +725,7 @@ export default function Create() {
                                     <Card key={index} className="p-4">
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                             <div>
-                                                <Label required>{t('Document Type')}</Label>
+                                                <Label >{t('Document Type')}</Label>
                                                 <Select
                                                     value={document.document_type_id?.toString() || ''}
                                                     onValueChange={(value) => updateDocument(index, 'document_type_id', value)}
@@ -741,7 +736,7 @@ export default function Create() {
                                                     <SelectContent>
                                                         {documentTypes?.map((type: any) => (
                                                             <SelectItem key={type.id} value={type.id.toString()}>
-                                                                {type.document_name} {type.is_required && '*'}
+                                                                {type.document_name} {type.is_ && '*'}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -749,7 +744,7 @@ export default function Create() {
                                                 <InputError message={errors[`documents.${index}.document_type_id`]} />
                                             </div>
                                             <div>
-                                                <Label required>{t('Document File')}</Label>
+                                                <Label >{t('Document File')}</Label>
                                                 <Input
                                                     type="file"
                                                     onChange={(e) => {
