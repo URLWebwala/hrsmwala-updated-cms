@@ -331,10 +331,10 @@ class EmailTemplate extends Model
 
             $arrValue[$key] = $val;
         }
-        $arrValue['app_name']     = env('APP_NAME');
+        $arrValue['app_name'] = admin_setting('titleText') ?: company_setting('company_name') ?: env('APP_NAME', 'HRMswala');
         if (is_null($arrValue['company_name']) || $arrValue['company_name'] == '-') {
             $companySettings = getCompanyAllSetting();
-            $arrValue['company_name'] = $companySettings['company_name'] ?? '--';
+            $arrValue['company_name'] = $companySettings['company_name'] ?? admin_setting('titleText') ?? '--';
         }
         $arrValue['app_url']      = '<a href="' . env('APP_URL') . '" target="_blank">' . env('APP_URL') . '</a>';
 
