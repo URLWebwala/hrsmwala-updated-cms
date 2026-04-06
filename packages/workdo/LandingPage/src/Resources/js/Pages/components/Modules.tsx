@@ -91,12 +91,20 @@ export default function Modules({ settings }: ModulesProps) {
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">{modules[activeTab]?.title}</h3>
                     <p className="text-gray-600 text-lg">{modules[activeTab]?.description}</p>
                 </div>
-                <div className="bg-gray-100 rounded-lg h-80 flex items-center justify-center overflow-hidden shadow-[0px_2px_4px_0px_rgba(14,30,37,0.12),0px_2px_16px_0px_rgba(14,30,37,0.32)]">
-                    {modules[activeTab]?.image ? (
-                        <img src={modules[activeTab].image.startsWith('http') ? modules[activeTab].image : getImagePath(modules[activeTab].image)} alt={modules[activeTab].title} className="w-full h-full object-cover" />
-                    ) : (
-                        <Monitor className="h-16 w-16 text-gray-400" />
-                    )}
+                <div className="relative group">
+                    <div className="bg-gray-50 rounded-2xl p-2 border border-gray-100 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                        {modules[activeTab]?.image ? (
+                            <img 
+                                src={modules[activeTab].image.startsWith('http') ? modules[activeTab].image : getImagePath(modules[activeTab].image)} 
+                                alt={modules[activeTab].title} 
+                                className="w-full h-auto rounded-xl object-contain max-h-[450px]" 
+                            />
+                        ) : (
+                            <div className="h-80 flex items-center justify-center">
+                                <Monitor className="h-16 w-16 text-gray-300" />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
