@@ -172,10 +172,22 @@ class PayrollController extends Controller
                 $endDate = new \DateTime($payroll->pay_period_end);
                 $workingDaysCount = 0;
 
+                $saturdayType = $globalSettings['saturday_type'] ?? 'full';
+                $saturdayWorkingWeeks = json_decode($globalSettings['saturday_working_weeks'] ?? '[1, 2, 3, 4, 5]', true);
+
                 for ($date = clone $startDate; $date <= $endDate; $date->modify('+1 day')) {
                     $dayIndex = (int) $date->format('w');
+                    
                     if (in_array($dayIndex, $workingDaysIndices)) {
-                        $workingDaysCount++;
+                        // Special logic for Saturday (index 6)
+                        if ($dayIndex == 6) {
+                            $weekNumber = $this->getNthDayOfMonth($date);
+                            if (in_array($weekNumber, $saturdayWorkingWeeks)) {
+                                $workingDaysCount += ($saturdayType === 'half' ? 0.5 : 1);
+                            }
+                        } else {
+                            $workingDaysCount++;
+                        }
                     }
                 }
 
@@ -549,5 +561,10 @@ class PayrollController extends Controller
         } else {
             return redirect()->back()->with('error', __('Permission denied'));
         }
+    }
+    private function getNthDayOfMonth(\DateTime $date)
+    {
+        $day = (int) $date->format('j');
+        return (int) ceil($day / 7);
     }
 }

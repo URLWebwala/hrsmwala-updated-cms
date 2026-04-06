@@ -24,8 +24,13 @@ class WorkingDaysController extends Controller
                 }, $workingDaysArray);
             }
 
+            $saturdayType = $globalSettings['saturday_type'] ?? 'full';
+            $saturdayWorkingWeeks = json_decode($globalSettings['saturday_working_weeks'] ?? '[1, 2, 3, 4, 5]', true);
+
             return Inertia::render('Hrm/SystemSetup/WorkingDays/Index', [
                 'workingDays' => $workingDayNames,
+                'saturdayType' => $saturdayType,
+                'saturdayWorkingWeeks' => $saturdayWorkingWeeks,
             ]);
         } else {
             return back()->with('error', __('Permission denied'));
@@ -37,7 +42,10 @@ class WorkingDaysController extends Controller
         if (Auth::user()->can('edit-working-days')) {
             $request->validate([
                 'working_days' => 'required|array|min:1',
-                'working_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'
+                'working_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+                'saturday_type' => 'required|in:full,half',
+                'saturday_working_weeks' => 'required_if:working_days,saturday|array',
+                'saturday_working_weeks.*' => 'integer|in:1,2,3,4,5'
             ], [
                 'working_days.required' => __('At least one working day must be selected.'),
                 'working_days.array' => __('Working days must be an array.'),
@@ -51,6 +59,11 @@ class WorkingDaysController extends Controller
             }, $request->working_days);
 
             setSetting('working_days', json_encode($workingDayIndices));
+            setSetting('saturday_type', $request->saturday_type);
+            
+            if (in_array('saturday', $request->working_days)) {
+                setSetting('saturday_working_weeks', json_encode($request->saturday_working_weeks));
+            }
 
             return redirect()->back()->with('success', __('Working days updated successfully.'));
         } else {

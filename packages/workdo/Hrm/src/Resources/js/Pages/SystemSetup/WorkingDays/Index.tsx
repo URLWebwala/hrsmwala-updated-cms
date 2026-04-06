@@ -24,7 +24,9 @@ export default function Index() {
     ];
 
     const { data, setData, put, processing } = useForm({
-        working_days: workingDays || []
+        working_days: workingDays || [],
+        saturday_type: usePage<WorkingDaysIndexProps>().props.saturdayType || 'full',
+        saturday_working_weeks: usePage<WorkingDaysIndexProps>().props.saturdayWorkingWeeks || [1, 2, 3, 4, 5]
     });
 
 
@@ -75,18 +77,69 @@ export default function Index() {
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {daysOfWeek.map((day) => (
-                                            <div key={day.key} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                                                <Checkbox
-                                                    id={day.key}
-                                                    checked={data.working_days.includes(day.key)}
-                                                    onCheckedChange={(checked) => handleDayChange(day.key, checked as boolean)}
-                                                />
-                                                <label 
-                                                    htmlFor={day.key} 
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                                >
-                                                    {day.label}
-                                                </label>
+                                            <div key={day.key} className="space-y-3">
+                                                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                                                    <Checkbox
+                                                        id={day.key}
+                                                        checked={data.working_days.includes(day.key)}
+                                                        onCheckedChange={(checked) => handleDayChange(day.key, checked as boolean)}
+                                                    />
+                                                    <label 
+                                                        htmlFor={day.key} 
+                                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                    >
+                                                        {day.label}
+                                                    </label>
+                                                </div>
+
+                                                {day.key === 'saturday' && data.working_days.includes('saturday') && (
+                                                    <div className="ml-8 p-4 border rounded-lg bg-gray-50 space-y-4">
+                                                        <div className="space-y-2">
+                                                            <p className="text-xs font-semibold text-gray-500 uppercase">{t('Saturday Work Type')}</p>
+                                                            <div className="flex gap-4">
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input 
+                                                                        type="radio" 
+                                                                        name="sat_type" 
+                                                                        checked={data.saturday_type === 'full'} 
+                                                                        onChange={() => setData('saturday_type', 'full')}
+                                                                    />
+                                                                    <span className="text-sm">{t('Full Day')}</span>
+                                                                </label>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input 
+                                                                        type="radio" 
+                                                                        name="sat_type" 
+                                                                        checked={data.saturday_type === 'half'} 
+                                                                        onChange={() => setData('saturday_type', 'half')}
+                                                                    />
+                                                                    <span className="text-sm">{t('Half Day')}</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <p className="text-xs font-semibold text-gray-500 uppercase">{t('Working Saturdays in a Month')}</p>
+                                                            <div className="flex flex-wrap gap-3">
+                                                                {[1, 2, 3, 4, 5].map((week) => (
+                                                                    <label key={week} className="flex items-center gap-2 cursor-pointer bg-white p-2 border rounded hover:border-primary">
+                                                                        <Checkbox 
+                                                                            checked={data.saturday_working_weeks.includes(week)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                if (checked) {
+                                                                                    setData('saturday_working_weeks', [...data.saturday_working_weeks, week].sort());
+                                                                                } else {
+                                                                                    setData('saturday_working_weeks', data.saturday_working_weeks.filter(w => w !== week));
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <span className="text-sm">{week}{t(['st', 'nd', 'rd', 'th', 'th'][week-1])}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
