@@ -2,7 +2,7 @@
 @php
     $logo = admin_setting('logo_dark');
     $imageUrlPrefix = getImageUrlPrefix();
-    $logo_url = ($logo && $logo != 'logo_dark.png') ? $imageUrlPrefix . $logo : null;
+    $logo_url = $logo ? $imageUrlPrefix . $logo : null;
     $company_name = admin_setting('titleText') ?: config('app.name');
 @endphp
 <tr>
