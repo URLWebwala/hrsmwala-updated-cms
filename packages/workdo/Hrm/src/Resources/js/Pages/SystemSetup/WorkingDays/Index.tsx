@@ -92,37 +92,39 @@ export default function Index() {
                                                     </label>
                                                 </div>
 
-                                                {day.key === 'saturday' && data.working_days.includes('saturday') && (
-                                                    <div className="ml-8 p-4 border rounded-lg bg-gray-50 space-y-4">
+                                                {(day.key === 'saturday' || day.key === 'Saturday') && data.working_days.some(d => d.toLowerCase() === 'saturday') && (
+                                                    <div className="ml-8 mt-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5 space-y-4 animate-in fade-in slide-in-from-top-1">
                                                         <div className="space-y-2">
-                                                            <p className="text-xs font-semibold text-gray-500 uppercase">{t('Saturday Work Type')}</p>
-                                                            <div className="flex gap-4">
-                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                            <p className="text-xs font-bold text-primary uppercase tracking-wider">{t('Saturday Work Type')}</p>
+                                                            <div className="flex gap-6">
+                                                                <label className="flex items-center gap-2 cursor-pointer group">
                                                                     <input 
                                                                         type="radio" 
+                                                                        className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
                                                                         name="sat_type" 
                                                                         checked={data.saturday_type === 'full'} 
                                                                         onChange={() => setData('saturday_type', 'full')}
                                                                     />
-                                                                    <span className="text-sm">{t('Full Day')}</span>
+                                                                    <span className="text-sm font-medium group-hover:text-primary transition-colors">{t('Full Day')}</span>
                                                                 </label>
-                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                <label className="flex items-center gap-2 cursor-pointer group">
                                                                     <input 
                                                                         type="radio" 
+                                                                        className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
                                                                         name="sat_type" 
                                                                         checked={data.saturday_type === 'half'} 
                                                                         onChange={() => setData('saturday_type', 'half')}
                                                                     />
-                                                                    <span className="text-sm">{t('Half Day')}</span>
+                                                                    <span className="text-sm font-medium group-hover:text-primary transition-colors">{t('Half Day')}</span>
                                                                 </label>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <p className="text-xs font-semibold text-gray-500 uppercase">{t('Working Saturdays in a Month')}</p>
-                                                            <div className="flex flex-wrap gap-3">
+                                                            <p className="text-xs font-bold text-primary uppercase tracking-wider">{t('Working Saturdays in a Month')}</p>
+                                                            <div className="flex flex-wrap gap-2">
                                                                 {[1, 2, 3, 4, 5].map((week) => (
-                                                                    <label key={week} className="flex items-center gap-2 cursor-pointer bg-white p-2 border rounded hover:border-primary">
+                                                                    <label key={week} className={`flex items-center gap-2 cursor-pointer p-2 border rounded-md transition-all ${data.saturday_working_weeks.includes(week) ? 'bg-white border-primary shadow-sm' : 'bg-gray-100/50 border-transparent hover:border-gray-300'}`}>
                                                                         <Checkbox 
                                                                             checked={data.saturday_working_weeks.includes(week)}
                                                                             onCheckedChange={(checked) => {
@@ -133,7 +135,7 @@ export default function Index() {
                                                                                 }
                                                                             }}
                                                                         />
-                                                                        <span className="text-sm">{week}{t(['st', 'nd', 'rd', 'th', 'th'][week-1])}</span>
+                                                                        <span className="text-sm font-semibold">{week}{t(['st', 'nd', 'rd', 'th', 'th'][week-1])}</span>
                                                                     </label>
                                                                 ))}
                                                             </div>
