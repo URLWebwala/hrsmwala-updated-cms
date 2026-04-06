@@ -101,16 +101,13 @@ class User extends Authenticatable implements MustVerifyEmail
             if (empty($user->slug)) {
                 $user->slug = static::generateUniqueSlug($user->name);
             }
-            if (empty($user->avatar)) {
-                $user->avatar = 'avatar.png';
-            }
         });
     }
 
     public function getAvatarAttribute($value)
     {
-        if (empty($value) || !file_exists(storage_path('app/public/media/' . $value))) {
-            return 'avatar.png';
+        if (empty($value) || $value === 'avatar.png' || !file_exists(storage_path('app/public/media/' . $value))) {
+            return null;
         }
         return $value;
     }
