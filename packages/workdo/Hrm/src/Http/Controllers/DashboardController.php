@@ -233,7 +233,7 @@ class DashboardController extends Controller
                 ];
             });
 
-            $calendarEvents = $events->merge($holidays);
+            $calendarEvents = collect($events ?? [])->merge(collect($holidays ?? []));
         }
 
         // Recent Leave Applications
@@ -414,7 +414,7 @@ class DashboardController extends Controller
                 ];
             });
 
-            $calendarEvents = $events->merge($holidays);
+            $calendarEvents = collect($events ?? [])->merge(collect($holidays ?? []));
         }
 
         // Recent Announcements (active between today's date)
