@@ -11,11 +11,14 @@ import { Toaster } from "sonner";
 import { Suspense } from "react";
 import axios from "axios";
 
+// Preserve original fetch globally to avoid recursion in interceptors
+const originalFetch = window.fetch;
 
 // Silent CSRF token refresh
 const refreshToken = async () => {
     try {
-        const response = await fetch(window.location.href, { method: 'GET' });
+        // Use originalFetch to avoid infinite recursion loops with the global interceptor
+        const response = await originalFetch(window.location.href, { method: 'GET' });
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
@@ -42,7 +45,6 @@ router.on('error', async (event) => {
 });
 
 // Global fetch interceptor
-const originalFetch = window.fetch;
 window.fetch = async (...args) => {
     const [url, options] = args;
     
