@@ -129,6 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public static $superadmin_activated_module = [
         'ProductService',
         'LandingPage',
+        'Cashfree',
     ];
 
     public  $not_emp_type = [
