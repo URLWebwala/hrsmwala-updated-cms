@@ -1,0 +1,12 @@
+{
+    "Cashfree Settings": "Cashfree Settings",
+    "Configure Cashfree payment gateway for your transactions": "Configure Cashfree payment gateway for your transactions",
+    "Enable Cashfree": "Enable Cashfree",
+    "Activate or deactivate Cashfree as a payment option": "Activate or deactivate Cashfree as a payment option",
+    "Client ID / App ID": "Client ID / App ID",
+    "Enter your Cashfree Client ID": "Enter your Cashfree Client ID",
+    "The App ID provided by Cashfree dashboard": "The App ID provided by Cashfree dashboard",
+    "Client Secret": "Client Secret",
+    "Enter your Cashfree Client Secret": "Enter your Cashfree Client Secret",
+    "The Secret Key provided by Cashfree dashboard": "The Secret Key provided by Cashfree dashboard"
+}

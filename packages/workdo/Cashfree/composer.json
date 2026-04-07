@@ -1,0 +1,25 @@
+{
+    "name": "workdo/cashfree",
+    "description": "Cashfree Payment Gateway module for HRMSWALA",
+    "type": "library",
+    "license": "MIT",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Workdo\\Cashfree\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "HRMSWALA",
+            "email": "support@hrmswala.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Workdo\\Cashfree\\Providers\\CashfreeServiceProvider"
+            ]
+        }
+    }
+}

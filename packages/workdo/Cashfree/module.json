@@ -1,0 +1,10 @@
+{
+    "name": "Cashfree",
+    "alias": "Cashfree",
+    "description": "Professional Cashfree payment gateway for HRMSWALA",
+    "priority": 1540,
+    "version": 1.0,
+    "monthly_price": 0,
+    "yearly_price": 0,
+    "package_name": "cashfree"
+}
