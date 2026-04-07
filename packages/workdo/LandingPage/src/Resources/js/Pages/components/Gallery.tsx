@@ -120,6 +120,19 @@ export default function Gallery({ settings }: GalleryProps) {
         setCurrentVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
     };
 
+    // Prevent background scroll when lightbox is open
+    useEffect(() => {
+        if (lightboxOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [lightboxOpen]);
+
     const renderSlider = () => (
         <div className="relative max-w-6xl mx-auto">
             <div
@@ -256,19 +269,6 @@ export default function Gallery({ settings }: GalleryProps) {
     );
 
     const renderLightbox = () => {
-        // Prevent background scroll when lightbox is open
-        useEffect(() => {
-            if (lightboxOpen) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'unset';
-            }
-            
-            return () => {
-                document.body.style.overflow = 'unset';
-            };
-        }, [lightboxOpen]);
-        
         return (
             <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
