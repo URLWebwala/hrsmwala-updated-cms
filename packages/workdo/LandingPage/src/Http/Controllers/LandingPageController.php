@@ -43,10 +43,12 @@ class LandingPageController extends Controller
         }
 
         $enableRegistration = admin_setting('enableRegistration');
+        $customPages = CustomPage::where('is_active', true)->select('id', 'title', 'slug')->get();
 
         $settingsData = $settings ? $settings->toArray() : [];
         $settingsData['enable_registration'] = $enableRegistration === 'on';
         $settingsData['is_authenticated'] = $request->user() !== null;
+        $settingsData['custom_pages'] = $customPages;
         $settingsData = $this->normalizeLandingSettings($settingsData);
         $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
 
@@ -78,6 +80,7 @@ class LandingPageController extends Controller
         $settingsData = $landingPageSettings ? $landingPageSettings->toArray() : [];
         $settingsData['enable_registration'] = $enableRegistration === 'on';
         $settingsData['is_authenticated'] = $request->user() !== null;
+        $settingsData['custom_pages'] = CustomPage::where('is_active', true)->select('id', 'title', 'slug')->get();
         $settingsData = $this->normalizeLandingSettings($settingsData);
         $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
 

@@ -134,6 +134,7 @@ class CustomPageController extends Controller
         $settingsData = $landingPageSettings ? $landingPageSettings->toArray() : [];
         $settingsData['enable_registration'] = $enableRegistration === 'on';
         $settingsData['is_authenticated'] = $request->user() !== null;
+        $settingsData['custom_pages'] = CustomPage::where('is_active', true)->where('id', '!=', $page->id)->select('id', 'title', 'slug')->get();
 
         return Inertia::render('LandingPage/CustomPages/Show', [
             'page' => $page,

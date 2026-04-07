@@ -42,6 +42,14 @@ Route::middleware(['web'])->group(function () {
     Route::get('/', [LandingPageController::class, 'index'])->name('landing.page');
     Route::get('/pricing', [LandingPageController::class, 'pricing'])->name('pricing.page');
     Route::get('/marketplace/{slug?}', [MarketplaceController::class, 'index'])->name('marketplace');
+    
+    // Direct link shortcuts for mandatory pages
+    Route::get('/privacy-policy', function() { return app(CustomPageController::class)->show(request(), 'privacy-policy'); })->name('privacy-policy.show');
+    Route::get('/terms-and-conditions', function() { return app(CustomPageController::class)->show(request(), 'terms-and-conditions'); })->name('terms-and-conditions.show');
+    Route::get('/refund-policy', function() { return app(CustomPageController::class)->show(request(), 'refund-policy'); })->name('refund-policy.show');
+    Route::get('/contact-us', function() { return app(CustomPageController::class)->show(request(), 'contact-us'); })->name('contact-us.show');
+    Route::get('/faq', function() { return app(CustomPageController::class)->show(request(), 'faq'); })->name('faq.show');
+
     Route::get('/page/{slug}', [CustomPageController::class, 'show'])->name('custom-page.show');
     Route::post('/newsletter/subscribe', [NewsletterSubscriberController::class, 'store'])->name('newsletter.subscribe');
 });

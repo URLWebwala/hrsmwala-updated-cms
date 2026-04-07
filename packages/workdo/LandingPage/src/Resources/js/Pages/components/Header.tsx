@@ -130,16 +130,43 @@ export default function Header({ settings }: HeaderProps) {
         }
     }
 
-    // Add custom pages to navigation if they exist
-    const customPages = settings?.custom_pages || [];
-    const customPageItems = customPages.map((page: { title: string; slug: string }) => ({
-        text: page.title,
-        href: `/page/${page.slug}`,
-        target: '_self'
-    }));
+    const policySlugs = ['privacy-policy', 'terms-and-conditions', 'terms-of-service', 'refund-policy', 'contact-us', 'faq'];
     
+    // Add custom pages to navigation if they exist, but exclude policy pages from header
+    const customPages = settings?.custom_pages || [];
+    const customPageItems = customPages
+        .filter((page: { slug: string }) => !policySlugs.includes(page.slug))
+        .map((page: { title: string; slug: string }) => {
+            let href = `/page/${page.slug}`;
+            if (page.slug === 'contact-us') {
+                href = '/contact-us';
+            }
+            if (page.slug === 'faq') {
+                href = '/faq';
+            }
+            return {
+                text: page.title,
+                href: href,
+                target: '_self'
+            };
+        });
+    
+    // Filter manually added navigation items as well
+    const filteredNavigationItems = (navigationItems || []).filter((item: any) => {
+        const href = (item.href || '').toLowerCase();
+        const text = (item.text || '').toLowerCase();
+        const matchesSlug = policySlugs.some(slug => href.includes(slug));
+        const matchesText = ['privacy', 'policy', 'terms', 'condition', 'faq', 'contact', 'refund'].some(keyword => text.includes(keyword));
+        const isHome = text.includes('home') || href === '/' || href === '';
+        return !matchesSlug && !matchesText && !isHome;
+    });
+
     // Combine navigation items with custom pages
-    const baseNavigationItems = [...navigationItems, ...customPageItems];
+    const baseNavigationItems = [
+        { text: 'Home', href: '/', target: '_self' },
+        ...filteredNavigationItems, 
+        ...customPageItems
+    ];
     const hasCareersAlready =
         baseNavigationItems.some((i: any) => (typeof i?.href === 'string' ? i.href.toLowerCase().includes('careers') : false)) ||
         baseNavigationItems.some((i: any) => (typeof i?.text === 'string' ? i.text.toLowerCase().includes('career') : false));

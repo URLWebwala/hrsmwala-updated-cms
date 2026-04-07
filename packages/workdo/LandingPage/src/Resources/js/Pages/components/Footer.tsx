@@ -12,13 +12,13 @@ interface FooterProps {
 const FOOTER_VARIANTS = {
     footer1: {
         footer: 'bg-gray-900 text-white py-16',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8',
+        container: 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12',
+        grid: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-12',
         companyName: 'text-2xl font-bold mb-4 lg:max-w-[180px] max-w-[140px] inline-block',
         description: 'text-gray-400 mb-6 leading-relaxed',
         sectionTitle: 'text-lg font-semibold mb-6 text-white',
         newsletterTitle: 'text-lg font-semibold mb-4 text-white',
-        copyright: 'border-t border-gray-700 mt-8 pt-8 text-center text-gray-400',
+        copyright: 'border-t border-gray-800/50 mt-16 pt-8 text-center text-gray-500 text-sm',
         layout: 'standard'
     },
     footer2: {
@@ -77,8 +77,8 @@ export default function Footer({ settings }: FooterProps) {
     
     const companyName = settings?.company_name || 'Hrmswala SaaS';
     const description = sectionData.description || 'The complete business management solution for modern enterprises.';
-    const contactEmail = settings?.contact_email || 'support@erpgosaas.com';
-    const phone = settings?.contact_phone || '+1 (555) 123-4567';
+    const contactEmail = 'support@hrmswala.com'; // Strictly HRMSWALA
+    const phone = '+91 00000 00000'; // Strictly HRMSWALA
     const newsletterTitle = sectionData.newsletter_title || 'Join Our Community';
     const newsletterDescription = sectionData.newsletter_description || 'We build modern web tools to help you jump-start your daily business work.';
     const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe';
@@ -189,7 +189,7 @@ export default function Footer({ settings }: FooterProps) {
                                 minHeight: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px'
                             }} 
                         />
-                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'}`}>
+                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'} whitespace-nowrap`}>
                             {contactEmail}
                         </span>
                     </div>
@@ -204,7 +204,7 @@ export default function Footer({ settings }: FooterProps) {
                                 minHeight: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px'
                             }} 
                         />
-                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'}`}>
+                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'} whitespace-nowrap`}>
                             {phone}
                         </span>
                     </div>
@@ -214,10 +214,34 @@ export default function Footer({ settings }: FooterProps) {
     };
 
     const renderNavigationSections = () => {
+        const customPages = settings?.custom_pages || [];
+        const policySlugs = ['privacy-policy', 'terms-and-conditions', 'refund-policy', 'contact-us', 'faq'];
+        const legalPages = customPages.filter((p: { slug: string }) => policySlugs.includes(p.slug));
+        
+        let navigationSections = [...(sectionData.navigation_sections || [])];
+        
+        // Add a "Resources" section if we have legal pages and a section with that title doesn't exist
+        if (legalPages.length > 0 && !navigationSections.some(s => s.title?.toLowerCase() === 'resources')) {
+            navigationSections.push({
+                title: 'Resources',
+                links: legalPages.map((p: any) => {
+                    let href = `/page/${p.slug}`;
+                    if (policySlugs.includes(p.slug)) {
+                        href = `/${p.slug}`;
+                    }
+                    return {
+                        text: p.title,
+                        href: href,
+                        target: '_self'
+                    };
+                })
+            });
+        }
+
         if (config.layout === 'minimal') {
             return (
                 <div className="flex flex-wrap gap-8">
-                    {sectionData.navigation_sections?.slice(0, 3).map((section: any, index: number) => (
+                    {navigationSections?.slice(0, 4).map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index} className="min-w-0">
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
@@ -246,7 +270,7 @@ export default function Footer({ settings }: FooterProps) {
         if (config.layout === 'centered') {
             return (
                 <div className="flex flex-wrap justify-center gap-12">
-                    {sectionData.navigation_sections?.map((section: any, index: number) => (
+                    {navigationSections?.map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index}>
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
@@ -275,7 +299,7 @@ export default function Footer({ settings }: FooterProps) {
         if (config.layout === 'split') {
             return (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-                    {sectionData.navigation_sections?.map((section: any, index: number) => (
+                    {navigationSections?.map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index}>
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
@@ -302,13 +326,13 @@ export default function Footer({ settings }: FooterProps) {
         }
 
         // Standard and modern layouts
-        return sectionData.navigation_sections?.map((section: any, index: number) => (
+        return navigationSections?.map((section: any, index: number) => (
             section.links?.length > 0 && (
                 <div key={index}>
                     <h3 className={config.sectionTitle}>{section.title}</h3>
                     <ul className="space-y-3">
                         {section.links.map((link: any, linkIndex: number) => (
-                            <li key={linkIndex}>
+                            <li key={linkIndex} className="whitespace-nowrap">
                                 {link.target === '_blank' ? (
                                     <a href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} target="_blank" rel="noopener noreferrer" className={`transition-all duration-300 text-base ${config.layout === 'modern' ? 'text-white/80 hover:text-white hover:translate-x-2 hover:drop-shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                                         {link.text}
@@ -487,9 +511,15 @@ export default function Footer({ settings }: FooterProps) {
             <div className={config.container}>
                 <AnimateOnScroll direction="up">
                     <div className={config.grid}>
-                        {renderCompanyInfo()}
-                        {renderNavigationSections()}
-                        {renderNewsletter()}
+                        <div className="lg:col-span-3 lg:pr-4">
+                            {renderCompanyInfo()}
+                        </div>
+                        <div className="lg:col-span-6 grid grid-cols-2 md:grid-cols-3 gap-10">
+                            {renderNavigationSections()}
+                        </div>
+                        <div className="lg:col-span-3 lg:pl-10">
+                            {renderNewsletter()}
+                        </div>
                     </div>
                 </AnimateOnScroll>
                 <div className={config.copyright}>
