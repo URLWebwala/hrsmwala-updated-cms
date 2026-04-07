@@ -287,7 +287,9 @@ const WebhookSettings: React.FC<WebhookSettingsProps> = ({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="url">{t('Webhook URL')}</Label>
+                  <Label htmlFor="url">
+                    {t('Webhook URL')} <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="url"
                     type="url"

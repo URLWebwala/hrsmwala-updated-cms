@@ -219,5 +219,35 @@ return [
             'type' => 'company',
             'extractor' => 'Workdo\Webhook\Extractors\HrmEventDataExtractor'
         ],
+        'Workdo\Hrm\Events\CreateEmployee' => [
+            'action' => 'New Employee',
+            'module' => 'Hrm',
+            'type' => 'company',
+            'extractor' => 'Workdo\Webhook\Extractors\HrmEmployeeDataExtractor'
+        ],
+        'Workdo\Hrm\Events\CreateLeaveApplication' => [
+            'action' => 'New Leave Application',
+            'module' => 'Hrm',
+            'type' => 'company',
+            'extractor' => 'Workdo\Webhook\Extractors\HrmLeaveDataExtractor'
+        ],
+        'Workdo\Hrm\Events\UpdateLeaveStatus' => [
+            'action' => 'Leave Status Updated',
+            'module' => 'Hrm',
+            'type' => 'company',
+            'extractor' => 'Workdo\Webhook\Extractors\HrmLeaveDataExtractor'
+        ],
+        'Workdo\Hrm\Events\CreatePayroll' => [
+            'action' => 'New Payroll',
+            'module' => 'Hrm',
+            'type' => 'company',
+            'extractor' => 'Workdo\Webhook\Extractors\HrmPayrollDataExtractor'
+        ],
+        'Workdo\Hrm\Events\PaySalary' => [
+            'action' => 'Salary Paid',
+            'module' => 'Hrm',
+            'type' => 'company',
+            'extractor' => 'Workdo\Webhook\Extractors\HrmPayrollDataExtractor'
+        ],
     ]
 ];
