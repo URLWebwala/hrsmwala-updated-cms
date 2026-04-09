@@ -234,7 +234,7 @@ if (!function_exists('ActivatedModule')) {
             $available_modules = array_values((new Module())->allEnabled());
 
             if ($user->type == 'superadmin') {
-                $user_active_module = $available_modules;
+                $user_active_module = array_values(array_unique(array_merge($activated_module, $available_modules)));
             } else {
                 $active_module = [];
                 if ($user->type != 'company') {
