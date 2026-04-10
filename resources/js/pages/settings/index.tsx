@@ -11,40 +11,28 @@ import { getSettingsComponent } from '@/utils/settings-components';
 export default function Settings() {
   const { t } = useTranslation();
   const { auth, globalSettings = {}, emailProviders = {}, cacheSize = '0.00' } = usePage().props as any;
-  const [activeSection, setActiveSection] = useState('brand-settings');
 
   const sidebarNavItems = allSettingsItems();
+  const navKey = sidebarNavItems.map((i) => i.href).join('|');
 
-
-
-  const handleNavClick = (href: string) => {
-    const id = href.replace('#', '');
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveSection(id);
-    }
-  };
+  const [activeSection, setActiveSection] = useState<string>(
+    () => sidebarNavItems[0]?.href.replace('#', '') ?? ''
+  );
 
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = sidebarNavItems.map(item => item.href.replace('#', ''));
+    const ids = sidebarNavItems.map((item) => item.href.replace('#', ''));
+    if (ids.length === 0) {
+      return;
+    }
+    setActiveSection((prev) => (prev && ids.includes(prev) ? prev : ids[0]));
+  }, [navKey]);
 
-      for (const sectionId of sections) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
+  const handleNavClick = (href: string) => {
+    setActiveSection(href.replace('#', ''));
+  };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sidebarNavItems]);
+  const activeItem = sidebarNavItems.find((item) => item.href.replace('#', '') === activeSection);
+  const ActiveComponent = activeItem ? getSettingsComponent(activeItem.component) : null;
 
   return (
     <AuthenticatedLayout
@@ -77,32 +65,24 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1">
+        {/* Main Content — single section matching sidebar selection */}
+        <div className="flex-1 min-w-0">
           <ScrollArea className="h-[calc(100vh-8rem)]">
-            <div className="pr-4">
-              {sidebarNavItems.map((item) => {
-            const sectionId = item.href.replace('#', '');
-            const canManage = auth.user?.permissions?.includes(item.permission) || item.component === 'tracker-app-settings';
-
-            if (!canManage) return null;
-
-            const Component = getSettingsComponent(item.component);
-            if (!Component) return null;
-
-            return (
-              <section key={sectionId} id={sectionId} className="mb-8">
-                <Suspense fallback={<div className="p-4">Loading...</div>}>
-                  <Component
-                    userSettings={globalSettings}
-                    auth={auth}
-                    emailProviders={emailProviders}
-                    cacheSize={cacheSize}
-                  />
-                </Suspense>
-              </section>
-                );
-              })}
+            <div className="pr-4 pb-8">
+              {ActiveComponent && activeItem ? (
+                <section key={activeSection} id={activeSection} className="mb-8">
+                  <Suspense fallback={<div className="p-4">Loading...</div>}>
+                    <ActiveComponent
+                      userSettings={globalSettings}
+                      auth={auth}
+                      emailProviders={emailProviders}
+                      cacheSize={cacheSize}
+                    />
+                  </Suspense>
+                </section>
+              ) : (
+                <p className="text-sm text-muted-foreground py-8">{t('No settings available.')}</p>
+              )}
             </div>
           </ScrollArea>
         </div>
