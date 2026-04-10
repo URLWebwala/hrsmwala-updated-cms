@@ -173,19 +173,6 @@ function SubscriptionLayout({ plan, allModules, pricingPeriod, onSubscribe, bank
             const dataUrl = (selectedButton as any)?.dataUrl;
             
             if (dataUrl) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = dataUrl;
-                
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (csrfToken) {
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = csrfToken;
-                    form.appendChild(csrfInput);
-                }
-                
                 const formData = {
                     plan_id: plan.id,
                     user_id: auth?.user?.id,
@@ -193,19 +180,14 @@ function SubscriptionLayout({ plan, allModules, pricingPeriod, onSubscribe, bank
                     user_module_input: (plan.modules || []).join(','),
                     coupon_code: couponCode || ''
                 };
-                
-                Object.entries(formData).forEach(([key, value]) => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = value;
-                    form.appendChild(input);
+
+                router.post(dataUrl, formData, {
+                    onFinish: () => setIsSubmitting(false),
+                    onError: (errors) => {
+                        console.error('Payment submission failed:', errors);
+                    }
                 });
-                
-                document.body.appendChild(form);
-                form.submit();
             }
-            setIsSubmitting(false);
         } else {
             const subscriptionData = {
                 planId: plan.id,
