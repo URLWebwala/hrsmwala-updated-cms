@@ -1,4 +1,4 @@
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
@@ -67,6 +67,7 @@ export default function Header({ settings }: HeaderProps) {
     const ctaText = isAuthenticated ? 'Dashboard' : (sectionData.cta_text || 'Get Started');
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const socialLinks = settings?.config_sections?.sections?.social || settings?.config_sections?.social || {};
     
     const themeMode = getAdminSetting('theme_mode') || 'light';
     const logoKey = themeMode === 'dark' ? 'logo_light' : 'logo_dark';
@@ -314,6 +315,13 @@ export default function Header({ settings }: HeaderProps) {
         return {};
     };
 
+    const drawerSocialItems = [
+        { key: 'facebook', href: socialLinks.facebook, icon: Facebook },
+        { key: 'instagram', href: socialLinks.instagram, icon: Instagram },
+        { key: 'twitter', href: socialLinks.twitter, icon: Twitter },
+        { key: 'linkedin', href: socialLinks.linkedin, icon: Linkedin },
+    ];
+
     return (
         <nav className={config.nav} style={getGradientStyle()}>
             <div className={config.container}>
@@ -362,24 +370,108 @@ export default function Header({ settings }: HeaderProps) {
                 </div>
             </div>
             
-            {mobileMenuOpen && (
-                <div className={config.mobileMenu} style={getMobileMenuStyle()}>
-                    <div className="px-2 pt-2 pb-3 space-y-1">
-                        {renderNavItems(true)}
-                        <div className="px-3 py-2">
-                            {sectionData?.enable_pricing_link !== false && (
-                                <Link 
-                                    href={route("pricing.page")}
-                                    className="block px-3 py-2 text-base font-medium text-gray-600"
-                                >
-                                    {t('Pricing')}
-                                </Link>
+            {/* Modern mobile side drawer */}
+            <div
+                className={`md:hidden fixed inset-0 z-[100] transition-all duration-300 ${
+                    mobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
+                }`}
+                aria-hidden={!mobileMenuOpen}
+            >
+                <div
+                    className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+                        mobileMenuOpen ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+                <div
+                    className={`absolute top-0 right-0 h-full w-[88%] max-w-sm shadow-2xl transition-transform duration-300 ease-out ${
+                        mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                    } ${
+                        variant === 'header4' || variant === 'header5'
+                            ? 'bg-[#0b1320] text-white border-l border-white/15'
+                            : 'bg-white text-gray-900 border-l border-gray-200'
+                    }`}
+                    style={variant === 'header5' ? getMobileMenuStyle() : {}}
+                >
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/30">
+                        <Link
+                            href={route('landing.page')}
+                            className="lg:max-w-[180px] max-w-[140px] inline-block"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            {logoUrl ? (
+                                <img src={logoUrl} alt={companyName} className="w-auto" />
+                            ) : (
+                                <span className="text-lg font-bold" style={{ color: colors.primary }}>
+                                    {companyName}
+                                </span>
                             )}
-                            {renderCTAButtons(true)}
+                        </Link>
+                        <button
+                            className="p-2 rounded-md hover:bg-black/5"
+                            onClick={() => setMobileMenuOpen(false)}
+                            aria-label="Close menu"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                    </div>
+
+                    <div className="px-4 py-4 space-y-1">
+                        {renderNavItems(true)}
+                        {sectionData?.enable_pricing_link !== false && (
+                            <Link
+                                href={route('pricing.page')}
+                                className={`block px-4 py-3 text-base font-medium rounded-lg transition-all ${
+                                    variant === 'header4' || variant === 'header5'
+                                        ? 'text-white hover:bg-white/10'
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('Pricing')}
+                            </Link>
+                        )}
+                    </div>
+
+                    <div className="px-4 pt-2">
+                        {renderCTAButtons(true)}
+                    </div>
+
+                    <div className="mt-6 px-4 pb-6">
+                        <p
+                            className={`text-xs font-semibold uppercase tracking-wide mb-3 ${
+                                variant === 'header4' || variant === 'header5' ? 'text-white/70' : 'text-gray-500'
+                            }`}
+                        >
+                            {t('Follow Us')}
+                        </p>
+                        <div className="flex items-center gap-3">
+                            {drawerSocialItems.map(({ key, href, icon: Icon }) =>
+                                href ? (
+                                    <a
+                                        key={key}
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 rounded-lg bg-black/5 hover:scale-105 transition-all"
+                                        aria-label={key}
+                                    >
+                                        <Icon className="h-5 w-5" style={{ color: colors.primary }} />
+                                    </a>
+                                ) : (
+                                    <span
+                                        key={key}
+                                        className="p-2 rounded-lg bg-black/5 opacity-70"
+                                        aria-label={key}
+                                    >
+                                        <Icon className="h-5 w-5" style={{ color: colors.primary }} />
+                                    </span>
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
         </nav>
     );
 }

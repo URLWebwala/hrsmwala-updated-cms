@@ -14,7 +14,7 @@ interface GeneralProps {
 export default function General({ data, updateSectionData, updateConfigSection }: GeneralProps) {
     const { t } = useTranslation();
 
-    const socialLinks = data.config_sections?.sections?.social || {};
+    const socialLinks = data.config_sections?.sections?.social || data.config_sections?.social || {};
 
     return (
         <div className="space-y-6">
@@ -83,6 +83,22 @@ export default function General({ data, updateSectionData, updateConfigSection }
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <PhoneInputComponent
+                                label={t('WhatsApp Number')}
+                                value={socialLinks.whatsapp_number || ''}
+                                onChange={(value) => updateConfigSection('social', { whatsapp_number: value })}
+                                placeholder="+91 8084033396"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>{t('WhatsApp Default Message')}</Label>
+                            <Input
+                                value={socialLinks.whatsapp_message || ''}
+                                onChange={(e) => updateConfigSection('social', { whatsapp_message: e.target.value })}
+                                placeholder={t('Hi, I want to connect for sales.')}
+                            />
+                        </div>
                         <div className="space-y-2">
                             <Label>{t('Facebook Link')}</Label>
                             <Input 

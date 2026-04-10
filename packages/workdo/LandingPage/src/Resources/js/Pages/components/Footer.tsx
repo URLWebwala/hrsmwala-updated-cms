@@ -74,7 +74,7 @@ export default function Footer({ settings }: FooterProps) {
     const description = sectionData.description || 'The complete business management solution for modern enterprises.';
     const contactEmail = settings?.contact_email || 'support@hrmswala.com';
     const phone = settings?.contact_phone || '+91 00000 00000';
-    const socialLinks = settings?.config_sections?.sections?.social || {};
+    const socialLinks = settings?.config_sections?.sections?.social || settings?.config_sections?.social || {};
     const copyrightText = sectionData.copyright_text || `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     
