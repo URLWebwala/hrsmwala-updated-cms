@@ -160,6 +160,13 @@ class CashfreeController extends Controller
         $cashfree_environment = $admin_settings['cashfree_environment'] ?? 'sandbox';
 
         $orderID = $request->order_id;
+        if (empty($orderID)) {
+             $orderID = $request->get('cf_id') ?? $request->get('cf_order_id');
+        }
+
+        if (empty($orderID)) {
+            return redirect()->route('plans.index')->with('error', __('Order ID missing in redirection.'));
+        }
 
         $url = ($cashfree_environment == 'production') 
             ? "https://api.cashfree.com/pg/orders/{$orderID}" 
@@ -184,32 +191,37 @@ class CashfreeController extends Controller
             curl_close($curl);
             $result = json_decode($response);
 
-            if (isset($result->order_status) && ($result->order_status == 'PAID' || $result->order_status == 'SUCCESS')) {
+            if (isset($result->order_status) && in_array($result->order_status, ['PAID', 'SUCCESS', 'COMPLETED'])) {
                 $order = Order::where('order_id', $orderID)->first();
                 if ($order && $order->payment_status != 'succeeded') {
-                    $metadata = json_decode($order->receipt, true);
+                    $metadata = !empty($order->receipt) ? json_decode($order->receipt, true) : [];
                     
                     $order->payment_status = 'succeeded';
-                    $order->txn_id = $result->cf_order_id ?? '';
+                    $order->txn_id = $result->cf_order_id ?? $orderID;
                     $order->save();
 
                     $plan = Plan::find($order->plan_id);
                     $counter = [
-                        'user_counter' => $plan->number_of_users,
-                        'storage_counter' => $plan->storage_limit,
+                        'user_counter' => $plan->number_of_users ?? -1,
+                        'storage_counter' => $plan->storage_limit ?? 0,
                     ];
                     
-                    assignPlan($plan->id, $metadata['duration'] ?? 'Month', $metadata['user_module'] ?? '', $counter, $metadata['user_id'] ?? $order->created_by);
+                    $duration = $metadata['duration'] ?? 'Month';
+                    $user_module = $metadata['user_module'] ?? '';
+                    $user_id = $metadata['user_id'] ?? $order->created_by;
+
+                    assignPlan($plan->id, $duration, $user_module, $counter, $user_id);
                     
                     if (!empty($metadata['coupon_code'])) {
                         $coupon = Coupon::where('code', $metadata['coupon_code'])->first();
                         if ($coupon) {
-                            recordCouponUsage($coupon->id, $metadata['user_id'] ?? $order->created_by, $orderID);
+                            recordCouponUsage($coupon->id, $user_id, $orderID);
                         }
                     }
 
                     return redirect()->route('plans.index')->with('success', __('Plan activated Successfully!'));
                 }
+            }
             }
             
             return redirect()->route('plans.index')->with('error', __('Payment failed or order not found.'));
