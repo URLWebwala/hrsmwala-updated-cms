@@ -52,6 +52,7 @@ export default function AccountIndex({ message, stats, monthlyVendorPayments, mo
     const page = usePage();
     const { auth } = page.props as { auth?: { user?: { permissions?: string[] } } };
     const canEditRevenue = auth?.user?.permissions?.includes('edit-revenues');
+    const canEditExpense = auth?.user?.permissions?.includes('edit-expenses');
 
     const applyDashboardPeriod = (year: number, month: number) => {
         router.get(route('account.index'), { year, month }, { preserveScroll: true });
@@ -325,13 +326,23 @@ export default function AccountIndex({ message, stats, monthlyVendorPayments, mo
                             <CardContent>
                                 <div className="max-h-80 overflow-y-auto space-y-3">
                                     {recentExpenses.slice(0, 5).map((expense) => (
-                                        <div key={expense.id} className="flex justify-between items-center p-3 rounded-lg border">
-                                            <div>
+                                        <div key={expense.id} className="flex justify-between items-center p-3 rounded-lg border gap-3">
+                                            <div className="min-w-0 flex-1">
                                                 <p className="font-medium text-sm">{expense.title}</p>
                                                 <p className="text-xs text-gray-600">{expense.description}</p>
                                                 <p className="text-xs text-gray-500">{formatDate(expense.date)}</p>
                                             </div>
-                                            <div className="text-red-600 font-bold">{formatCurrency(expense.amount)}</div>
+                                            <div className="flex flex-col items-end gap-1 shrink-0">
+                                                {canEditExpense && (
+                                                    <Link
+                                                        href={route('account.expenses.index', { search: expense.title })}
+                                                        className="text-xs font-medium text-primary hover:underline"
+                                                    >
+                                                        {t('Edit')}
+                                                    </Link>
+                                                )}
+                                                <div className="text-red-600 font-bold">{formatCurrency(expense.amount)}</div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

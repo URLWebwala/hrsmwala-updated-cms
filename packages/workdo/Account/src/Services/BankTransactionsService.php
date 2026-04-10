@@ -224,6 +224,27 @@ class BankTransactionsService
         // Update bank account balance (negative amount to decrease balance)
         $this->updateBankBalance($expense->bank_account_id, -$expense->amount);
     }
+
+    /**
+     * Undo the bank register line created when an expense was posted (debit from bank).
+     */
+    public function reverseExpensePayment(string $expenseNumber, int $bankAccountId, $amount): void
+    {
+        $transaction = BankTransaction::where('bank_account_id', $bankAccountId)
+            ->where('reference_number', $expenseNumber)
+            ->where('transaction_type', 'debit')
+            ->where('created_by', creatorId())
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $transaction) {
+            return;
+        }
+
+        $this->updateBankBalance($bankAccountId, (float) $amount);
+        $transaction->delete();
+    }
+
     public function createCommissionPayment($commissionPayment)
     {
         // Get current running balance for the bank account

@@ -5,6 +5,7 @@ namespace Workdo\Account\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Workdo\Account\Events\ApproveExpense;
 use Workdo\Account\Events\CreateExpense;
@@ -130,20 +131,41 @@ class ExpenseController extends Controller
     public function update(UpdateExpenseRequest $request, Expense $expense)
     {
         if(Auth::user()->can('edit-expenses') && $expense->created_by == creatorId()){
-            if ($expense->status != 'draft') {
-                return redirect()->route('account.expenses.index')->with('error', __('Cannot update posted expense.'));
-            }
-
             $validated = $request->validated();
 
-            $expense->expense_date = $validated['expense_date'];
-            $expense->category_id = $validated['category_id'];
-            $expense->bank_account_id = $validated['bank_account_id'];
-            $expense->chart_of_account_id = $validated['chart_of_account_id'];
-            $expense->amount = $validated['amount'];
-            $expense->description = $validated['description'];
-            $expense->reference_number = $validated['reference_number'];
-            $expense->save();
+            if (! in_array($expense->status, ['draft', 'approved', 'posted'], true)) {
+                return redirect()->route('account.expenses.index')->with('error', __('Cannot update this expense.'));
+            }
+
+            try {
+                DB::transaction(function () use ($request, $expense, $validated) {
+                    if ($expense->status === 'posted') {
+                        $oldAmount = $expense->amount;
+                        $oldBankAccountId = $expense->bank_account_id;
+                        $oldExpenseNumber = $expense->expense_number;
+
+                        $this->journalService->deleteExpenseJournal($expense->id);
+                        $this->bankTransactionsService->reverseExpensePayment($oldExpenseNumber, $oldBankAccountId, $oldAmount);
+                    }
+
+                    $expense->expense_date = $validated['expense_date'];
+                    $expense->category_id = $validated['category_id'];
+                    $expense->bank_account_id = $validated['bank_account_id'];
+                    $expense->chart_of_account_id = $validated['chart_of_account_id'];
+                    $expense->amount = $validated['amount'];
+                    $expense->description = $validated['description'];
+                    $expense->reference_number = $validated['reference_number'];
+                    $expense->save();
+
+                    if ($expense->status === 'posted') {
+                        $expense->load(['bankAccount.glAccount', 'chartOfAccount']);
+                        $this->journalService->createExpenseEntryJournal($expense);
+                        $this->bankTransactionsService->createExpensePayment($expense);
+                    }
+                });
+            } catch (\Exception $e) {
+                return back()->with('error', $e->getMessage());
+            }
 
             UpdateExpense::dispatch($request, $expense);
 

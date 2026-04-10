@@ -274,33 +274,29 @@ export default function Index() {
                                 </TooltipContent>
                             </Tooltip>
                         )}
-                        {expense.status === 'draft' && (
-                            <>
-                                {auth.user.permissions.includes('edit-expenses') && (
-                                    <Tooltip delayDuration={0}>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="sm" onClick={() => setEditingItem(expense)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{t('Edit')}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                                {auth.user.permissions.includes('delete-expenses') && (
-                                    <Tooltip delayDuration={0}>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(expense.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{t('Delete')}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                            </>
+                        {['draft', 'approved', 'posted'].includes(expense.status) && auth.user.permissions.includes('edit-expenses') && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => setEditingItem(expense)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Edit')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        {expense.status === 'draft' && auth.user.permissions.includes('delete-expenses') && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(expense.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Delete')}</p>
+                                </TooltipContent>
+                            </Tooltip>
                         )}
                     </TooltipProvider>
                 </div>
@@ -557,33 +553,29 @@ export default function Index() {
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         )}
-                                                        {expense.status === 'draft' && (
-                                                            <>
-                                                                {auth.user.permissions.includes('edit-expenses') && (
-                                                                    <Tooltip delayDuration={0}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button variant="ghost" size="sm" onClick={() => setEditingItem(expense)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
-                                                                                <Edit className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Edit')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                                {auth.user.permissions.includes('delete-expenses') && (
-                                                                    <Tooltip delayDuration={0}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(expense.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Delete')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                            </>
+                                                        {['draft', 'approved', 'posted'].includes(expense.status) && auth.user.permissions.includes('edit-expenses') && (
+                                                            <Tooltip delayDuration={0}>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" onClick={() => setEditingItem(expense)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{t('Edit')}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        )}
+                                                        {expense.status === 'draft' && auth.user.permissions.includes('delete-expenses') && (
+                                                            <Tooltip delayDuration={0}>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(expense.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{t('Delete')}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
                                                         )}
                                                     </TooltipProvider>
                                                 </div>
