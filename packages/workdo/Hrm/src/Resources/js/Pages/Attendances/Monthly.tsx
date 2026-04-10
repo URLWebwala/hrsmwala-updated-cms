@@ -66,7 +66,7 @@ export default function Monthly() {
             case 'P': return 'bg-green-500 text-white border-green-600'; // Present
             case 'A': return 'bg-rose-500 text-white border-rose-600';   // Absent
             case 'H': return 'bg-amber-500 text-white border-amber-600'; // Half Day
-            case 'O': return 'bg-indigo-500 text-white border-indigo-600'; // Holiday
+            case 'O': return 'bg-indigo-500 text-white border-indigo-600'; // Official Leave
             case 'L': return 'bg-sky-500 text-white border-sky-600';    // Leave
             case 'F': return 'bg-blue-600 text-white border-blue-700';   // Festival
             default: return 'bg-muted/50 text-muted-foreground border-muted';
@@ -257,8 +257,8 @@ export default function Monthly() {
                         <span className="text-[10px] font-bold text-muted-foreground">{t('Half Day')}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-sm bg-indigo-500" title={t('Holiday')} />
-                        <span className="text-[10px] font-bold text-muted-foreground">{t('Holiday')}</span>
+                        <div className="w-4 h-4 rounded-sm bg-indigo-500" title={t('Official Leave')} />
+                        <span className="text-[10px] font-bold text-muted-foreground">{t('Official Leave')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-sm bg-sky-500" title={t('Leave')} />

@@ -14,6 +14,8 @@ class LeaveApplication extends Model
     protected $fillable = [
         'start_date',
         'end_date',
+        'leave_duration',
+        'half_day_session',
         'total_days',
         'reason',
         'attachment',
@@ -32,6 +34,9 @@ class LeaveApplication extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'total_days' => 'decimal:1',
+            'leave_duration' => 'string',
+            'half_day_session' => 'string',
             'attachment' => 'string',
             'approved_at' => 'datetime'
         ];

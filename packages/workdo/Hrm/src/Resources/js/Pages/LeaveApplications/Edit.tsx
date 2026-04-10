@@ -24,6 +24,8 @@ export default function EditLeaveApplication({ leaveapplication, onSuccess }: Ed
         leave_type_id: leaveapplication.leave_type_id?.toString() || '',
         start_date: leaveapplication.start_date || '',
         end_date: leaveapplication.end_date || '',
+        leave_duration: (leaveapplication.leave_duration || 'full_day') as 'full_day' | 'half_day',
+        half_day_session: (leaveapplication.half_day_session || '') as 'first_half' | 'second_half' | '',
         reason: leaveapplication.reason ?? '',
         attachment: leaveapplication.attachment || '',
     });
@@ -40,12 +42,21 @@ export default function EditLeaveApplication({ leaveapplication, onSuccess }: Ed
             const startDate = new Date(data.start_date);
             const endDate = new Date(data.end_date);
             const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffDays = data.leave_duration === 'half_day' ? 0.5 : (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
             setTotalDays(diffDays);
         } else {
             setTotalDays(0);
         }
-    }, [data.start_date, data.end_date]);
+    }, [data.start_date, data.end_date, data.leave_duration]);
+
+    useEffect(() => {
+        if (data.leave_duration === 'half_day' && data.start_date) {
+            setData('end_date', data.start_date);
+        }
+        if (data.leave_duration === 'full_day') {
+            setData('half_day_session', '');
+        }
+    }, [data.leave_duration, data.start_date]);
 
     // Get leave balance when employee and leave type are selected
     useEffect(() => {
@@ -114,6 +125,44 @@ export default function EditLeaveApplication({ leaveapplication, onSuccess }: Ed
                     </Select>
                     <InputError message={errors.leave_type_id} />
                 </div>
+
+                <div>
+                    <Label htmlFor="leave_duration" required>{t('Leave Duration')}</Label>
+                    <Select
+                        value={data.leave_duration}
+                        onValueChange={(value: 'full_day' | 'half_day') => setData('leave_duration', value)}
+                        required
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={t('Select Leave Duration')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="full_day">{t('Full Day')}</SelectItem>
+                            <SelectItem value="half_day">{t('Half Day')}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError message={errors.leave_duration} />
+                </div>
+
+                {data.leave_duration === 'half_day' && (
+                    <div>
+                        <Label htmlFor="half_day_session" required>{t('Half Day Session')}</Label>
+                        <Select
+                            value={data.half_day_session || ''}
+                            onValueChange={(value: 'first_half' | 'second_half') => setData('half_day_session', value)}
+                            required
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder={t('Select Session')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="first_half">{t('First Half')}</SelectItem>
+                                <SelectItem value="second_half">{t('Second Half')}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError message={errors.half_day_session} />
+                    </div>
+                )}
                 
                 <div>
                     <Label htmlFor="start_date" required>{t('Start Date')}</Label>
@@ -134,6 +183,7 @@ export default function EditLeaveApplication({ leaveapplication, onSuccess }: Ed
                         value={data.end_date}
                         onChange={(date) => setData('end_date', date)}
                         placeholder={t('Select End Date')}
+                        disabled={data.leave_duration === 'half_day'}
                         required
                     />
                     <InputError message={errors.end_date} />

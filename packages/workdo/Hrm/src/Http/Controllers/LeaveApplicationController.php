@@ -70,10 +70,11 @@ class LeaveApplicationController extends Controller
         if (Auth::user()->can('create-leave-applications')) {
             $validated = $request->validated();
 
-            // Calculate total days automatically
+            // Calculate total days automatically (supports half day leave)
             $startDate = new \DateTime($validated['start_date']);
             $endDate = new \DateTime($validated['end_date']);
-            $totalDays = $startDate->diff($endDate)->days + 1;
+            $isHalfDay = ($validated['leave_duration'] ?? 'full_day') === 'half_day';
+            $totalDays = $isHalfDay ? 0.5 : ($startDate->diff($endDate)->days + 1);
 
             // Get leave type details
             $leaveType = LeaveType::find($validated['leave_type_id']);
@@ -111,18 +112,37 @@ class LeaveApplicationController extends Controller
                 ->whereYear('start_date', $currentYear)
                 ->sum('total_days');
 
-            // Check for overlapping leave applications
+            // Check for overlapping leave applications (supports half day split)
             $overlappingLeave = LeaveApplication::where('employee_id', $validated['employee_id'])
-                ->where(function ($query) use ($validated) {
-                    $query
-                        ->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
-                        ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
-                        ->orWhere(function ($q) use ($validated) {
-                            $q->where('start_date', '<=', $validated['start_date'])->where('end_date', '>=', $validated['end_date']);
-                        });
-                })
                 ->whereIn('status', ['approved', 'pending'])
-                ->first();
+                ->where(function ($query) use ($validated, $isHalfDay) {
+                    if ($isHalfDay) {
+                        $query->whereDate('start_date', $validated['start_date'])->whereDate('end_date', $validated['end_date']);
+                    } else {
+                        $query
+                            ->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
+                            ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
+                            ->orWhere(function ($q) use ($validated) {
+                                $q->where('start_date', '<=', $validated['start_date'])->where('end_date', '>=', $validated['end_date']);
+                            });
+                    }
+                })
+                ->get()
+                ->first(function ($existingLeave) use ($validated, $isHalfDay) {
+                    // Full day request conflicts with any overlap on same date range.
+                    if (!$isHalfDay) {
+                        return true;
+                    }
+
+                    // Half day request rules:
+                    // 1) conflicts with existing full day leave on same date
+                    if (($existingLeave->leave_duration ?? 'full_day') === 'full_day') {
+                        return true;
+                    }
+
+                    // 2) conflicts with same half session on same date
+                    return ($existingLeave->half_day_session ?? null) === ($validated['half_day_session'] ?? null);
+                });
 
             if ($overlappingLeave) {
                 $startDate = \Carbon\Carbon::parse($overlappingLeave->start_date)->format('Y-m-d');
@@ -151,6 +171,8 @@ class LeaveApplicationController extends Controller
             $leaveapplication = new LeaveApplication();
             $leaveapplication->start_date = $validated['start_date'];
             $leaveapplication->end_date = $validated['end_date'];
+            $leaveapplication->leave_duration = $validated['leave_duration'] ?? 'full_day';
+            $leaveapplication->half_day_session = $isHalfDay ? ($validated['half_day_session'] ?? null) : null;
             $leaveapplication->total_days = $totalDays;
             $leaveapplication->reason = $validated['reason'];
             $leaveapplication->attachment = $validated['attachment'] ?? null;
@@ -175,10 +197,11 @@ class LeaveApplicationController extends Controller
         if (Auth::user()->can('edit-leave-applications')) {
             $validated = $request->validated();
 
-            // Calculate total days automatically
+            // Calculate total days automatically (supports half day leave)
             $startDate = new \DateTime($validated['start_date']);
             $endDate = new \DateTime($validated['end_date']);
-            $totalDays = $startDate->diff($endDate)->days + 1;
+            $isHalfDay = ($validated['leave_duration'] ?? 'full_day') === 'half_day';
+            $totalDays = $isHalfDay ? 0.5 : ($startDate->diff($endDate)->days + 1);
 
             // Get leave type details
             $leaveType = LeaveType::find($validated['leave_type_id']);
@@ -217,19 +240,34 @@ class LeaveApplicationController extends Controller
                 ->where('id', '!=', $leaveapplication->id)
                 ->sum('total_days');
 
-            // Check for overlapping leave applications (excluding current application)
+            // Check for overlapping leave applications (supports half day split)
             $overlappingLeave = LeaveApplication::where('employee_id', $validated['employee_id'])
                 ->where('id', '!=', $leaveapplication->id)
-                ->where(function ($query) use ($validated) {
-                    $query
-                        ->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
-                        ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
-                        ->orWhere(function ($q) use ($validated) {
-                            $q->where('start_date', '<=', $validated['start_date'])->where('end_date', '>=', $validated['end_date']);
-                        });
-                })
                 ->whereIn('status', ['approved', 'pending'])
-                ->first();
+                ->where(function ($query) use ($validated, $isHalfDay) {
+                    if ($isHalfDay) {
+                        $query->whereDate('start_date', $validated['start_date'])->whereDate('end_date', $validated['end_date']);
+                    } else {
+                        $query
+                            ->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
+                            ->orWhereBetween('end_date', [$validated['start_date'], $validated['end_date']])
+                            ->orWhere(function ($q) use ($validated) {
+                                $q->where('start_date', '<=', $validated['start_date'])->where('end_date', '>=', $validated['end_date']);
+                            });
+                    }
+                })
+                ->get()
+                ->first(function ($existingLeave) use ($validated, $isHalfDay) {
+                    if (!$isHalfDay) {
+                        return true;
+                    }
+
+                    if (($existingLeave->leave_duration ?? 'full_day') === 'full_day') {
+                        return true;
+                    }
+
+                    return ($existingLeave->half_day_session ?? null) === ($validated['half_day_session'] ?? null);
+                });
 
             if ($overlappingLeave) {
                 $startDate = \Carbon\Carbon::parse($overlappingLeave->start_date)->format('Y-m-d');
@@ -259,6 +297,8 @@ class LeaveApplicationController extends Controller
             $leaveapplication->leave_type_id = $validated['leave_type_id'];
             $leaveapplication->start_date = $validated['start_date'];
             $leaveapplication->end_date = $validated['end_date'];
+            $leaveapplication->leave_duration = $validated['leave_duration'] ?? 'full_day';
+            $leaveapplication->half_day_session = $isHalfDay ? ($validated['half_day_session'] ?? null) : null;
             $leaveapplication->total_days = $totalDays;
             $leaveapplication->reason = $validated['reason'];
             $leaveapplication->attachment = $validated['attachment'] ?? null;

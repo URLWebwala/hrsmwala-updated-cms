@@ -78,6 +78,18 @@ export default function View({ leaveapplication }: ViewProps) {
                         
                         <div>
                             <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {t('Leave Duration')}
+                            </label>
+                            <p className="mt-1 font-medium">
+                                {leaveapplication.leave_duration === 'half_day'
+                                    ? `${t('Half Day')} (${leaveapplication.half_day_session === 'second_half' ? t('Second Half') : t('First Half')})`
+                                    : t('Full Day')}
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label className="text-sm font-medium text-gray-500 flex items-center gap-2">
                                 <CheckCircle className="h-4 w-4" />
                                 {t('Status')}
                             </label>

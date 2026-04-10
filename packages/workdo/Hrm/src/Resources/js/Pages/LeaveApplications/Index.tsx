@@ -120,6 +120,11 @@ export default function Index() {
                     ></div>
                     <div className="flex flex-col">
                         <span>{row.leave_type?.name || '-'}</span>
+                        {row.leave_duration === 'half_day' && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full w-fit bg-indigo-100 text-indigo-700 mt-1">
+                                {row.half_day_session === 'second_half' ? t('Second Half') : t('First Half')}
+                            </span>
+                        )}
                         <span className={`text-xs px-1.5 py-0.5 rounded-full w-fit ${
                             row.leave_type?.is_paid 
                                 ? 'bg-green-100 text-green-700' 

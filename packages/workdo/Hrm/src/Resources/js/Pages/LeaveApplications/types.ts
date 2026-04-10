@@ -20,6 +20,8 @@ export interface LeaveApplication {
     id: number;
     start_date: string;
     end_date: string;
+    leave_duration?: 'full_day' | 'half_day';
+    half_day_session?: 'first_half' | 'second_half' | null;
     total_days: number;
     reason: string;
     attachment?: string;
@@ -39,6 +41,8 @@ export interface CreateLeaveApplicationFormData {
     leave_type_id: string;
     start_date: string;
     end_date: string;
+    leave_duration: 'full_day' | 'half_day';
+    half_day_session: 'first_half' | 'second_half' | '';
     reason: string;
     attachment: string;
 }
@@ -48,6 +52,8 @@ export interface EditLeaveApplicationFormData {
     leave_type_id: string;
     start_date: string;
     end_date: string;
+    leave_duration: 'full_day' | 'half_day';
+    half_day_session: 'first_half' | 'second_half' | '';
     reason: string;
     attachment: string;
 }

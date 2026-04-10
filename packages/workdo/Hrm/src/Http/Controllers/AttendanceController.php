@@ -17,9 +17,16 @@ use Workdo\Hrm\Events\DestroyAttendance;
 use Workdo\Hrm\Models\LeaveApplication;
 use Workdo\Hrm\Models\Holiday;
 use Workdo\Hrm\Models\IpRestrict;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    private function getCompanyTimezone(): string
+    {
+        $settings = getCompanyAllSetting(creatorId());
+        return $settings['timezone'] ?? $settings['company_timezone'] ?? config('app.timezone', 'UTC');
+    }
+
     public function index()
     {
         if (Auth::user()->can('manage-attendances')) {
@@ -373,7 +380,8 @@ class AttendanceController extends Controller
                 }
             }
 
-            $today = now()->toDateString();
+            $now = Carbon::now($this->getCompanyTimezone());
+            $today = $now->toDateString();
             $employeeId = Auth::id();
 
             // First check for any pending clock out and complete it
@@ -432,7 +440,7 @@ class AttendanceController extends Controller
 
 
             // $clockInTime = now()->format('H:i:s');
-            $clockInTime = now();
+            $clockInTime = $now;
 
             if ($existingAttendance) {
                 $existingAttendance->update(['clock_in' => $clockInTime]);
@@ -489,7 +497,8 @@ class AttendanceController extends Controller
                 }
             }
 
-            $today = now()->toDateString();
+            $now = Carbon::now($this->getCompanyTimezone());
+            $today = $now->toDateString();
             $employeeId = Auth::id();
 
             $attendance = Attendance::where('employee_id', $employeeId)
@@ -515,7 +524,7 @@ class AttendanceController extends Controller
             }
 
             // $clockOutTime = now()->format('H:i:s');
-            $clockOutTime = now();
+            $clockOutTime = $now;
             $employee = Employee::where('user_id', $employeeId)->where('created_by', creatorId())->first();
             $shiftId = $employee?->shift;
 
@@ -545,7 +554,7 @@ class AttendanceController extends Controller
 
     public function getClockStatus()
     {
-        $today = now()->toDateString();
+        $today = Carbon::now($this->getCompanyTimezone())->toDateString();
         $employeeId = Auth::id();
 
         $attendance = Attendance::where('employee_id', $employeeId)
@@ -564,7 +573,8 @@ class AttendanceController extends Controller
     public function monthly(\Illuminate\Http\Request $request)
     {
         if (Auth::user()->can('manage-attendances')) {
-            $monthYear = $request->month ? \Carbon\Carbon::parse($request->month) : \Carbon\Carbon::now();
+            $timezone = $this->getCompanyTimezone();
+            $monthYear = $request->month ? Carbon::parse($request->month, $timezone) : Carbon::now($timezone);
             $month = $monthYear->month;
             $year = $monthYear->year;
 
@@ -584,13 +594,15 @@ class AttendanceController extends Controller
             $allAttendances = Attendance::whereIn('employee_id', $employeeIds)
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
+                ->where('created_by', creatorId())
                 ->get()
                 ->groupBy(['employee_id', function ($item) {
-                    return \Carbon\Carbon::parse($item->date)->day;
+                    return Carbon::parse($item->date)->day;
                 }]);
 
             $leaves = LeaveApplication::whereIn('employee_id', $employeeIds)
                 ->where('status', 'approved')
+                ->where('created_by', creatorId())
                 ->whereYear('start_date', '<=', $year) // Simplified date check
                 ->get();
             
@@ -599,6 +611,9 @@ class AttendanceController extends Controller
                 ->get();
 
             $daysInMonth = $monthYear->daysInMonth;
+            $workingDays = getCompanyAllSetting(creatorId())['working_days'] ?? '';
+            $workingDaysArray = json_decode($workingDays, true) ?? [];
+            $today = Carbon::now($timezone)->startOfDay();
             $attendanceData = [];
 
             $totalPresent = 0;
@@ -610,10 +625,16 @@ class AttendanceController extends Controller
             foreach ($employees as $employee) {
                 $employeeAttendance = [];
                 for ($day = 1; $day <= $daysInMonth; $day++) {
-                    $date = \Carbon\Carbon::createFromDate($year, $month, $day)->format('Y-m-d');
+                    $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
+                    $date = $dateObj->format('Y-m-d');
                     
                     $status = '';
                     $empDayAtt = isset($allAttendances[$employee->user_id][$day]) ? $allAttendances[$employee->user_id][$day]->first() : null;
+
+                    if ($dateObj->gt($today)) {
+                        $employeeAttendance[$day] = '';
+                        continue;
+                    }
                     
                     if ($empDayAtt) {
                         if ($empDayAtt->status === 'present') {
@@ -626,19 +647,32 @@ class AttendanceController extends Controller
                         }
                         
                         $totalOvertimeHours += $empDayAtt->overtime_hours ?? 0;
-                        if ($empDayAtt->clock_in > "09:15:00") $totalLateCount++; // Example late logic
+                        if (!empty($empDayAtt->clock_in)) {
+                            $clockInTime = Carbon::parse($empDayAtt->clock_in, $timezone)->format('H:i:s');
+                            if ($clockInTime > "09:15:00") {
+                                $totalLateCount++;
+                            }
+                        }
                     } else {
                         // Check if leave
                         $onLeave = $leaves->where('employee_id', $employee->user_id)
-                            ->filter(fn($l) => $date >= $l->start_date && $date <= $l->end_date)
+                            ->filter(fn($l) => $dateObj->betweenIncluded(Carbon::parse($l->start_date, $timezone)->startOfDay(), Carbon::parse($l->end_date, $timezone)->startOfDay()))
                             ->isNotEmpty();
+
+                        $isHoliday = $holidays
+                            ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
+                            ->isNotEmpty();
+                        $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
+
                         if ($onLeave) {
                             $status = 'L';
                             $totalLeave++;
+                        } elseif ($isHoliday || !$isWorkingDay) {
+                            // Official Leave / non-working day
+                            $status = 'O';
                         } else {
-                            // Check if holiday
-                            $isHoliday = $holidays->filter(fn($h) => $date >= $h->start_date && $date <= $h->end_date)->isNotEmpty();
-                            if ($isHoliday) $status = 'O';
+                            // Mark absent when no attendance record on working day
+                            $status = 'A';
                         }
                     }
                     
