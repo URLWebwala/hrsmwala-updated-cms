@@ -145,7 +145,7 @@ export default function Landing({ settings }: LandingProps) {
                         >
                             <div className="h-[154px] w-[46px] flex flex-col items-center justify-center gap-3">
                                 <span
-                                    className="text-[12px] font-semibold leading-none text-white"
+                                    className="text-[15px] font-semibold leading-none text-white"
                                     style={{
                                         writingMode: 'vertical-rl',
                                         transform: 'rotate(180deg)',
