@@ -1,8 +1,6 @@
 import { Mail, Phone, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import AnimateOnScroll from './AnimateOnScroll';
 
 interface FooterProps {
@@ -68,9 +66,6 @@ const FOOTER_VARIANTS = {
 };
 
 export default function Footer({ settings }: FooterProps) {
-    const [emailInput, setEmailInput] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     const sectionData = settings?.config_sections?.sections?.footer || {};
     const variant = sectionData.variant || 'footer1';
     const config = FOOTER_VARIANTS[variant as keyof typeof FOOTER_VARIANTS] || FOOTER_VARIANTS.footer1;
@@ -80,50 +75,9 @@ export default function Footer({ settings }: FooterProps) {
     const contactEmail = settings?.contact_email || 'support@hrmswala.com';
     const phone = settings?.contact_phone || '+91 00000 00000';
     const socialLinks = settings?.config_sections?.sections?.social || {};
-    const newsletterTitle = sectionData.newsletter_title || 'Join Our Community';
-    const newsletterDescription = sectionData.newsletter_description || 'We build modern web tools to help you jump-start your daily business work.';
-    const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe';
     const copyrightText = sectionData.copyright_text || `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     
-    const handleNewsletterSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!emailInput.trim()) {
-            toast.error('Please enter your email address');
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        try {
-            const response = await fetch(route('newsletter.subscribe'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-                body: JSON.stringify({
-                    email: emailInput.trim()
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                toast.success(data.message || 'Thank you for subscribing to our newsletter!');
-                setEmailInput('');
-            } else {
-                toast.error(data.message || 'Failed to subscribe. Please try again.');
-            }
-        } catch (error) {
-            toast.error('An error occurred. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const isLightBackground = config.layout === 'minimal' || config.layout === 'split';
     const logoKey = isLightBackground ? 'logo_dark' : 'logo_light';
     const logoPath = getAdminSetting(logoKey);
@@ -152,16 +106,6 @@ export default function Footer({ settings }: FooterProps) {
                         )}
                     </Link>
                     <p className={config.description}>{description}</p>
-                    <div className="flex flex-col space-y-2">
-                        <div className="flex items-center text-sm">
-                            <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                            <span className="text-gray-600">{contactEmail}</span>
-                        </div>
-                        <div className="flex items-center text-sm">
-                            <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                            <span className="text-gray-600">{phone}</span>
-                        </div>
-                    </div>
                 </div>
             );
         }
@@ -178,40 +122,37 @@ export default function Footer({ settings }: FooterProps) {
                 <p className={config.description}>
                     {description}
                 </p>
+            </div>
+        );
+    };
+
+    const renderContactAndSocial = () => {
+        const isLight = config.layout === 'minimal' || config.layout === 'split';
+        const titleClass = config.newsletterTitle; // reuse typography slot
+        const textClass =
+            config.layout === 'centered' || config.layout === 'modern'
+                ? 'text-gray-300'
+                : isLight
+                    ? 'text-gray-600'
+                    : 'text-gray-400';
+
+        const iconSizeClass = config.layout === 'centered' || config.layout === 'modern' ? 'h-6 w-6' : 'h-5 w-5';
+        const rowTextClass = `${textClass} whitespace-nowrap ${config.layout === 'centered' || config.layout === 'modern' ? 'text-lg' : 'text-sm'}`;
+
+        return (
+            <div className={config.layout === 'split' ? 'lg:col-span-2' : ''}>
+                <h3 className={titleClass}>Contact</h3>
                 <div className={`space-y-4 ${config.layout === 'centered' ? 'flex flex-col items-center' : ''}`}>
                     <div className="flex items-center">
-                        <Mail 
-                            className={config.layout === 'centered' || config.layout === 'modern' ? 'mr-4' : 'h-5 w-5 mr-3'} 
-                            style={{ 
-                                color: colors.primary,
-                                width: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                height: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                minWidth: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                minHeight: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px'
-                            }} 
-                        />
-                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'} whitespace-nowrap`}>
-                            {contactEmail}
-                        </span>
+                        <Mail className={`${iconSizeClass} mr-3`} style={{ color: colors.primary }} />
+                        <span className={rowTextClass}>{contactEmail}</span>
                     </div>
                     <div className="flex items-center">
-                        <Phone 
-                            className={config.layout === 'centered' || config.layout === 'modern' ? 'mr-4' : 'h-5 w-5 mr-3'} 
-                            style={{ 
-                                color: colors.primary,
-                                width: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                height: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                minWidth: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px',
-                                minHeight: config.layout === 'centered' || config.layout === 'modern' ? '24px' : '20px'
-                            }} 
-                        />
-                        <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'} whitespace-nowrap`}>
-                            {phone}
-                        </span>
+                        <Phone className={`${iconSizeClass} mr-3`} style={{ color: colors.primary }} />
+                        <span className={rowTextClass}>{phone}</span>
                     </div>
 
-                    {/* Social Icons */}
-                    <div className={`flex items-center gap-4 mt-6 ${config.layout === 'centered' ? 'justify-center' : ''}`}>
+                    <div className={`flex items-center gap-4 pt-2 ${config.layout === 'centered' ? 'justify-center' : ''}`}>
                         {socialLinks.facebook && (
                             <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
                                 <Facebook className="h-5 w-5" style={{ color: colors.primary }} />
@@ -375,76 +316,6 @@ export default function Footer({ settings }: FooterProps) {
         ));
     };
 
-    const renderNewsletter = () => {
-        if (config.layout === 'minimal') {
-            return (
-                <div className="space-y-3">
-                    <h3 className={config.newsletterTitle}>{newsletterTitle}</h3>
-                    <p className="text-gray-600 text-sm">{newsletterDescription}</p>
-                    <div className="flex items-center space-x-3">
-                        <form onSubmit={handleNewsletterSubmit} className="flex items-center space-x-3">
-                            <input 
-                                type="email" 
-                                placeholder="Enter email"
-                                value={emailInput}
-                                onChange={(e) => setEmailInput(e.target.value)}
-                                disabled={isSubmitting}
-                                className="px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm disabled:opacity-50"
-                            />
-                            <button 
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50" 
-                                style={{ backgroundColor: colors.primary }}
-                            >
-                                {isSubmitting ? 'Subscribing...' : newsletterButtonText}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className={config.layout === 'split' ? 'lg:col-span-2' : ''}>
-                <h3 className={config.newsletterTitle}>{newsletterTitle}</h3>
-                <p className={`text-sm mb-4 ${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300' : 'text-gray-400'}`}>
-                    {newsletterDescription}
-                </p>
-                <div className={`flex ${config.layout === 'modern' ? 'shadow-2xl' : ''}`}>
-                    <form onSubmit={handleNewsletterSubmit} className={`flex ${config.layout === 'modern' ? 'shadow-2xl' : ''} w-full`}>
-                        <input 
-                            type="email" 
-                            placeholder="Enter email"
-                            value={emailInput}
-                            onChange={(e) => setEmailInput(e.target.value)}
-                            disabled={isSubmitting}
-                            className={`flex-1 w-full px-4 py-3 rounded-l-lg text-sm focus:outline-none transition-all duration-300 disabled:opacity-50 ${
-                                config.layout === 'split' 
-                                    ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
-                                    : config.layout === 'modern'
-                                        ? 'bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/60 focus:border-white focus:bg-white/30'
-                                        : 'bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                            }`}
-                        />
-                        <button 
-                            type="submit"
-                            disabled={isSubmitting}
-                            className={`text-white px-6 py-3 rounded-r-lg font-semibold transition-all duration-300 disabled:opacity-50 ${
-                                config.layout === 'modern' ? 'hover:scale-105 hover:shadow-xl transform' : ''
-                            }`}
-                            style={{ backgroundColor: colors.primary }} 
-                            onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.secondary)} 
-                            onMouseLeave={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.primary)}
-                        >
-                            {isSubmitting ? 'Subscribing...' : newsletterButtonText}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        );
-    };
-
     if (config.layout === 'minimal') {
         return (
             <footer className={config.footer}>
@@ -455,7 +326,7 @@ export default function Footer({ settings }: FooterProps) {
                             {renderNavigationSections()}
                         </div>
                         <div className="lg:ml-auto">
-                            {renderNewsletter()}
+                            {renderContactAndSocial()}
                         </div>
                     </div>
                     <div className={config.copyright}>
@@ -473,7 +344,7 @@ export default function Footer({ settings }: FooterProps) {
                     <div className={config.grid}>
                         {renderCompanyInfo()}
                         {renderNavigationSections()}
-                        {renderNewsletter()}
+                        {renderContactAndSocial()}
                     </div>
                     <div className={config.copyright}>
                         <p>{copyrightText}</p>
@@ -490,7 +361,7 @@ export default function Footer({ settings }: FooterProps) {
                     <div className={config.grid}>
                         <div>
                             {renderCompanyInfo()}
-                            {renderNewsletter()}
+                            {renderContactAndSocial()}
                         </div>
                         <div>
                             {renderNavigationSections()}
@@ -543,7 +414,7 @@ export default function Footer({ settings }: FooterProps) {
                             {renderNavigationSections()}
                         </div>
                         <div className="lg:col-span-3 lg:pl-10">
-                            {renderNewsletter()}
+                            {renderContactAndSocial()}
                         </div>
                     </div>
                 </AnimateOnScroll>

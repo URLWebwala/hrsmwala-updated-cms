@@ -3,6 +3,8 @@ import { getImagePath } from '@/utils/helpers';
 import { useTranslation } from 'react-i18next';
 import AnimateOnScroll from './AnimateOnScroll';
 import SectionHeading from './SectionHeading';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface CTAProps {
     settings?: any;
@@ -53,6 +55,9 @@ const CTA_VARIANTS = {
 
 export default function CTA({ settings }: CTAProps) {
     const { t } = useTranslation();
+    const [emailInput, setEmailInput] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const sectionData = settings?.config_sections?.sections?.cta || {};
     const variant = sectionData.variant || 'cta1';
     const config = CTA_VARIANTS[variant as keyof typeof CTA_VARIANTS] || CTA_VARIANTS.cta1;
@@ -61,7 +66,89 @@ export default function CTA({ settings }: CTAProps) {
     const subtitle = sectionData.subtitle || 'Join thousands of businesses already using Hrmswala SaaS to streamline their operations.';
     const primaryButton = sectionData.primary_button || 'Start Free Trial';
     const secondaryButton = sectionData.secondary_button || 'Contact Sales';
+    const newsletterTitle = sectionData.newsletter_title || 'Stay Updated with HRMSWALA';
+    const newsletterDescription =
+        sectionData.newsletter_description ||
+        'Get the latest updates, product features, and business insights delivered straight to your inbox.';
+    const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe Now';
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
+
+    const handleNewsletterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!emailInput.trim()) {
+            toast.error('Please enter your email address');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // `route` is available globally in this project (Ziggy)
+            const response = await fetch(route('newsletter.subscribe'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ email: emailInput.trim() }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(data.message || 'Thank you for subscribing to our newsletter!');
+                setEmailInput('');
+            } else {
+                toast.error(data.message || 'Failed to subscribe. Please try again.');
+            }
+        } catch {
+            toast.error('An error occurred. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const renderNewsletter = (tone: 'dark' | 'light') => {
+        const inputBase =
+            'w-full px-4 py-3 rounded-lg text-sm focus:outline-none transition-all duration-300 disabled:opacity-50';
+        const inputTone =
+            tone === 'dark'
+                ? 'bg-white/15 backdrop-blur-md border border-white/25 text-white placeholder-white/60 focus:border-white focus:bg-white/20'
+                : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500';
+
+        return (
+            <div className="mt-10 max-w-2xl mx-auto text-center">
+                <h3 className={`text-base md:text-lg font-semibold ${tone === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    {newsletterTitle}
+                </h3>
+                <p className={`text-sm md:text-base mt-2 ${tone === 'dark' ? 'text-white/80' : 'text-gray-600'}`}>
+                    {newsletterDescription}
+                </p>
+                <form onSubmit={handleNewsletterSubmit} className="mt-5 flex flex-col sm:flex-row items-stretch justify-center w-full gap-3 sm:gap-0">
+                    <input
+                        type="email"
+                        placeholder="Enter email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        disabled={isSubmitting}
+                        className={`${inputBase} ${inputTone} sm:rounded-r-none sm:max-w-[420px]`}
+                    />
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="text-white px-6 py-3 rounded-lg sm:rounded-l-none font-semibold transition-all duration-300 disabled:opacity-50 whitespace-nowrap"
+                        style={{ backgroundColor: colors.primary }}
+                        onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.secondary)}
+                        onMouseLeave={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.primary)}
+                    >
+                        {isSubmitting ? 'Subscribing...' : newsletterButtonText}
+                    </button>
+                </form>
+            </div>
+        );
+    };
 
     const getBackgroundStyle = () => {
         if (config.layout === 'centered') {
@@ -161,6 +248,9 @@ export default function CTA({ settings }: CTAProps) {
                             <AnimateOnScroll direction="up" delayMs={160}>
                                 {renderButtons()}
                             </AnimateOnScroll>
+                            <AnimateOnScroll direction="up" delayMs={220}>
+                                {renderNewsletter('light')}
+                            </AnimateOnScroll>
                         </div>
                         <AnimateOnScroll direction="up" delayMs={140} className="relative overflow-hidden rounded-xl shadow-2xl">
                             {sectionData.image ? (
@@ -212,6 +302,9 @@ export default function CTA({ settings }: CTAProps) {
                             <div className="pt-4">
                                 {renderButtons()}
                             </div>
+                            <AnimateOnScroll direction="up" delayMs={220}>
+                                {renderNewsletter('light')}
+                            </AnimateOnScroll>
                         </div>
                     </div>
                 </div>
@@ -231,6 +324,9 @@ export default function CTA({ settings }: CTAProps) {
                     />
                     <AnimateOnScroll direction="up" delayMs={160}>
                         {renderButtons()}
+                    </AnimateOnScroll>
+                    <AnimateOnScroll direction="up" delayMs={220}>
+                        {renderNewsletter('light')}
                     </AnimateOnScroll>
                 </div>
             </section>
@@ -252,6 +348,9 @@ export default function CTA({ settings }: CTAProps) {
                 />
                 <AnimateOnScroll direction="up" delayMs={160}>
                     {renderButtons()}
+                </AnimateOnScroll>
+                <AnimateOnScroll direction="up" delayMs={220}>
+                    {renderNewsletter(config.layout === 'gradient' ? 'dark' : 'light')}
                 </AnimateOnScroll>
             </div>
         </section>
