@@ -71,6 +71,20 @@ class CashfreeController extends Controller
             ? "https://api.cashfree.com/pg/orders" 
             : "https://sandbox.cashfree.com/pg/orders";
 
+        $data = [
+            "order_id" => $orderID,
+            "order_amount" => number_format($price, 2, '.', ''),
+            "order_currency" => $admin_currency,
+            "customer_details" => [
+                "customer_id" => (string)$user->id,
+                "customer_email" => $user->email,
+                "customer_phone" => $user->mobile ?? '9999999999'
+            ],
+            "order_meta" => [
+                "return_url" => route('plan.cashfree.status', ['order_id' => $orderID])
+            ]
+        ];
+
         try {
             $response = \Illuminate\Support\Facades\Http::withHeaders([
                 "Content-Type" => "application/json",
