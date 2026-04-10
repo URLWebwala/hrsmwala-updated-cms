@@ -222,7 +222,6 @@ class CashfreeController extends Controller
                     return redirect()->route('plans.index')->with('success', __('Plan activated Successfully!'));
                 }
             }
-            }
             
             return redirect()->route('plans.index')->with('error', __('Payment failed or order not found.'));
         } catch (\Exception $e) {
