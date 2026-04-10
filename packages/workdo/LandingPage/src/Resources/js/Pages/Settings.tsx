@@ -75,6 +75,10 @@ export default function Settings({ settings, customPages }: SettingsProps) {
         contact_email: settings.contact_email || '',
         contact_phone: settings.contact_phone || '',
         contact_address: settings.contact_address || '',
+        facebook_link: settings.config_sections?.social?.facebook || '',
+        instagram_link: settings.config_sections?.social?.instagram || '',
+        twitter_link: settings.config_sections?.social?.twitter || '',
+        linkedin_link: settings.config_sections?.social?.linkedin || '',
         config_sections: settings.config_sections || {
             sections: {},
             section_visibility: {
@@ -235,6 +239,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                             <General 
                                 data={data} 
                                 updateSectionData={(field, value) => setData(field, value)} 
+                                updateConfigSection={(key, updates) => updateSectionData(key, updates)}
                             />
                         )}
 

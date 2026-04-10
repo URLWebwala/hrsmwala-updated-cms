@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
 import { useState } from 'react';
@@ -79,6 +79,7 @@ export default function Footer({ settings }: FooterProps) {
     const description = sectionData.description || 'The complete business management solution for modern enterprises.';
     const contactEmail = settings?.contact_email || 'support@hrmswala.com';
     const phone = settings?.contact_phone || '+91 00000 00000';
+    const socialLinks = settings?.config_sections?.sections?.social || {};
     const newsletterTitle = sectionData.newsletter_title || 'Join Our Community';
     const newsletterDescription = sectionData.newsletter_description || 'We build modern web tools to help you jump-start your daily business work.';
     const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe';
@@ -207,6 +208,30 @@ export default function Footer({ settings }: FooterProps) {
                         <span className={`${config.layout === 'split' ? 'text-gray-600' : config.layout === 'centered' || config.layout === 'modern' ? 'text-gray-300 text-lg' : 'text-gray-300'} whitespace-nowrap`}>
                             {phone}
                         </span>
+                    </div>
+
+                    {/* Social Icons */}
+                    <div className={`flex items-center gap-4 mt-6 ${config.layout === 'centered' ? 'justify-center' : ''}`}>
+                        {socialLinks.facebook && (
+                            <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                                <Facebook className="h-5 w-5" style={{ color: colors.primary }} />
+                            </a>
+                        )}
+                        {socialLinks.instagram && (
+                            <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                                <Instagram className="h-5 w-5" style={{ color: colors.primary }} />
+                            </a>
+                        )}
+                        {socialLinks.twitter && (
+                            <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                                <Twitter className="h-5 w-5" style={{ color: colors.primary }} />
+                            </a>
+                        )}
+                        {socialLinks.linkedin && (
+                            <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                                <Linkedin className="h-5 w-5" style={{ color: colors.primary }} />
+                            </a>
+                        )}
                     </div>
                 </div>
             </div>
