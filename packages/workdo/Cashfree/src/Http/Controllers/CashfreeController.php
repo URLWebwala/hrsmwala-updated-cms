@@ -19,7 +19,7 @@ class CashfreeController extends Controller
         $plan = Plan::find($request->plan_id);
         $user = User::find($request->user_id);
         $admin_settings = getAdminAllSetting();
-        
+
         $cashfree_client_id = $admin_settings['cashfree_client_id'] ?? '';
         $cashfree_client_secret = $admin_settings['cashfree_client_secret'] ?? '';
         $cashfree_environment = $admin_settings['cashfree_environment'] ?? 'sandbox';
@@ -52,7 +52,7 @@ class CashfreeController extends Controller
         }
 
         $orderID = strtoupper(substr(uniqid(), -12));
-        
+
         if ($price <= 0) {
             $counter = [
                 'user_counter' => $plan->number_of_users,
@@ -67,8 +67,8 @@ class CashfreeController extends Controller
         }
 
         // Cashfree Order Creation API
-        $url = ($cashfree_environment == 'production') 
-            ? "https://api.cashfree.com/pg/orders" 
+        $url = ($cashfree_environment == 'production')
+            ? "https://api.cashfree.com/pg/orders"
             : "https://sandbox.cashfree.com/pg/orders";
 
         $data = [
@@ -76,7 +76,7 @@ class CashfreeController extends Controller
             "order_amount" => number_format($price, 2, '.', ''),
             "order_currency" => $admin_currency,
             "customer_details" => [
-                "customer_id" => (string)$user->id,
+                "customer_id" => (string) $user->id,
                 "customer_email" => $user->email,
                 "customer_phone" => $user->mobile ?? '9999999999'
             ],
@@ -144,15 +144,15 @@ class CashfreeController extends Controller
 
         $orderID = $request->order_id;
         if (empty($orderID)) {
-             $orderID = $request->get('cf_id') ?? $request->get('cf_order_id');
+            $orderID = $request->get('cf_id') ?? $request->get('cf_order_id');
         }
 
         if (empty($orderID)) {
             return redirect()->route('plans.index')->with('error', __('Order ID missing in redirection.'));
         }
 
-        $url = ($cashfree_environment == 'production') 
-            ? "https://api.cashfree.com/pg/orders/{$orderID}" 
+        $url = ($cashfree_environment == 'production')
+            ? "https://api.cashfree.com/pg/orders/{$orderID}"
             : "https://sandbox.cashfree.com/pg/orders/{$orderID}";
 
         try {
@@ -169,7 +169,7 @@ class CashfreeController extends Controller
                 $order = Order::where('order_id', $orderID)->first();
                 if ($order && $order->payment_status != 'succeeded') {
                     $metadata = !empty($order->receipt) ? json_decode($order->receipt, true) : [];
-                    
+
                     $order->payment_status = 'succeeded';
                     $order->txn_id = $result->cf_order_id ?? $orderID;
                     $order->save();
@@ -179,13 +179,13 @@ class CashfreeController extends Controller
                         'user_counter' => $plan->number_of_users ?? -1,
                         'storage_counter' => $plan->storage_limit ?? 0,
                     ];
-                    
+
                     $duration = $metadata['duration'] ?? 'Month';
                     $user_module = $metadata['user_module'] ?? '';
                     $user_id = $metadata['user_id'] ?? $order->created_by;
 
                     assignPlan($plan->id, $duration, $user_module, $counter, $user_id);
-                    
+
                     if (!empty($metadata['coupon_code'])) {
                         $coupon = Coupon::where('code', $metadata['coupon_code'])->first();
                         if ($coupon) {
@@ -196,7 +196,7 @@ class CashfreeController extends Controller
                     return redirect()->route('plans.index')->with('success', __('Plan activated Successfully!'));
                 }
             }
-            
+
             return redirect()->route('plans.index')->with('error', __('Payment failed or order not found.'));
         } catch (\Exception $e) {
             return redirect()->route('plans.index')->with('error', $e->getMessage());
