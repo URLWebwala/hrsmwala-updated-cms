@@ -858,14 +858,20 @@ export default function MessengerPage() {
                     <CardContent className="flex-1 p-0 flex flex-col">
                         <div className={selectedUser ? '' : 'hidden'}>
                             <div 
-                                className="flex-1 p-6 h-[calc(100vh-300px)] overflow-y-auto"
+                                className="flex-1 p-6 h-[calc(100vh-300px)] overflow-y-auto relative"
                                 ref={messagesContainerRef}
                                 onScroll={handleScroll}
                                 style={{
                                     scrollbarWidth: 'none',
-                                    msOverflowStyle: 'none'
+                                    msOverflowStyle: 'none',
+                                    backgroundImage: 'url(/assets/images/chat-bg.png)',
+                                    backgroundRepeat: 'repeat',
+                                    backgroundSize: '400px',
+                                    backgroundColor: '#efe7dd' // Classic WhatsApp light beige base
                                 } as React.CSSProperties}
                             >
+                                {/* Light overlay for better contrast */}
+                                <div className="absolute inset-0 bg-white/20 pointer-events-none" />
                                 {isLoadingMessages && currentPage > 1 && (
                                     <div className="flex justify-center py-3 mb-2">
                                         <div className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full animate-pulse">
@@ -873,7 +879,7 @@ export default function MessengerPage() {
                                         </div>
                                     </div>
                                 )}
-                                <div className="space-y-4 min-h-full">
+                                <div className="space-y-4 min-h-full relative z-10">
                                     {chatMessages.length > 0 ? chatMessages.map((message: Message) => {
                                         const isOwnMessage = message.sender_id === auth.user.id;
                                         return (
