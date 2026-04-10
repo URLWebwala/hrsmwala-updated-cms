@@ -26,7 +26,7 @@ class DashboardController extends Controller
 
             switch ($userType) {
                 case 'company':
-                    return $this->companyDashboard();
+                    return $this->companyDashboard($request);
                 case 'vendor':
                     return $this->vendorDashboard();
                 case 'client':
@@ -39,7 +39,7 @@ class DashboardController extends Controller
         return back()->with('error', __('Permission denied'));
     }
 
-    private function companyDashboard()
+    private function companyDashboard(Request $request)
     {
         $creatorId = creatorId();
 
@@ -58,34 +58,61 @@ class DashboardController extends Controller
 
         $isDemo = config('app.is_demo');
         $now = Carbon::now();
-        $fiveDaysAgo = $now->copy()->subDays(5)->startOfDay();
-        $currentMonthName = $now->copy()->locale(app()->getLocale())->translatedFormat('F');
+
+        $filterYear = (int) $request->query('year', $now->year);
+        $filterMonth = (int) $request->query('month', $now->month);
+        if ($filterYear < 2000 || $filterYear > 2100) {
+            $filterYear = (int) $now->year;
+        }
+        if ($filterMonth < 1 || $filterMonth > 12) {
+            $filterMonth = (int) $now->month;
+        }
+
+        $filterMonthName = Carbon::create($filterYear, $filterMonth, 1)
+            ->locale(app()->getLocale())
+            ->translatedFormat('F');
+
+        $dashboardYearOptions = range($now->year - 9, $now->year + 1);
+        $dashboardYearOptions = array_values(array_unique(array_map('intval', $dashboardYearOptions)));
+        if (! in_array($filterYear, $dashboardYearOptions, true)) {
+            $dashboardYearOptions[] = $filterYear;
+            sort($dashboardYearOptions);
+        }
 
         if ($isDemo) {
-            $totalRecentRevenue = rand(40000, 180000) + rand(0, 99) / 100;
-            $thisMonthRevenue = rand(70000, 220000) + rand(0, 99) / 100;
-            $thisMonthExpense = rand(35000, 110000) + rand(0, 99) / 100;
+            $yearPostedRevenue = rand(200000, 800000) + rand(0, 99) / 100;
+            $yearPostedExpense = rand(150000, min(650000, (int) $yearPostedRevenue)) + rand(0, 99) / 100;
+            $filterMonthRevenue = rand(10000, 120000) + rand(0, 99) / 100;
+            $filterMonthExpense = rand(5000, (int) min(80000, $filterMonthRevenue * 0.9)) + rand(0, 99) / 100;
         } else {
-            $totalRecentRevenue = Revenue::where('created_by', $creatorId)
+            $yearPostedRevenue = Revenue::where('created_by', $creatorId)
                 ->where('status', 'posted')
-                ->whereDate('revenue_date', '>=', $fiveDaysAgo)
+                ->whereYear('revenue_date', $filterYear)
                 ->sum('amount');
 
-            $thisMonthRevenue = Revenue::where('created_by', $creatorId)
+            $yearPostedExpense = Expense::where('created_by', $creatorId)
                 ->where('status', 'posted')
-                ->whereMonth('revenue_date', $now->month)
-                ->whereYear('revenue_date', $now->year)
+                ->whereYear('expense_date', $filterYear)
                 ->sum('amount');
 
-            $thisMonthExpense = Expense::where('created_by', $creatorId)
+            $filterMonthRevenue = Revenue::where('created_by', $creatorId)
                 ->where('status', 'posted')
-                ->whereMonth('expense_date', $now->month)
-                ->whereYear('expense_date', $now->year)
+                ->whereMonth('revenue_date', $filterMonth)
+                ->whereYear('revenue_date', $filterYear)
+                ->sum('amount');
+
+            $filterMonthExpense = Expense::where('created_by', $creatorId)
+                ->where('status', 'posted')
+                ->whereMonth('expense_date', $filterMonth)
+                ->whereYear('expense_date', $filterYear)
                 ->sum('amount');
         }
 
         $recentRevenues = Revenue::where('created_by', $creatorId)
-            ->latest()
+            ->whereMonth('revenue_date', $filterMonth)
+            ->whereYear('revenue_date', $filterYear)
+            ->orderByDesc('revenue_date')
+            ->orderByDesc('id')
             ->limit(5)
             ->get()
             ->map(function($item) {
@@ -94,12 +121,15 @@ class DashboardController extends Controller
                     'title' => $item->revenue_number,
                     'description' => $item->description ?? 'Revenue transaction',
                     'amount' => $item->amount,
-                    'date' => $item->created_at
+                    'date' => $item->revenue_date ?? $item->created_at
                 ];
             });
 
         $recentExpenses = Expense::where('created_by', $creatorId)
-            ->latest()
+            ->whereMonth('expense_date', $filterMonth)
+            ->whereYear('expense_date', $filterYear)
+            ->orderByDesc('expense_date')
+            ->orderByDesc('id')
             ->limit(5)
             ->get()
             ->map(function($item) {
@@ -108,7 +138,7 @@ class DashboardController extends Controller
                     'title' => $item->expense_number,
                     'description' => $item->description ?? 'Expense transaction',
                     'amount' => $item->amount,
-                    'date' => $item->created_at
+                    'date' => $item->expense_date ?? $item->created_at
                 ];
             });
 
@@ -181,7 +211,7 @@ class DashboardController extends Controller
             ];
         }
 
-        $profitLossYear = (int) $now->year;
+        $profitLossYear = $filterYear;
         $yearlyProfitLoss = [];
         for ($m = 1; $m <= 12; $m++) {
             $monthLabel = Carbon::create($profitLossYear, $m, 1)->format('M');
@@ -219,11 +249,18 @@ class DashboardController extends Controller
                 'total_customer_payment' => $totalCustomerPayments,
                 'total_vendor_payment' => $totalVendorPayments,
                 'net_profit' => $netProfit,
-                'total_recent_revenue' => (float) $totalRecentRevenue,
-                'this_month_revenue' => (float) $thisMonthRevenue,
-                'this_month_expense' => (float) $thisMonthExpense,
-                'current_month_name' => $currentMonthName,
+                'year_posted_revenue' => (float) $yearPostedRevenue,
+                'year_posted_expense' => (float) $yearPostedExpense,
+                'filter_month_revenue' => (float) $filterMonthRevenue,
+                'filter_month_expense' => (float) $filterMonthExpense,
+                'filter_month_name' => $filterMonthName,
+                'dashboard_report_year' => $filterYear,
             ],
+            'dashboard_filter' => [
+                'year' => $filterYear,
+                'month' => $filterMonth,
+            ],
+            'dashboard_year_options' => $dashboardYearOptions,
             'monthlyCustomerPayments' => $monthlyCustomerPayments,
             'monthlyVendorPayments' => $monthlyVendorPayments,
             'monthlyBookedRevenues' => $monthlyBookedRevenues,
