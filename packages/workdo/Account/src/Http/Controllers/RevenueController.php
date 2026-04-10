@@ -19,6 +19,7 @@ use Workdo\Account\Http\Requests\StoreRevenueRequest;
 use Workdo\Account\Http\Requests\UpdateRevenueRequest;
 use Workdo\Account\Services\BankTransactionsService;
 use Workdo\Account\Services\JournalService;
+use Illuminate\Support\Facades\DB;
 
 class RevenueController extends Controller
 {
@@ -129,20 +130,41 @@ class RevenueController extends Controller
     public function update(UpdateRevenueRequest $request, Revenue $revenue)
     {
         if(Auth::user()->can('edit-revenues') && $revenue->created_by == creatorId()){
-            if ($revenue->status != 'draft') {
-                return redirect()->route('account.revenues.index')->with('error', __('Cannot update posted revenue.'));
-            }
-
             $validated = $request->validated();
 
-            $revenue->revenue_date = $validated['revenue_date'];
-            $revenue->category_id = $validated['category_id'];
-            $revenue->bank_account_id = $validated['bank_account_id'];
-            $revenue->chart_of_account_id = $validated['chart_of_account_id'] ?? null;
-            $revenue->amount = $validated['amount'];
-            $revenue->description = $validated['description'];
-            $revenue->reference_number = $validated['reference_number'];
-            $revenue->save();
+            if (! in_array($revenue->status, ['draft', 'approved', 'posted'], true)) {
+                return redirect()->route('account.revenues.index')->with('error', __('Cannot update this revenue.'));
+            }
+
+            try {
+                DB::transaction(function () use ($request, $revenue, $validated) {
+                    if ($revenue->status === 'posted') {
+                        $oldAmount = $revenue->amount;
+                        $oldBankAccountId = $revenue->bank_account_id;
+                        $oldRevenueNumber = $revenue->revenue_number;
+
+                        $this->journalService->deleteRevenueJournal($revenue->id);
+                        $this->bankTransactionsService->reverseRevenuePayment($oldRevenueNumber, $oldBankAccountId, $oldAmount);
+                    }
+
+                    $revenue->revenue_date = $validated['revenue_date'];
+                    $revenue->category_id = $validated['category_id'];
+                    $revenue->bank_account_id = $validated['bank_account_id'];
+                    $revenue->chart_of_account_id = $validated['chart_of_account_id'] ?? null;
+                    $revenue->amount = $validated['amount'];
+                    $revenue->description = $validated['description'];
+                    $revenue->reference_number = $validated['reference_number'];
+                    $revenue->save();
+
+                    if ($revenue->status === 'posted') {
+                        $revenue->load(['bankAccount.glAccount', 'chartOfAccount']);
+                        $this->journalService->createRevenueEntryJournal($revenue);
+                        $this->bankTransactionsService->createRevenuePayment($revenue);
+                    }
+                });
+            } catch (\Exception $e) {
+                return back()->with('error', $e->getMessage());
+            }
 
             UpdateRevenue::dispatch($request, $revenue);
 

@@ -180,6 +180,26 @@ class BankTransactionsService
         $this->updateBankBalance($revenue->bank_account_id, $revenue->amount);
     }
 
+    /**
+     * Undo the bank register line created when a revenue was posted (credit to bank).
+     */
+    public function reverseRevenuePayment(string $revenueNumber, int $bankAccountId, $amount): void
+    {
+        $transaction = BankTransaction::where('bank_account_id', $bankAccountId)
+            ->where('reference_number', $revenueNumber)
+            ->where('transaction_type', 'credit')
+            ->where('created_by', creatorId())
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$transaction) {
+            return;
+        }
+
+        $this->updateBankBalance($bankAccountId, -1 * (float) $amount);
+        $transaction->delete();
+    }
+
     public function createExpensePayment($expense)
     {
         // Get current running balance for the bank account

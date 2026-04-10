@@ -87,6 +87,11 @@ export default function Edit({ revenue, categories, bankAccounts, chartOfAccount
             <DialogHeader>
                 <DialogTitle>{t('Edit Revenue')}</DialogTitle>
             </DialogHeader>
+            {revenue.status === 'posted' && (
+                <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 -mt-1">
+                    {t('This revenue is posted. Saving will update the general ledger and bank entries to match your changes.')}
+                </p>
+            )}
             <form onSubmit={submit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>

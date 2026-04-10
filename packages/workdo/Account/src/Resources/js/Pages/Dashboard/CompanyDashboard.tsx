@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,8 @@ interface AccountProps {
     };
     monthlyVendorPayments?: Array<{ month: string; vendor_payments: number }>;
     monthlyCustomerPayments?: Array<{ month: string; customer_payments: number }>;
+    monthlyBookedRevenues?: Array<{ month: string; booked_revenue: number }>;
+    monthlyBookedExpenses?: Array<{ month: string; booked_expense: number }>;
     recentRevenues?: Array<{ id: number; title: string; description: string; amount: number; date: string }>;
     recentExpenses?: Array<{ id: number; title: string; description: string; amount: number; date: string }>;
     recent_items?: Array<{
@@ -28,8 +30,10 @@ interface AccountProps {
     }>;
 }
 
-export default function AccountIndex({ message, stats, monthlyVendorPayments, monthlyCustomerPayments, recentRevenues, recentExpenses, recent_items }: AccountProps) {
+export default function AccountIndex({ message, stats, monthlyVendorPayments, monthlyCustomerPayments, monthlyBookedRevenues, monthlyBookedExpenses, recentRevenues, recentExpenses, recent_items }: AccountProps) {
     const { t } = useTranslation();
+    const { auth } = usePage().props as { auth?: { user?: { permissions?: string[] } } };
+    const canEditRevenue = auth?.user?.permissions?.includes('edit-revenues');
 
     return (
         <AuthenticatedLayout
@@ -114,13 +118,23 @@ export default function AccountIndex({ message, stats, monthlyVendorPayments, mo
                             <CardContent>
                                 <div className="max-h-80 overflow-y-auto space-y-3">
                                     {recentRevenues.slice(0, 5).map((revenue) => (
-                                        <div key={revenue.id} className="flex justify-between items-center p-3 rounded-lg border">
-                                            <div>
+                                        <div key={revenue.id} className="flex justify-between items-center p-3 rounded-lg border gap-3">
+                                            <div className="min-w-0 flex-1">
                                                 <p className="font-medium text-sm">{revenue.title}</p>
                                                 <p className="text-xs text-gray-600">{revenue.description}</p>
                                                 <p className="text-xs text-gray-500">{formatDate(revenue.date)}</p>
                                             </div>
-                                            <div className="text-green-600 font-bold">{formatCurrency(revenue.amount)}</div>
+                                            <div className="flex flex-col items-end gap-1 shrink-0">
+                                                {canEditRevenue && (
+                                                    <Link
+                                                        href={route('account.revenues.index', { search: revenue.title })}
+                                                        className="text-xs font-medium text-primary hover:underline"
+                                                    >
+                                                        {t('Edit')}
+                                                    </Link>
+                                                )}
+                                                <div className="text-green-600 font-bold">{formatCurrency(revenue.amount)}</div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -174,6 +188,46 @@ export default function AccountIndex({ message, stats, monthlyVendorPayments, mo
                 </div>
             </div>
 
+            {(monthlyBookedRevenues?.length || monthlyBookedExpenses?.length) ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <Card className="h-96">
+                        <CardHeader>
+                            <CardTitle className="text-base">{t('Monthly Booked Revenue')}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <LineChart
+                                data={monthlyBookedRevenues || []}
+                                height={300}
+                                showTooltip={true}
+                                showGrid={true}
+                                lines={[
+                                    { dataKey: 'booked_revenue', color: '#059669', name: t('Posted revenue') }
+                                ]}
+                                xAxisKey="month"
+                                showLegend={true}
+                            />
+                        </CardContent>
+                    </Card>
+                    <Card className="h-96">
+                        <CardHeader>
+                            <CardTitle className="text-base">{t('Monthly Booked Expenses')}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <LineChart
+                                data={monthlyBookedExpenses || []}
+                                height={300}
+                                showTooltip={true}
+                                showGrid={true}
+                                lines={[
+                                    { dataKey: 'booked_expense', color: '#dc2626', name: t('Posted expenses') }
+                                ]}
+                                xAxisKey="month"
+                                showLegend={true}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : null}
 
         </AuthenticatedLayout>
     );

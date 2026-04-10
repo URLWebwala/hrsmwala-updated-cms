@@ -497,6 +497,22 @@ class JournalService
     }
 
     /**
+     * Removes automatic journal for a revenue (reverses GL balances) before editing a posted revenue.
+     */
+    public function deleteRevenueJournal(int $revenueId): void
+    {
+        $journalEntry = JournalEntry::where('reference_type', 'revenue')
+            ->where('reference_id', $revenueId)
+            ->first();
+
+        if ($journalEntry) {
+            $this->reverseAccountBalances($journalEntry);
+            JournalEntryItem::where('journal_entry_id', $journalEntry->id)->delete();
+            $journalEntry->delete();
+        }
+    }
+
+    /**
      * Creates journal entry for expense: Dr: Expense, Cr: Bank
      * Usage: ExpenseController->store() after recording expense
      */

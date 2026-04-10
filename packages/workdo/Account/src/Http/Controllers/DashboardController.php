@@ -121,6 +121,39 @@ class DashboardController extends Controller
             ];
         }
 
+        $monthlyBookedRevenues = [];
+        $monthlyBookedExpenses = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthName = $date->format('M');
+
+            if ($isDemo) {
+                $bookedRevenue = rand(8000, 35000) + rand(0, 99) / 100;
+                $bookedExpense = rand(4000, 22000) + rand(0, 99) / 100;
+            } else {
+                $bookedRevenue = Revenue::where('created_by', $creatorId)
+                    ->where('status', 'posted')
+                    ->whereMonth('revenue_date', $date->month)
+                    ->whereYear('revenue_date', $date->year)
+                    ->sum('amount');
+
+                $bookedExpense = Expense::where('created_by', $creatorId)
+                    ->where('status', 'posted')
+                    ->whereMonth('expense_date', $date->month)
+                    ->whereYear('expense_date', $date->year)
+                    ->sum('amount');
+            }
+
+            $monthlyBookedRevenues[] = [
+                'month' => $monthName,
+                'booked_revenue' => (float) $bookedRevenue,
+            ];
+            $monthlyBookedExpenses[] = [
+                'month' => $monthName,
+                'booked_expense' => (float) $bookedExpense,
+            ];
+        }
+
         return Inertia::render('Account/Dashboard/CompanyDashboard', [
             'stats' => [
                 'total_clients' => $totalClients,
@@ -133,6 +166,8 @@ class DashboardController extends Controller
             ],
             'monthlyCustomerPayments' => $monthlyCustomerPayments,
             'monthlyVendorPayments' => $monthlyVendorPayments,
+            'monthlyBookedRevenues' => $monthlyBookedRevenues,
+            'monthlyBookedExpenses' => $monthlyBookedExpenses,
             'recentRevenues' => $recentRevenues,
             'recentExpenses' => $recentExpenses
         ]);
