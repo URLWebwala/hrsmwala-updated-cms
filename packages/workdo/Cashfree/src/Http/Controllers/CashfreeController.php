@@ -163,7 +163,8 @@ class CashfreeController extends Controller
                 "x-client-secret" => trim($cashfree_client_secret)
             ])->get($url);
 
-            $result = json_decode($response->body());
+            \Illuminate\Support\Facades\Log::info('Cashfree Status Response: ' . $response->body());
+            $result = $response->object();
 
             if (isset($result->order_status) && in_array($result->order_status, ['PAID', 'SUCCESS', 'COMPLETED'])) {
                 $order = Order::where('order_id', $orderID)->first();
