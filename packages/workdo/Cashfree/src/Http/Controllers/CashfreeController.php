@@ -95,7 +95,7 @@ class CashfreeController extends Controller
                     'duration' => $duration,
                     'coupon_code' => $request->coupon_code,
                     'user_id' => $user->id
-                ]) . "?order_id={order_id}"
+                ])
             ]
         ];
 
@@ -140,7 +140,17 @@ class CashfreeController extends Controller
 
                 return Inertia::render('Cashfree/CashfreePayment', [
                     'payment_session_id' => $result->payment_session_id,
-                    'environment' => $cashfree_environment
+                    'environment' => $cashfree_environment,
+                    'order_id' => $orderID,
+                    'plan_id' => $plan->id,
+                    'return_url' => route('plan.cashfree.status', [
+                        'order_id' => $orderID,
+                        'plan_id' => $plan->id,
+                        'user_module' => $user_module,
+                        'duration' => $duration,
+                        'coupon_code' => $request->coupon_code,
+                        'user_id' => $user->id
+                    ])
                 ]);
             } else {
                 return redirect()->back()->with('error', $result->message ?? 'Order creation failed.');
