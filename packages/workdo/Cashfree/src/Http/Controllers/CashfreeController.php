@@ -71,50 +71,19 @@ class CashfreeController extends Controller
             ? "https://api.cashfree.com/pg/orders" 
             : "https://sandbox.cashfree.com/pg/orders";
 
-        $headers = [
-            "Content-Type: application/json",
-            "x-api-version: 2023-08-01",
-            "x-client-id: " . $cashfree_client_id,
-            "x-client-secret: " . $cashfree_client_secret
-        ];
-
-        $data = [
-            "order_id" => $orderID,
-            "order_amount" => number_format($price, 2, '.', ''),
-            "order_currency" => $admin_currency,
-            "customer_details" => [
-                "customer_id" => (string)$user->id,
-                "customer_email" => $user->email,
-                "customer_phone" => $user->mobile ?? '9999999999'
-            ],
-            "order_meta" => [
-                "return_url" => route('plan.cashfree.status', ['order_id' => $orderID])
-            ]
-        ];
-
         try {
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "POST",
-                CURLOPT_POSTFIELDS => json_encode($data),
-                CURLOPT_HTTPHEADER => $headers,
-            ]);
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                "Content-Type" => "application/json",
+                "x-api-version" => "2023-08-01",
+                "x-client-id" => trim($cashfree_client_id),
+                "x-client-secret" => trim($cashfree_client_secret)
+            ])->post($url, $data);
 
-            $response = curl_exec($curl);
-            $err = curl_error($curl);
-            curl_close($curl);
-
-            if ($err) {
-                return redirect()->back()->with('error', "cURL Error #:" . $err);
+            if ($response->failed()) {
+                return redirect()->back()->with('error', $response->json()['message'] ?? 'Authentication or Order creation failed.');
             }
 
-            $result = json_decode($response);
+            $result = json_decode($response->body());
 
             if (isset($result->payment_session_id)) {
                 Order::create([
@@ -172,24 +141,15 @@ class CashfreeController extends Controller
             ? "https://api.cashfree.com/pg/orders/{$orderID}" 
             : "https://sandbox.cashfree.com/pg/orders/{$orderID}";
 
-        $headers = [
-            "Content-Type: application/json",
-            "x-api-version: 2023-08-01",
-            "x-client-id: " . $cashfree_client_id,
-            "x-client-secret: " . $cashfree_client_secret
-        ];
-
         try {
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => $headers,
-            ]);
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                "Content-Type" => "application/json",
+                "x-api-version" => "2023-08-01",
+                "x-client-id" => trim($cashfree_client_id),
+                "x-client-secret" => trim($cashfree_client_secret)
+            ])->get($url);
 
-            $response = curl_exec($curl);
-            curl_close($curl);
-            $result = json_decode($response);
+            $result = json_decode($response->body());
 
             if (isset($result->order_status) && in_array($result->order_status, ['PAID', 'SUCCESS', 'COMPLETED'])) {
                 $order = Order::where('order_id', $orderID)->first();
