@@ -56,6 +56,34 @@ class DashboardController extends Controller
         
         $netProfit = $totalRevenue - $totalExpense;
 
+        $isDemo = config('app.is_demo');
+        $now = Carbon::now();
+        $fiveDaysAgo = $now->copy()->subDays(5)->startOfDay();
+        $currentMonthName = $now->copy()->locale(app()->getLocale())->translatedFormat('F');
+
+        if ($isDemo) {
+            $totalRecentRevenue = rand(40000, 180000) + rand(0, 99) / 100;
+            $thisMonthRevenue = rand(70000, 220000) + rand(0, 99) / 100;
+            $thisMonthExpense = rand(35000, 110000) + rand(0, 99) / 100;
+        } else {
+            $totalRecentRevenue = Revenue::where('created_by', $creatorId)
+                ->where('status', 'posted')
+                ->whereDate('revenue_date', '>=', $fiveDaysAgo)
+                ->sum('amount');
+
+            $thisMonthRevenue = Revenue::where('created_by', $creatorId)
+                ->where('status', 'posted')
+                ->whereMonth('revenue_date', $now->month)
+                ->whereYear('revenue_date', $now->year)
+                ->sum('amount');
+
+            $thisMonthExpense = Expense::where('created_by', $creatorId)
+                ->where('status', 'posted')
+                ->whereMonth('expense_date', $now->month)
+                ->whereYear('expense_date', $now->year)
+                ->sum('amount');
+        }
+
         $recentRevenues = Revenue::where('created_by', $creatorId)
             ->latest()
             ->limit(5)
@@ -84,7 +112,6 @@ class DashboardController extends Controller
                 ];
             });
 
-        $isDemo = config('app.is_demo');
         $monthlyCustomerPayments = [];
         $monthlyVendorPayments = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -154,6 +181,35 @@ class DashboardController extends Controller
             ];
         }
 
+        $profitLossYear = (int) $now->year;
+        $yearlyProfitLoss = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthLabel = Carbon::create($profitLossYear, $m, 1)->format('M');
+
+            if ($isDemo) {
+                $plRevenue = rand(18000, 42000) + rand(0, 99) / 100;
+                $plExpenses = rand(12000, (int) min(32000, $plRevenue * 0.85)) + rand(0, 99) / 100;
+            } else {
+                $plRevenue = Revenue::where('created_by', $creatorId)
+                    ->where('status', 'posted')
+                    ->whereMonth('revenue_date', $m)
+                    ->whereYear('revenue_date', $profitLossYear)
+                    ->sum('amount');
+
+                $plExpenses = Expense::where('created_by', $creatorId)
+                    ->where('status', 'posted')
+                    ->whereMonth('expense_date', $m)
+                    ->whereYear('expense_date', $profitLossYear)
+                    ->sum('amount');
+            }
+
+            $yearlyProfitLoss[] = [
+                'month' => $monthLabel,
+                'revenue' => (float) $plRevenue,
+                'expenses' => (float) $plExpenses,
+            ];
+        }
+
         return Inertia::render('Account/Dashboard/CompanyDashboard', [
             'stats' => [
                 'total_clients' => $totalClients,
@@ -162,12 +218,18 @@ class DashboardController extends Controller
                 'total_expense' => $totalExpense,
                 'total_customer_payment' => $totalCustomerPayments,
                 'total_vendor_payment' => $totalVendorPayments,
-                'net_profit' => $netProfit
+                'net_profit' => $netProfit,
+                'total_recent_revenue' => (float) $totalRecentRevenue,
+                'this_month_revenue' => (float) $thisMonthRevenue,
+                'this_month_expense' => (float) $thisMonthExpense,
+                'current_month_name' => $currentMonthName,
             ],
             'monthlyCustomerPayments' => $monthlyCustomerPayments,
             'monthlyVendorPayments' => $monthlyVendorPayments,
             'monthlyBookedRevenues' => $monthlyBookedRevenues,
             'monthlyBookedExpenses' => $monthlyBookedExpenses,
+            'yearlyProfitLoss' => $yearlyProfitLoss,
+            'profit_loss_year' => $profitLossYear,
             'recentRevenues' => $recentRevenues,
             'recentExpenses' => $recentExpenses
         ]);

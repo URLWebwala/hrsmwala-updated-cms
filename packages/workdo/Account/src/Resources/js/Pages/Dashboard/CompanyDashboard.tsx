@@ -1,9 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AuthenticatedLayout from "@/layouts/authenticated-layout";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart } from '@/components/charts';
-import { Package, Users, CheckCircle, XCircle, UserCheck, Building2, CreditCard, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, RevenueVsExpensesChart } from '@/components/charts';
+import { UserCheck, Building2, ArrowUpCircle, ArrowDownCircle, Banknote, Receipt, CalendarDays } from 'lucide-react';
 import { formatDate,formatCurrency} from '@/utils/helpers';
 
 interface AccountProps {
@@ -16,6 +16,11 @@ interface AccountProps {
         total_vendors: number;
         total_customer_payment: number;
         total_vendor_payment: number;
+        total_expense?: number;
+        total_recent_revenue?: number;
+        this_month_revenue?: number;
+        this_month_expense?: number;
+        current_month_name?: string;
     };
     monthlyVendorPayments?: Array<{ month: string; vendor_payments: number }>;
     monthlyCustomerPayments?: Array<{ month: string; customer_payments: number }>;
@@ -28,11 +33,14 @@ interface AccountProps {
         name: string;
         created_at: string;
     }>;
+    yearlyProfitLoss?: Array<{ month: string; revenue: number; expenses: number }>;
+    profit_loss_year?: number;
 }
 
-export default function AccountIndex({ message, stats, monthlyVendorPayments, monthlyCustomerPayments, monthlyBookedRevenues, monthlyBookedExpenses, recentRevenues, recentExpenses, recent_items }: AccountProps) {
+export default function AccountIndex({ message, stats, monthlyVendorPayments, monthlyCustomerPayments, monthlyBookedRevenues, monthlyBookedExpenses, yearlyProfitLoss, profit_loss_year, recentRevenues, recentExpenses, recent_items }: AccountProps) {
     const { t } = useTranslation();
-    const { auth } = usePage().props as { auth?: { user?: { permissions?: string[] } } };
+    const page = usePage();
+    const { auth } = page.props as { auth?: { user?: { permissions?: string[] } } };
     const canEditRevenue = auth?.user?.permissions?.includes('edit-revenues');
 
     return (
@@ -85,7 +93,73 @@ export default function AccountIndex({ message, stats, monthlyVendorPayments, mo
                                 <p className="text-xs text-rose-700 opacity-80 mt-1">{t('Paid to vendors')}</p>
                             </CardContent>
                         </Card>
+                        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium text-green-800">{t('Total Recent Revenue')}</CardTitle>
+                                <Banknote className="h-8 w-8 text-green-800 opacity-80" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-800">{formatCurrency(stats.total_recent_revenue ?? 0)}</div>
+                                <p className="text-xs text-green-800 opacity-80 mt-1">{t('Posted revenue, last 5 days')}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium text-red-800">{t('Total Expenses')}</CardTitle>
+                                <Receipt className="h-8 w-8 text-red-800 opacity-80" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-800">{formatCurrency(stats.total_expense ?? 0)}</div>
+                                <p className="text-xs text-red-800 opacity-80 mt-1">{t('All expense records')}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-r from-violet-50 to-violet-100 border-violet-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium text-violet-800">
+                                    {stats.current_month_name ? `${stats.current_month_name} ${t('Revenue')}` : t('This month revenue')}
+                                </CardTitle>
+                                <CalendarDays className="h-8 w-8 text-violet-800 opacity-80" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-violet-800">{formatCurrency(stats.this_month_revenue ?? 0)}</div>
+                                <p className="text-xs text-violet-800 opacity-80 mt-1">{t('Posted this month')}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium text-amber-900">
+                                    {stats.current_month_name ? `${stats.current_month_name} ${t('Expense')}` : t('This month expense')}
+                                </CardTitle>
+                                <CalendarDays className="h-8 w-8 text-amber-900 opacity-80" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-amber-900">{formatCurrency(stats.this_month_expense ?? 0)}</div>
+                                <p className="text-xs text-amber-900 opacity-80 mt-1">{t('Posted this month')}</p>
+                            </CardContent>
+                        </Card>
                 </div>
+            )}
+
+            {yearlyProfitLoss && yearlyProfitLoss.length > 0 && (
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle className="text-lg font-semibold tracking-tight">{t('Revenue vs Expenses Growth')}</CardTitle>
+                        <CardDescription>
+                            {profit_loss_year != null
+                                ? t('Yearly comparison of posted revenue and expenses for {{year}}.', { year: profit_loss_year })
+                                : t('Yearly comparison of posted revenue and expenses for the current calendar year.')}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <RevenueVsExpensesChart
+                            data={yearlyProfitLoss}
+                            height={380}
+                            revenueLabel={t('Revenue')}
+                            expensesLabel={t('Expenses')}
+                            formatValue={(v) => formatCurrency(v, page.props)}
+                        />
+                    </CardContent>
+                </Card>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
