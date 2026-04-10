@@ -77,8 +77,8 @@ export default function Footer({ settings }: FooterProps) {
     
     const companyName = settings?.company_name || 'Hrmswala SaaS';
     const description = sectionData.description || 'The complete business management solution for modern enterprises.';
-    const contactEmail = 'support@hrmswala.com'; // Strictly HRMSWALA
-    const phone = '+91 00000 00000'; // Strictly HRMSWALA
+    const contactEmail = settings?.contact_email || 'support@hrmswala.com';
+    const phone = settings?.contact_phone || '+91 00000 00000';
     const newsletterTitle = sectionData.newsletter_title || 'Join Our Community';
     const newsletterDescription = sectionData.newsletter_description || 'We build modern web tools to help you jump-start your daily business work.';
     const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe';
