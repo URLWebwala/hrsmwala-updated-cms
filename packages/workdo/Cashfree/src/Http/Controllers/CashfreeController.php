@@ -88,14 +88,7 @@ class CashfreeController extends Controller
                 "customer_phone" => $user->mobile ?? '9999999999'
             ],
             "order_meta" => [
-                "return_url" => route('plan.cashfree.status', [
-                    'order_id' => $orderID,
-                    'plan_id' => $plan->id,
-                    'user_module' => $user_module,
-                    'duration' => $duration,
-                    'coupon_code' => $request->coupon_code,
-                    'user_id' => $user->id
-                ])
+                "return_url" => route('plan.cashfree.status', ['order_id' => $orderID])
             ]
         ];
 
@@ -135,6 +128,12 @@ class CashfreeController extends Controller
                     'txn_id' => '',
                     'payment_type' => 'Cashfree',
                     'payment_status' => 'pending',
+                    'receipt' => json_encode([
+                        'user_module' => $user_module,
+                        'duration' => $duration,
+                        'coupon_code' => $request->coupon_code,
+                        'user_id' => $user->id
+                    ]),
                     'created_by' => $user->id,
                 ]);
 
@@ -143,14 +142,7 @@ class CashfreeController extends Controller
                     'environment' => $cashfree_environment,
                     'order_id' => $orderID,
                     'plan_id' => $plan->id,
-                    'return_url' => route('plan.cashfree.status', [
-                        'order_id' => $orderID,
-                        'plan_id' => $plan->id,
-                        'user_module' => $user_module,
-                        'duration' => $duration,
-                        'coupon_code' => $request->coupon_code,
-                        'user_id' => $user->id
-                    ])
+                    'return_url' => route('plan.cashfree.status', ['order_id' => $orderID])
                 ]);
             } else {
                 return redirect()->back()->with('error', $result->message ?? 'Order creation failed.');
@@ -192,9 +184,11 @@ class CashfreeController extends Controller
             curl_close($curl);
             $result = json_decode($response);
 
-            if (isset($result->order_status) && $result->order_status == 'PAID') {
+            if (isset($result->order_status) && ($result->order_status == 'PAID' || $result->order_status == 'SUCCESS')) {
                 $order = Order::where('order_id', $orderID)->first();
                 if ($order && $order->payment_status != 'succeeded') {
+                    $metadata = json_decode($order->receipt, true);
+                    
                     $order->payment_status = 'succeeded';
                     $order->txn_id = $result->cf_order_id ?? '';
                     $order->save();
@@ -205,12 +199,12 @@ class CashfreeController extends Controller
                         'storage_counter' => $plan->storage_limit,
                     ];
                     
-                    assignPlan($plan->id, $request->duration, $request->user_module, $counter, $request->user_id);
+                    assignPlan($plan->id, $metadata['duration'] ?? 'Month', $metadata['user_module'] ?? '', $counter, $metadata['user_id'] ?? $order->created_by);
                     
-                    if ($request->coupon_code) {
-                        $coupon = Coupon::where('code', $request->coupon_code)->first();
+                    if (!empty($metadata['coupon_code'])) {
+                        $coupon = Coupon::where('code', $metadata['coupon_code'])->first();
                         if ($coupon) {
-                            recordCouponUsage($coupon->id, $request->user_id, $orderID);
+                            recordCouponUsage($coupon->id, $metadata['user_id'] ?? $order->created_by, $orderID);
                         }
                     }
 
