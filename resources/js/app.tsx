@@ -92,6 +92,7 @@ createInertiaApp({
             customTitle = pageProps?.adminAllSetting?.titleText;
         }
         const appName = customTitle || import.meta.env.VITE_APP_NAME || "Laravel";
+        if (title.includes(appName)) return title;
         return `${title} - ${appName}`;
     },
     resolve: (name) => {
