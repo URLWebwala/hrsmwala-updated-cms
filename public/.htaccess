@@ -4,10 +4,16 @@
     </IfModule>
 
     RewriteEngine On
-    
+    RewriteBase /
+
     # Redirect www to non-www
     RewriteCond %{HTTP_HOST} ^www\.hrmswala\.com [NC]
     RewriteRule ^(.*)$ https://hrmswala.com/$1 [L,R=301]
+
+    # CORS Fix for Assets
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+    </IfModule>
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
