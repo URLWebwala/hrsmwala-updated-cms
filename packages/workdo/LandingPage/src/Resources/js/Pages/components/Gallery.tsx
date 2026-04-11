@@ -142,7 +142,7 @@ export default function Gallery({ settings }: GalleryProps) {
             >
                 <img 
                     src={galleryImages[currentImageIndex]?.startsWith('http') ? galleryImages[currentImageIndex] : getImagePath(galleryImages[currentImageIndex] || '')} 
-                    alt={`Gallery image ${currentImageIndex + 1}`}
+                    alt={`${title} - Showcase ${currentImageIndex + 1}`}
                     className="w-full h-full object-contain bg-white rounded-xl"
                 />
             </div>
@@ -199,7 +199,7 @@ export default function Gallery({ settings }: GalleryProps) {
                 <div key={index} className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                     <img
                         src={image?.startsWith('http') ? image : getImagePath(image || '')}
-                        alt={`Gallery image ${index + 1}`}
+                        alt={`${title} - Feature ${index + 1}`}
                         className="w-full h-64 object-contain bg-gray-100 p-2 group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"></div>
@@ -218,7 +218,7 @@ export default function Gallery({ settings }: GalleryProps) {
                         <div className="relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
                             <img
                                 src={image?.startsWith('http') ? image : getImagePath(image || '')}
-                                alt={`Gallery image ${index + 1}`}
+                                alt={`${title} - Feature Detail ${index + 1}`}
                                 className="w-full h-80 object-contain bg-white p-4 group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -246,7 +246,7 @@ export default function Gallery({ settings }: GalleryProps) {
                     <div key={index} className="flex-shrink-0 w-96 h-80 relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 snap-center group">
                         <img
                             src={image?.startsWith('http') ? image : getImagePath(image || '')}
-                            alt={`Gallery image ${index + 1}`}
+                            alt={`${title} - Product View ${index + 1}`}
                             className="w-full h-full object-contain bg-white p-4 group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
@@ -283,7 +283,7 @@ export default function Gallery({ settings }: GalleryProps) {
                         >
                             <img
                                 src={image?.startsWith('http') ? image : getImagePath(image || '')}
-                                alt={`Gallery image ${index + 1}`}
+                                alt={`${title} - Module ${index + 1}`}
                                 className="w-full h-56 object-contain bg-white p-2 group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
@@ -312,7 +312,7 @@ export default function Gallery({ settings }: GalleryProps) {
                         <div className="relative max-w-6xl max-h-full">
                             <img
                                 src={galleryImages[currentImageIndex]?.startsWith('http') ? galleryImages[currentImageIndex] : getImagePath(galleryImages[currentImageIndex] || '')}
-                                alt={`Gallery image ${currentImageIndex + 1}`}
+                                alt={`${title} - Full Size ${currentImageIndex + 1}`}
                                 className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                             />
                             

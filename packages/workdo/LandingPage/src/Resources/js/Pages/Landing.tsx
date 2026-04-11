@@ -120,7 +120,7 @@ export default function Landing({ settings }: LandingProps) {
 
     return (
         <div className="min-h-screen bg-white">
-            <Head title={`${settings?.company_name || 'Hrmswala SaaS'} - All-in-One Business Management Solution`}>
+            <Head title={`All-in-One Business Management Solution - ${settings?.company_name || 'Hrmswala SaaS'}`}>
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             

@@ -328,7 +328,7 @@ export default function Header({ settings }: HeaderProps) {
                 <div className={config.wrapper}>
                     <Link href={route('landing.page')} className={config.logo} style={{ color: colors.primary }}>
                         {logoUrl ? (
-                            <img src={logoUrl} alt={companyName} className="w-auto" />
+                            <img src={logoUrl} alt={`${companyName} Logo`} className="w-auto" />
                         ) : (
                             companyName
                         )}
@@ -400,7 +400,7 @@ export default function Header({ settings }: HeaderProps) {
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             {logoUrl ? (
-                                <img src={logoUrl} alt={companyName} className="w-auto" />
+                                <img src={logoUrl} alt={`${companyName} Logo`} className="w-auto" />
                             ) : (
                                 <span className="text-lg font-bold" style={{ color: colors.primary }}>
                                     {companyName}

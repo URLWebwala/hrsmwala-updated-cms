@@ -111,7 +111,7 @@ export default function Hero({ settings }: HeroProps) {
             <>
                 {heroImage && (
                     <div className="absolute inset-0">
-                        <img src={getImagePath(heroImage)} alt="Hero Background" className="w-full h-full object-cover" />
+                        <img src={getImagePath(heroImage)} alt={`${title} - Hero Background`} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60"></div>
                     </div>
                 )}
@@ -133,7 +133,7 @@ export default function Hero({ settings }: HeroProps) {
         return (
             <div className={`bg-gray-100 rounded-xl ${config.layout === 'split' || config.layout === 'right-split' ? '' : 'mt-12'} flex items-center justify-center overflow-hidden shadow-[0px_2px_4px_0px_rgba(14,30,37,0.12),0px_2px_16px_0px_rgba(14,30,37,0.32)]`}>
                 {heroImage ? (
-                    <img src={getImagePath(heroImage)} alt="Hero" className="w-full h-full object-cover" />
+                    <img src={getImagePath(heroImage)} alt={`${title} Illustration`} className="w-full h-full object-cover" />
                 ) : (
                     <span className="text-gray-500">{t('Hero Image')}</span>
                 )}

@@ -17,38 +17,66 @@
         <meta name="author" content="{{ $landingSettings->company_name ?? 'HRMswala SaaS' }}">
         <meta name="robots" content="index, follow">
 
+        <!-- Canonical Tag -->
+        <link rel="canonical" href="{{ url()->current() }}" />
+
         <!-- Open Graph / Social Media -->
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="{{ config('app.name', 'HRMswala SaaS') }} - Complete HRM Solutions">
-        <meta property="og:description" content="Streamline your HR operations with the world's most intuitive cloud platform.">
+        <meta property="og:title" content="{{ config('app.name', 'HRMswala SaaS') }} - All-in-One Business Management Solution">
+        <meta property="og:description" content="{{ $metaDesc }}">
         <meta property="og:image" content="{{ asset('logo.png') }}">
+        <meta property="og:site_name" content="{{ config('app.name', 'HRMswala SaaS') }}">
 
         <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image">
-        <meta property="twitter:url" content="{{ url()->current() }}">
-        <meta property="twitter:title" content="HRMswala SaaS - Modern HR Management">
-        <meta property="twitter:description" content="Manage your entire team from one centralized dashboard. Free trial available.">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:domain" content="hrmswala.com">
+        <meta name="twitter:url" content="{{ url()->current() }}">
+        <meta name="twitter:title" content="{{ config('app.name', 'HRMswala SaaS') }} - Modern HR Management">
+        <meta name="twitter:description" content="{{ $metaDesc }}">
+        <meta name="twitter:image" content="{{ asset('logo.png') }}">
 
         <!-- JSON-LD Structured Data for Google -->
         <script type="application/ld+json">
-        {
-          "@@context": "https://schema.org",
-          "@@type": "SoftwareApplication",
-          "name": "HRMswala SaaS",
-          "operatingSystem": "Web, Windows, macOS, Linux, Mobile",
-          "applicationCategory": "BusinessApplication",
-          "offers": {
-            "@@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+        [
+          {
+            "@@context": "https://schema.org",
+            "@@type": "Organization",
+            "name": "{{ $landingSettings->company_name ?? 'HRMswala' }}",
+            "url": "https://hrmswala.com",
+            "logo": "{{ asset('logo.png') }}",
+            "sameAs": [
+              "https://www.facebook.com/hrmswala",
+              "https://www.linkedin.com/company/hrmswala",
+              "https://twitter.com/hrmswala"
+            ],
+            "contactPoint": {
+              "@@type": "ContactPoint",
+              "telephone": "{{ $landingSettings->contact_phone ?? '' }}",
+              "contactType": "customer service",
+              "email": "{{ $landingSettings->contact_email ?? '' }}"
+            }
           },
-          "aggregateRating": {
-            "@@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "ratingCount": "1024"
+          {
+            "@@context": "https://schema.org",
+            "@@type": "SoftwareApplication",
+            "name": "HRMswala SaaS",
+            "operatingSystem": "Web, Windows, macOS, Linux, Mobile",
+            "applicationCategory": "BusinessApplication",
+            "description": "{{ $metaDesc }}",
+            "offers": {
+              "@@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "1024"
+            }
           }
-        }
+        ]
         </script>
 
         <!-- Google Analytics (G-SSK2G4XLS3) -->
