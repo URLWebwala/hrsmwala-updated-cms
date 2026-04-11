@@ -2,6 +2,12 @@
 
 use Illuminate\Http\Request;
 
+// Force Non-WWW Domain Redirect
+if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'www.') === 0) {
+    header('Location: https://hrmswala.com' . $_SERVER['REQUEST_URI'], true, 301);
+    exit;
+}
+
 define('LARAVEL_START', microtime(true));
 
 // Determine if the application is in maintenance mode...
