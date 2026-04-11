@@ -6,8 +6,8 @@
     RewriteEngine On
     
     # Redirect www to non-www
-    RewriteCond %{HTTP_HOST} ^www\.(.+) [NC]
-    RewriteRule ^(.*) https://%1/$1 [R=301,L]
+    RewriteCond %{HTTP_HOST} ^www\.hrmswala\.com [NC]
+    RewriteRule ^(.*)$ https://hrmswala.com/$1 [L,R=301]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
