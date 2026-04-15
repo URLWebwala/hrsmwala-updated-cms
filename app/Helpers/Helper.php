@@ -579,7 +579,28 @@ if (!function_exists('upload_file')) {
 
             $file = $request->$key_name;
             $extension = strtolower($file->getClientOriginalExtension());
-            $allowed_extensions = explode(',', $config['allowed_file_types']);
+            $allowed_extensions = array_map('trim', explode(',', strtolower($config['allowed_file_types'])));
+            
+            // Hardcoded security blocklist
+            $critical_blocklist = ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phar', 'exe', 'sh', 'js', 'html', 'htm', 'sql', 'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp'];
+            
+            // 1. Block prohibited extensions regardless of DB settings
+            if (in_array($extension, $critical_blocklist)) {
+                return [
+                    'flag' => 0,
+                    'msg'  => __('Security Error: This file type is strictly prohibited for security reasons.'),
+                ];
+            }
+
+            // 2. Prevent double-extension attacks (e.g., shell.php.jpg)
+            if (preg_match('/\.(php|phtml|php3|php4|php5|php7|phar|exe|sh|js|html|htm|sql|cgi|pl|py|asp|aspx|jsp)\./i', strtolower($file->getClientOriginalName()))) {
+                return [
+                    'flag' => 0,
+                    'msg'  => __('Security Error: Potentially malicious filename detected.'),
+                ];
+            }
+
+            // 3. Regular extension check
             if (empty($extension) || !in_array($extension, $allowed_extensions)) {
                 return [
                     'flag' => 0,

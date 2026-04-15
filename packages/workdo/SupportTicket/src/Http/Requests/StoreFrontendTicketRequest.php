@@ -22,7 +22,7 @@ class StoreFrontendTicketRequest extends FormRequest
             'status' => 'required|string|in:In Progress,On Hold,Closed',
             'account_type' => 'required|string|in:custom',
             'attachments' => 'sometimes|array',
-            'attachments.*' => 'sometimes|file|max:10240'
+            'attachments.*' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,doc,docx,txt,zip|max:10240'
         ];
     }
 }

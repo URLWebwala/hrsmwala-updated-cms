@@ -154,10 +154,8 @@ class MessengerController extends Controller
             // Handle file attachment
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
-                $filenameWithExt = $file->getClientOriginalName();
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                $extension = $file->getClientOriginalExtension();
-                $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+                $extension = strtolower($file->getClientOriginalExtension());
+                $fileNameToStore = \Illuminate\Support\Str::uuid() . '.' . $extension;
 
                 $upload = upload_file($request, 'attachment', $fileNameToStore, 'messenger');
                 if ($upload['flag'] == 1) {

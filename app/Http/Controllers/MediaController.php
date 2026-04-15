@@ -165,9 +165,27 @@ class MediaController extends Controller
             ]);
 
             // Additional file validation
+            $criticalBlocklist = ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phar', 'exe', 'sh', 'js', 'html', 'htm', 'sql', 'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp'];
+
             foreach ($request->file('files') as $file) {
                 $extension = strtolower($file->getClientOriginalExtension());
                 $allowedExtensions = array_map('trim', explode(',', strtolower($config['allowed_file_types'])));
+
+                // 1. Block prohibited extensions
+                if (in_array($extension, $criticalBlocklist)) {
+                    return response()->json([
+                        'message' => __('Security Error: This file type is strictly prohibited.'),
+                        'errors' => [__('File type not allowed for security reasons')]
+                    ], 422);
+                }
+
+                // 2. Prevent double-extension attacks
+                if (preg_match('/\.(php|phtml|php3|php4|php5|php7|phar|exe|sh|js|html|htm|sql|cgi|pl|py|asp|aspx|jsp)\./i', strtolower($file->getClientOriginalName()))) {
+                    return response()->json([
+                        'message' => __('Security Error: Potentially malicious filename detected.'),
+                        'errors' => [__('Double extension not allowed')]
+                    ], 422);
+                }
 
                 if (!in_array($extension, $allowedExtensions)) {
                     return response()->json([

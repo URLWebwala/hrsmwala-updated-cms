@@ -1,0 +1,22 @@
+# Disable PHP execution in this directory
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|exe|sh|js|html|htm|sql|cgi|pl|py|asp|aspx|jsp)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Deny,Allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Set default handler to prevent script execution
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phar .cgi .pl .py .asp .aspx .jsp
+    RemoveType .php .phtml .php3 .php4 .php5 .php7 .phar .cgi .pl .py .asp .aspx .jsp
+</IfModule>
+
+# Prevent execution of any scripts and directory indexing
+Options -ExecCGI -Indexes
+
+# Fallback handler
+SetHandler default-handler

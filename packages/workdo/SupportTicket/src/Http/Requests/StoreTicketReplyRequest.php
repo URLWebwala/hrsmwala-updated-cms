@@ -15,7 +15,7 @@ class StoreTicketReplyRequest extends FormRequest
     {
         return [
             'description' => 'required|string',
-            'files.*' => 'nullable|file|max:10240'
+            'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,txt,zip|max:10240'
         ];
     }
 }

@@ -873,22 +873,18 @@ class FrontendController extends Controller
             $profilePhotoPath = null;
 
             if ($request->hasFile('profilePhoto')) {
-                $filenameWithExt = $request->file('profilePhoto')->getClientOriginalName();
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                $extension = $request->file('profilePhoto')->getClientOriginalExtension();
-                $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+                $extension = strtolower($request->file('profilePhoto')->getClientOriginalExtension());
+                $fileNameToStore = \Illuminate\Support\Str::uuid() . '.' . $extension;
 
                 $upload = upload_file($request, 'profilePhoto', $fileNameToStore, 'candidates/profiles');
                 if ($upload['flag'] == 1) {
-                    $profilePhotoPath = $upload['url']; // Store only filename
+                    $profilePhotoPath = $upload['url'];
                 }
             }
 
             if ($request->hasFile('resume')) {
-                $filenameWithExt = $request->file('resume')->getClientOriginalName();
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                $extension = $request->file('resume')->getClientOriginalExtension();
-                $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+                $extension = strtolower($request->file('resume')->getClientOriginalExtension());
+                $fileNameToStore = \Illuminate\Support\Str::uuid() . '.' . $extension;
 
                 $upload = upload_file($request, 'resume', $fileNameToStore, 'candidates/resumes');
                 if ($upload['flag'] == 1) {
@@ -897,10 +893,8 @@ class FrontendController extends Controller
             }
 
             if ($request->hasFile('coverLetter')) {
-                $filenameWithExt = $request->file('coverLetter')->getClientOriginalName();
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                $extension = $request->file('coverLetter')->getClientOriginalExtension();
-                $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+                $extension = strtolower($request->file('coverLetter')->getClientOriginalExtension());
+                $fileNameToStore = \Illuminate\Support\Str::uuid() . '.' . $extension;
 
                 $upload = upload_file($request, 'coverLetter', $fileNameToStore, 'candidates/cover_letters');
                 if ($upload['flag'] == 1) {
