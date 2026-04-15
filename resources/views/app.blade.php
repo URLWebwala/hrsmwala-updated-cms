@@ -105,26 +105,194 @@
     <body class="font-sans antialiased">
         @inertia
         <style>
-            #app-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff}
-            #app-loader>div{display:flex;flex-direction:column;align-items:center;gap:1rem}
-            #app-loader .spinner{position:relative;width:3rem;height:3rem}
-            #app-loader .spinner>div:first-child{width:3rem;height:3rem;border:4px solid #e5e7eb;border-radius:50%;animation:spin 1s linear infinite;border-top-color:#2563eb}
-            #app-loader .spinner>div:last-child{position:absolute;inset:0;width:3rem;height:3rem;border:4px solid transparent;border-radius:50%;animation:ping 1s cubic-bezier(0,0,.2,1) infinite;border-top-color:#60a5fa;opacity:.2}
-            @@keyframes spin{to{transform:rotate(360deg)}}
-            @@keyframes ping{75%,100%{transform:scale(2);opacity:0}}
+            #app-loader {
+                position: fixed;
+                inset: 0;
+                background: #f8fafc;
+                z-index: 9999;
+                overflow: hidden;
+            }
+
+            #app-loader .skeleton-shell {
+                display: grid;
+                grid-template-columns: 240px 1fr;
+                height: 100%;
+            }
+
+            #app-loader .skeleton-sidebar {
+                background: #ffffff;
+                border-right: 1px solid #e5e7eb;
+                padding: 16px 12px;
+            }
+
+            #app-loader .skeleton-main {
+                padding: 16px 20px;
+            }
+
+            #app-loader .skeleton-topbar {
+                height: 56px;
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                margin-bottom: 16px;
+            }
+
+            #app-loader .skeleton-cards {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            #app-loader .skeleton-card {
+                height: 96px;
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 12px;
+            }
+
+            #app-loader .skeleton-panel {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 14px;
+            }
+
+            #app-loader .skeleton-line {
+                height: 12px;
+                border-radius: 6px;
+                background: #e5e7eb;
+                margin-bottom: 10px;
+            }
+
+            #app-loader .skeleton-line.sm { width: 38%; }
+            #app-loader .skeleton-line.md { width: 62%; }
+            #app-loader .skeleton-line.lg { width: 84%; }
+            #app-loader .skeleton-line.full { width: 100%; }
+
+            #app-loader .skeleton-row {
+                display: grid;
+                grid-template-columns: 1.1fr 1.1fr 1fr 1fr 0.8fr;
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+            #app-loader .shimmer {
+                position: relative;
+                overflow: hidden;
+            }
+
+            #app-loader .shimmer::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -150%;
+                width: 120%;
+                height: 100%;
+                background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.7) 50%, rgba(255,255,255,0) 100%);
+                animation: shimmer 1.25s infinite;
+            }
+
+            #app-loader .loading-label {
+                position: absolute;
+                right: 20px;
+                bottom: 16px;
+                font-size: 12px;
+                color: #64748b;
+                background: rgba(255, 255, 255, 0.85);
+                padding: 6px 10px;
+                border-radius: 999px;
+                border: 1px solid #e5e7eb;
+            }
+
+            @@keyframes shimmer {
+                100% {
+                    left: 130%;
+                }
+            }
+
+            @media (max-width: 1024px) {
+                #app-loader .skeleton-shell {
+                    grid-template-columns: 1fr;
+                }
+                #app-loader .skeleton-sidebar {
+                    display: none;
+                }
+                #app-loader .skeleton-cards {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
         </style>
         <div id="app-loader">
-            <div>
-                <div class="spinner"><div></div><div></div></div>
-                <div style="text-align:center">
-                    <h1 style="font-size:1.25rem;font-weight:700;color:#111827;margin:0 0 0.5rem 0">HRMswala: HRM, CRM, Payroll and Business Management Software</h1>
-                    <p style="font-size:0.95rem;color:#4b5563;max-width:760px;margin:0 auto 0.5rem auto;line-height:1.6">
-                        HRMswala is an all-in-one cloud platform for HR operations, employee management, payroll, attendance,
-                        CRM workflows, accounting, and project tracking. Teams use HRMswala to simplify business processes,
-                        improve productivity, and centralize data in a secure SaaS dashboard.
-                    </p>
-                    <p style="font-size:0.875rem;color:#6b7280;margin:0">{{ __('Loading the interactive application...') }}</p>
-                </div>
+            <div class="skeleton-shell">
+                <aside class="skeleton-sidebar">
+                    <div class="skeleton-line lg shimmer"></div>
+                    <div class="skeleton-line md shimmer"></div>
+                    <div class="skeleton-line full shimmer"></div>
+                    <div class="skeleton-line full shimmer"></div>
+                    <div class="skeleton-line md shimmer"></div>
+                    <div class="skeleton-line full shimmer"></div>
+                    <div class="skeleton-line full shimmer"></div>
+                </aside>
+
+                <main class="skeleton-main">
+                    <div class="skeleton-topbar shimmer"></div>
+
+                    <div class="skeleton-cards">
+                        <div class="skeleton-card">
+                            <div class="skeleton-line sm shimmer"></div>
+                            <div class="skeleton-line md shimmer"></div>
+                            <div class="skeleton-line lg shimmer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-line sm shimmer"></div>
+                            <div class="skeleton-line md shimmer"></div>
+                            <div class="skeleton-line lg shimmer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-line sm shimmer"></div>
+                            <div class="skeleton-line md shimmer"></div>
+                            <div class="skeleton-line lg shimmer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-line sm shimmer"></div>
+                            <div class="skeleton-line md shimmer"></div>
+                            <div class="skeleton-line lg shimmer"></div>
+                        </div>
+                    </div>
+
+                    <section class="skeleton-panel">
+                        <div class="skeleton-line md shimmer"></div>
+                        <div class="skeleton-line lg shimmer"></div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                            <div class="skeleton-line full shimmer"></div>
+                        </div>
+                    </section>
+                </main>
+
+                <div class="loading-label">{{ __('Loading your dashboard...') }}</div>
+            </div>
+            <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+                {{ __('Loading the interactive application...') }}
             </div>
         </div>
         <script>
@@ -132,7 +300,9 @@
                 const loader=document.getElementById('app-loader');
                 const checkApp=()=>{
                     if(document.querySelector('#app').children.length>0){
-                        if(loader)loader.remove();
+                        if(loader){
+                            loader.style.display='none';
+                        }
                     }else{
                         setTimeout(checkApp,50);
                     }

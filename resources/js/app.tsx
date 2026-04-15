@@ -11,6 +11,20 @@ import { Toaster } from "sonner";
 import { Suspense } from "react";
 import axios from "axios";
 
+const showGlobalLoader = () => {
+    const loader = document.getElementById("app-loader");
+    if (loader) {
+        loader.style.display = "block";
+    }
+};
+
+const hideGlobalLoader = () => {
+    const loader = document.getElementById("app-loader");
+    if (loader) {
+        loader.style.display = "none";
+    }
+};
+
 // Preserve original fetch globally to avoid recursion in interceptors
 const originalFetch = window.fetch;
 
@@ -37,11 +51,24 @@ router.on('before', (event) => {
     }
 });
 
+router.on('start', () => {
+    showGlobalLoader();
+});
+
+router.on('success', () => {
+    hideGlobalLoader();
+});
+
+router.on('finish', () => {
+    hideGlobalLoader();
+});
+
 router.on('error', async (event) => {
     const errors = event.detail.errors;
     if (errors && (errors[419] || errors['419'] || Object.values(errors).some(e => String(e).includes('419')))) {
         await refreshToken();
     }
+    hideGlobalLoader();
 });
 
 // Global fetch interceptor
@@ -134,6 +161,9 @@ createInertiaApp({
                 <Toaster position="top-center" richColors />
             </ThemeProvider>
         );
+
+        // Hide loader once first render is mounted.
+        setTimeout(() => hideGlobalLoader(), 0);
     },
     progress: {
         color: "#4B5563",
