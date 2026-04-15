@@ -20,8 +20,12 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
     const { adminAllSetting } = usePage().props as any;
     const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
     const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const blogIndexUrl = (() => {
+        const raw = route('blog.index');
+        return raw.startsWith('http') ? raw : `${siteUrl}${raw}`;
+    })();
     const pageTitle = blog.meta_title || blog.title;
-    const pageDescription = blog.meta_description || '';
+    const pageDescription = blog.meta_description || blogPlainExcerpt(blog.content || '', 160);
     const pageKeywords = blog.meta_keywords || '';
     const themeColors = landingPageSettings?.config_sections?.colors;
     const { primary, secondary } = resolveThemeColors(themeColors);
@@ -66,11 +70,16 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
             <Head title={pageTitle}>
                 <meta name="description" content={pageDescription} />
                 <meta name="keywords" content={pageKeywords} />
+                <meta name="robots" content="index,follow,max-image-preview:large" />
                 <meta property="og:type" content="article" />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDescription} />
+                {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
                 {blog.image_url && <meta property="og:image" content={blog.image_url} />}
                 {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+                {published && <meta property="article:published_time" content={published} />}
+                {blog.updated_at && <meta property="article:modified_time" content={blog.updated_at} />}
+                {blog.author_name && <meta property="article:author" content={blog.author_name} />}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={pageTitle} />
                 <meta name="twitter:description" content={pageDescription} />
@@ -91,6 +100,24 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
                     dateModified: blog.updated_at,
                     image: blog.image_url || undefined,
                     description: pageDescription || undefined,
+                })}</script>
+                <script type="application/ld+json">{JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'BreadcrumbList',
+                    itemListElement: [
+                        {
+                            '@type': 'ListItem',
+                            position: 1,
+                            name: 'Blog',
+                            item: blogIndexUrl || undefined,
+                        },
+                        {
+                            '@type': 'ListItem',
+                            position: 2,
+                            name: blog.title,
+                            item: canonicalUrl || undefined,
+                        },
+                    ],
                 })}</script>
             </Head>
             <Header settings={landingPageSettings} />

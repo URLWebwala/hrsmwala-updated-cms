@@ -19,6 +19,9 @@ export default function PublicIndex({ blogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
     const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
     const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const blogIndexTitle = 'HRMswala Blog';
+    const blogIndexDescription = 'Read our latest business and product blogs.';
+    const robotsContent = blogs?.current_page > 1 ? 'noindex,follow' : 'index,follow';
     const blogItemList = (blogs?.data || []).map((blog: any, index: number) => {
         const blogUrl = route('blog.show', blog.slug);
         return ({
@@ -36,20 +39,24 @@ export default function PublicIndex({ blogs, landingPageSettings }: any) {
     return (
         <div className="min-h-screen bg-transparent">
             <Head title="Blog">
-                <meta name="description" content="Read our latest business and product blogs." />
+                <meta name="description" content={blogIndexDescription} />
                 <meta name="keywords" content="business blogs, HRM, CRM, payroll, attendance, productivity" />
+                <meta name="robots" content={robotsContent} />
                 <meta property="og:type" content="website" />
-                <meta property="og:title" content="HRMswala Blog" />
-                <meta property="og:description" content="Read our latest business and product blogs." />
+                <meta property="og:title" content={blogIndexTitle} />
+                <meta property="og:description" content={blogIndexDescription} />
+                {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
                 {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="HRMswala Blog" />
-                <meta name="twitter:description" content="Read our latest business and product blogs." />
+                <meta name="twitter:title" content={blogIndexTitle} />
+                <meta name="twitter:description" content={blogIndexDescription} />
                 <script type="application/ld+json">{JSON.stringify({
                     '@context': 'https://schema.org',
-                    '@type': 'Blog',
-                    name: 'HRMswala Blog',
+                    '@type': 'CollectionPage',
+                    name: blogIndexTitle,
+                    description: blogIndexDescription,
                     url: canonicalUrl || undefined,
+                    isPartOf: siteUrl || undefined,
                     publisher: {
                         '@type': 'Organization',
                         name: landingPageSettings?.company_name || 'HRMswala',
