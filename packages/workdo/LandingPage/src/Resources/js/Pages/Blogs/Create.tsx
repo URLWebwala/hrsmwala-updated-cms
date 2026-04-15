@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { InputError } from '@/components/ui/input-error';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { Upload } from 'lucide-react';
+import { Trash2, Upload } from 'lucide-react';
 
 export default function Create() {
     const { t } = useTranslation();
@@ -29,6 +29,41 @@ export default function Create() {
     useEffect(() => {
         setData('slug', data.title ? data.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim() : '');
     }, [data.title]);
+    const [keywordInput, setKeywordInput] = useState('');
+
+    const keywordTags = useMemo(
+        () =>
+            String(data.meta_keywords || '')
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean),
+        [data.meta_keywords]
+    );
+
+    const addKeyword = (rawValue: string) => {
+        const value = rawValue.trim().replace(/,+$/, '');
+        if (!value) return;
+        const alreadyExists = keywordTags.some((tag) => tag.toLowerCase() === value.toLowerCase());
+        if (alreadyExists) return;
+        const next = [...keywordTags, value];
+        setData('meta_keywords', next.join(','));
+    };
+
+    const removeKeyword = (tagToRemove: string) => {
+        const next = keywordTags.filter((tag) => tag !== tagToRemove);
+        setData('meta_keywords', next.join(','));
+    };
+
+    const imagePreview = useMemo(() => {
+        if (!data.image) return null;
+        return URL.createObjectURL(data.image);
+    }, [data.image]);
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
 
     return (
         <AuthenticatedLayout
@@ -83,15 +118,31 @@ export default function Create() {
 
                         <div>
                             <Label>{t('Blog Image')}</Label>
-                            <label className="mt-2 flex h-32 w-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
-                                <Upload className="h-5 w-5 text-gray-500" />
-                                <span className="mt-1 text-xs text-gray-600">{t('Upload')}</span>
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    onChange={(e) => setData('image', e.target.files?.[0] || null)}
-                                />
-                            </label>
+                            <div className="mt-2 space-y-3">
+                                <label className="flex h-32 w-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
+                                    <Upload className="h-5 w-5 text-gray-500" />
+                                    <span className="mt-1 text-xs text-gray-600">{t('Upload')}</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => setData('image', e.target.files?.[0] || null)}
+                                    />
+                                </label>
+                                {imagePreview && (
+                                    <div className="relative w-fit overflow-hidden rounded-lg border bg-white p-2 shadow-sm">
+                                        <img src={imagePreview} alt={t('Blog preview')} className="h-28 w-auto rounded object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('image', null)}
+                                            className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                                            aria-label={t('Remove image')}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>
@@ -128,11 +179,43 @@ export default function Create() {
                             </div>
                             <div>
                                 <Label>{t('Meta Tags')}</Label>
-                                <Input
-                                    value={data.meta_keywords}
-                                    onChange={(e) => setData('meta_keywords', e.target.value)}
-                                    placeholder={t('hrm saas, payroll, crm, employee management')}
-                                />
+                                <div className="mt-1 rounded-md border bg-white p-3">
+                                    <Input
+                                        value={keywordInput}
+                                        onChange={(e) => setKeywordInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ',') {
+                                                e.preventDefault();
+                                                addKeyword(keywordInput);
+                                                setKeywordInput('');
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            addKeyword(keywordInput);
+                                            setKeywordInput('');
+                                        }}
+                                        placeholder={t('e.g. hair growth, organic serum, hair care routine')}
+                                    />
+                                    <p className="mt-2 text-xs text-muted-foreground">{t('Press Enter to add.')}</p>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {keywordTags.map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center gap-2 rounded-full bg-teal-500 px-3 py-1 text-xs font-semibold text-white"
+                                            >
+                                                {tag}
+                                                <button
+                                                    type="button"
+                                                    className="leading-none"
+                                                    onClick={() => removeKeyword(tag)}
+                                                    aria-label={t('Remove keyword')}
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                             <div className="rounded-md border bg-gray-50 p-3">
                                 <p className="text-xs font-semibold text-muted-foreground">{t('SEO Preview')}</p>

@@ -19,6 +19,10 @@ import {
 export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
     const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const pageTitle = blog.meta_title || blog.title;
+    const pageDescription = blog.meta_description || '';
+    const pageKeywords = blog.meta_keywords || '';
     const themeColors = landingPageSettings?.config_sections?.colors;
     const { primary, secondary } = resolveThemeColors(themeColors);
     const headingLine = blogHeadingUnderlineStyles(themeColors);
@@ -59,22 +63,34 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
 
     return (
         <div className="min-h-screen bg-transparent">
-            <Head title={blog.meta_title || blog.title}>
-                <meta name="description" content={blog.meta_description || ''} />
-                <meta name="keywords" content={blog.meta_keywords || ''} />
-                <meta property="og:title" content={blog.meta_title || blog.title} />
-                <meta property="og:description" content={blog.meta_description || ''} />
+            <Head title={pageTitle}>
+                <meta name="description" content={pageDescription} />
+                <meta name="keywords" content={pageKeywords} />
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDescription} />
                 {blog.image_url && <meta property="og:image" content={blog.image_url} />}
                 {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content={pageDescription} />
+                {blog.image_url && <meta name="twitter:image" content={blog.image_url} />}
                 <script type="application/ld+json">{JSON.stringify({
                     '@context': 'https://schema.org',
                     '@type': 'BlogPosting',
                     headline: blog.title,
+                    mainEntityOfPage: canonicalUrl || undefined,
+                    keywords: pageKeywords || undefined,
                     author: { '@type': 'Person', name: blog.author_name },
+                    publisher: {
+                        '@type': 'Organization',
+                        name: landingPageSettings?.company_name || 'HRMswala',
+                        logo: siteUrl ? { '@type': 'ImageObject', url: `${siteUrl}/logo.png` } : undefined,
+                    },
                     datePublished: blog.published_at,
                     dateModified: blog.updated_at,
                     image: blog.image_url || undefined,
-                    description: blog.meta_description || undefined,
+                    description: pageDescription || undefined,
                 })}</script>
             </Head>
             <Header settings={landingPageSettings} />

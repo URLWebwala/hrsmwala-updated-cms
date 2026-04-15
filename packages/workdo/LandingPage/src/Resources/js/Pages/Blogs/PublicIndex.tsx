@@ -17,6 +17,17 @@ import {
 
 export default function PublicIndex({ blogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const blogItemList = (blogs?.data || []).map((blog: any, index: number) => {
+        const blogUrl = route('blog.show', blog.slug);
+        return ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: blogUrl.startsWith('http') ? blogUrl : `${siteUrl}${blogUrl}`,
+        name: blog.title,
+        });
+    });
     const themeColors = landingPageSettings?.config_sections?.colors;
     const theme = resolveThemeColors(themeColors);
     const { primary, secondary } = theme;
@@ -26,6 +37,32 @@ export default function PublicIndex({ blogs, landingPageSettings }: any) {
         <div className="min-h-screen bg-transparent">
             <Head title="Blog">
                 <meta name="description" content="Read our latest business and product blogs." />
+                <meta name="keywords" content="business blogs, HRM, CRM, payroll, attendance, productivity" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="HRMswala Blog" />
+                <meta property="og:description" content="Read our latest business and product blogs." />
+                {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="HRMswala Blog" />
+                <meta name="twitter:description" content="Read our latest business and product blogs." />
+                <script type="application/ld+json">{JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'Blog',
+                    name: 'HRMswala Blog',
+                    url: canonicalUrl || undefined,
+                    publisher: {
+                        '@type': 'Organization',
+                        name: landingPageSettings?.company_name || 'HRMswala',
+                        logo: siteUrl ? { '@type': 'ImageObject', url: `${siteUrl}/logo.png` } : undefined,
+                    },
+                })}</script>
+                {blogItemList.length > 0 && (
+                    <script type="application/ld+json">{JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'ItemList',
+                        itemListElement: blogItemList,
+                    })}</script>
+                )}
             </Head>
             <Header settings={landingPageSettings} />
             <main className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10 xl:px-12 py-14 pb-20">
