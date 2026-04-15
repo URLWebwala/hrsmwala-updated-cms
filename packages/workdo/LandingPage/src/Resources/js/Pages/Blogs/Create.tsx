@@ -143,6 +143,7 @@ export default function Create() {
                                     </div>
                                 )}
                             </div>
+                            <InputError message={errors.image} />
                         </div>
 
                         <div>
@@ -176,6 +177,7 @@ export default function Create() {
                                     onChange={(e) => setData('meta_title', e.target.value)}
                                     placeholder={t('Example: Best HRM platform for startups')}
                                 />
+                                <InputError message={errors.meta_title} />
                             </div>
                             <div>
                                 <Label>{t('Meta Tags')}</Label>
@@ -216,6 +218,7 @@ export default function Create() {
                                         ))}
                                     </div>
                                 </div>
+                                <InputError message={errors.meta_keywords} />
                             </div>
                             <div className="rounded-md border bg-gray-50 p-3">
                                 <p className="text-xs font-semibold text-muted-foreground">{t('SEO Preview')}</p>
@@ -234,6 +237,7 @@ export default function Create() {
                                 onChange={(e) => setData('meta_description', e.target.value)}
                                 placeholder={t('Write a short summary (150-160 chars) for search engines.')}
                             />
+                            <InputError message={errors.meta_description} />
                         </div>
                     </CardContent>
                 </Card>

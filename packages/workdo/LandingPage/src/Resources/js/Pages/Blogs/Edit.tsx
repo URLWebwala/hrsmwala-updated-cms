@@ -144,6 +144,7 @@ export default function Edit({ blog }: any) {
                                     </div>
                                 )}
                             </div>
+                            <InputError message={errors.image} />
                         </div>
 
                         <div>
@@ -173,6 +174,7 @@ export default function Edit({ blog }: any) {
                             <div>
                                 <Label>{t('Meta Title')}</Label>
                                 <Input value={data.meta_title} onChange={(e) => setData('meta_title', e.target.value)} />
+                                <InputError message={errors.meta_title} />
                             </div>
                             <div>
                                 <Label>{t('Meta Tags')}</Label>
@@ -213,6 +215,7 @@ export default function Edit({ blog }: any) {
                                         ))}
                                     </div>
                                 </div>
+                                <InputError message={errors.meta_keywords} />
                             </div>
                             <div className="rounded-md border bg-gray-50 p-3">
                                 <p className="text-xs font-semibold text-muted-foreground">{t('SEO Preview')}</p>
@@ -230,6 +233,7 @@ export default function Edit({ blog }: any) {
                                 value={data.meta_description}
                                 onChange={(e) => setData('meta_description', e.target.value)}
                             />
+                            <InputError message={errors.meta_description} />
                         </div>
                     </CardContent>
                 </Card>
