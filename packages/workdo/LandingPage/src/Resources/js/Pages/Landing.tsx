@@ -91,6 +91,65 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
     const seoTitle = 'HRMswala - All-in-One HRM, CRM, Payroll and Business Management Software';
     const seoDescription = 'HRMswala helps businesses manage HR, payroll, attendance, CRM, accounting, projects, and operations in one secure cloud platform.';
     const seoKeywords = 'hrm software, crm software, payroll software, attendance management, business management software, saas platform, hrmswala';
+    const renderSeoHighlight = () => (
+        <section className="relative py-24 bg-white overflow-hidden">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] rounded-full bg-purple-100/50 blur-[100px] pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] rounded-full bg-indigo-100/50 blur-[100px] pointer-events-none"></div>
+            
+            <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                {/* Premium Glassmorphic Card */}
+                <div className="relative rounded-[2.5rem] p-[1px] overflow-hidden bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 shadow-2xl shadow-indigo-100/50 group">
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl transition-opacity duration-500 group-hover:bg-white/30"></div>
+                    <div className="relative bg-white/80 p-10 md:p-14 lg:p-16 rounded-[calc(2.5rem-1px)] border border-white/60 backdrop-blur-xl transition-transform duration-500">
+                        <div className="flex flex-col lg:flex-row gap-12 items-center justify-between">
+                            <div className="flex-1">
+                                {/* Badge */}
+                                <div className="inline-flex items-center space-x-2 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-1.5 ring-1 ring-indigo-200/50 border border-indigo-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                                    <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">Premium Business Suite</span>
+                                </div>
+                                
+                                {/* Heading */}
+                                <h2 className="mt-8 text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 leading-tight">
+                                    Business Operations in One Platform
+                                </h2>
+                                
+                                {/* Content */}
+                                <div className="mt-8 space-y-5">
+                                    <p className="text-lg leading-relaxed text-slate-600 font-medium">
+                                        HRMswala is a cloud SaaS platform for modern teams that need reliable HRM, CRM, payroll, accounting,
+                                        and attendance management tools in one place. It helps reduce manual work, improve team visibility,
+                                        and keep business data organized with role-based access and real-time reporting.
+                                    </p>
+                                    <p className="text-lg leading-relaxed text-slate-600">
+                                        From employee onboarding to payroll processing and customer follow-ups, HRMswala supports daily
+                                        operations with practical modules designed for startups, SMEs, and growing enterprises.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {/* Decorative Animated Graphic */}
+                            <div className="hidden lg:flex flex-shrink-0 w-[400px] justify-center items-center relative">
+                                <div className="relative w-64 h-64 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-50 flex items-center justify-center animate-[spin_15s_linear_infinite] shadow-inner border-4 border-white">
+                                    <div className="absolute inset-0 rounded-full border border-indigo-200/50 transform scale-110"></div>
+                                    <div className="absolute inset-0 rounded-full border border-purple-200/50 transform scale-125"></div>
+                                    <div className="absolute w-44 h-44 rounded-full bg-white shadow-2xl flex items-center justify-center animate-[spin_15s_reverse_linear_infinite]">
+                                        <svg className="w-16 h-16 text-indigo-600 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                    {/* Orbits */}
+                                    <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 border-4 border-white drop-shadow-md"></div>
+                                    <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border-4 border-white drop-shadow-md"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
     
     const renderSection = useCallback((sectionKey: string) => {
         if (!isSectionVisible(sectionKey)) return null;
@@ -117,7 +176,12 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
             case 'cta':
                 return <CTA key={sectionKey} settings={settings} />;
             case 'blogs':
-                return <Blogs key={sectionKey} settings={settings} blogs={blogs} />;
+                return (
+                    <div key={sectionKey}>
+                        {renderSeoHighlight()}
+                        <Blogs settings={settings} blogs={blogs} />
+                    </div>
+                );
             case 'footer':
                 return <Footer key={sectionKey} settings={settings} />;
             default:
@@ -139,21 +203,6 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
             
             {/* Render sections in order */}
             {sectionOrder.map(sectionKey => renderSection(sectionKey))}
-
-            <section className="border-t border-gray-100 bg-white py-12">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Business Operations in One Platform</h2>
-                    <p className="mt-4 text-base leading-7 text-gray-600">
-                        HRMswala is a cloud SaaS platform for modern teams that need reliable HRM, CRM, payroll, accounting,
-                        and attendance management tools in one place. It helps reduce manual work, improve team visibility,
-                        and keep business data organized with role-based access and real-time reporting.
-                    </p>
-                    <p className="mt-4 text-base leading-7 text-gray-600">
-                        From employee onboarding to payroll processing and customer follow-ups, HRMswala supports daily
-                        operations with practical modules designed for startups, SMEs, and growing enterprises.
-                    </p>
-                </div>
-            </section>
 
             {/* Floating WhatsApp quick-contact button */}
             {whatsappHref && (
