@@ -46,7 +46,7 @@ export default function Blogs({ settings, blogs = [] }: BlogsProps) {
                                 className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200/90 shadow-sm transition-shadow hover:shadow-lg"
                                 style={blogCardSurfaceStyle(colors)}
                             >
-                                <BlogCardCover blog={blog} imgClassName="h-52 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                                <BlogCardCover blog={blog} imgClassName="h-52 w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" />
                                 <div
                                     className="h-1 w-full shrink-0"
                                     style={themeStripGradientStyle(colors, index)}

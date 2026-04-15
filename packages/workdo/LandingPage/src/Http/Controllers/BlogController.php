@@ -5,6 +5,7 @@ namespace Workdo\LandingPage\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -75,6 +76,7 @@ class BlogController extends Controller
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('blogs', 'public');
+            $this->syncPublicStorageFile($validated['image']);
         }
 
         Blog::create($validated);
@@ -117,6 +119,7 @@ class BlogController extends Controller
                 Storage::disk('public')->delete($blog->image);
             }
             $validated['image'] = $request->file('image')->store('blogs', 'public');
+            $this->syncPublicStorageFile($validated['image']);
         } else {
             unset($validated['image']);
         }
@@ -211,5 +214,22 @@ class BlogController extends Controller
         $settingsData['custom_pages'] = CustomPage::where('is_active', true)->select('id', 'title', 'slug')->get();
 
         return $settingsData;
+    }
+
+    private function syncPublicStorageFile(?string $relativePath): void
+    {
+        if (empty($relativePath)) {
+            return;
+        }
+
+        $source = storage_path('app/public/' . ltrim($relativePath, '/'));
+        $target = public_path('storage/' . ltrim($relativePath, '/'));
+
+        if (!File::exists($source)) {
+            return;
+        }
+
+        File::ensureDirectoryExists(dirname($target));
+        File::copy($source, $target);
     }
 }

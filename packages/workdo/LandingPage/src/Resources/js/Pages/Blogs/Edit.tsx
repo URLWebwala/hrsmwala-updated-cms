@@ -13,7 +13,7 @@ import { Trash2, Upload } from 'lucide-react';
 
 export default function Edit({ blog }: any) {
     const { t } = useTranslation();
-    const { data, setData, put, processing, errors } = useForm<any>({
+    const { data, setData, post, processing, errors, transform } = useForm<any>({
         title: blog.title || '',
         slug: blog.slug || '',
         category: blog.category || '',
@@ -68,12 +68,22 @@ export default function Edit({ blog }: any) {
     }, [uploadedImagePreview]);
 
     const imageToPreview = uploadedImagePreview || blog.image_url || null;
+    const submitForm = () => {
+        transform((formData: any) => ({
+            ...formData,
+            _method: 'put',
+        }));
+        post(route('blogs.update', blog.id), {
+            forceFormData: true,
+            preserveScroll: true,
+        });
+    };
 
     return (
         <AuthenticatedLayout
             breadcrumbs={[{ label: t('Blogs'), url: route('blogs.index') }, { label: t('Edit Blog') }]}
             pageTitle={t('Edit Blog')}
-            pageActions={<Button onClick={() => put(route('blogs.update', blog.id))} disabled={processing}>{t('Update')}</Button>}
+            pageActions={<Button onClick={submitForm} disabled={processing}>{t('Update')}</Button>}
         >
             <Head title={t('Edit Blog')} />
             <div className="space-y-6">
@@ -120,7 +130,7 @@ export default function Edit({ blog }: any) {
 
                                 {imageToPreview && (
                                     <div className="relative w-fit overflow-hidden rounded-lg border bg-white p-2 shadow-sm">
-                                        <img src={imageToPreview} alt={blog.title} className="h-28 w-auto rounded object-cover" />
+                                        <img src={imageToPreview} alt={blog.title} className="h-28 w-auto rounded object-contain bg-gray-50" />
                                         {data.image && (
                                             <button
                                                 type="button"

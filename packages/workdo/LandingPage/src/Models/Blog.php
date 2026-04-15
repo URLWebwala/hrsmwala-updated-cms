@@ -46,6 +46,6 @@ class Blog extends Model
             return $this->image;
         }
 
-        return asset('storage/' . ltrim($this->image, '/'));
+        return rtrim(url('/'), '/') . '/storage/' . ltrim($this->image, '/');
     }
 }

@@ -131,7 +131,7 @@ export default function Create() {
                                 </label>
                                 {imagePreview && (
                                     <div className="relative w-fit overflow-hidden rounded-lg border bg-white p-2 shadow-sm">
-                                        <img src={imagePreview} alt={t('Blog preview')} className="h-28 w-auto rounded object-cover" />
+                                        <img src={imagePreview} alt={t('Blog preview')} className="h-28 w-auto rounded object-contain bg-gray-50" />
                                         <button
                                             type="button"
                                             onClick={() => setData('image', null)}

@@ -18,14 +18,14 @@ interface BlogCardCoverProps {
 export default function BlogCardCover({
     blog,
     className = '',
-    imgClassName = 'w-full object-cover',
+    imgClassName = 'w-full object-contain',
     coverHeightClass = 'h-52',
     roundedClass = '',
 }: BlogCardCoverProps) {
     if (blog.image_url) {
         return (
             <div className={`relative overflow-hidden bg-gray-100 ${coverHeightClass} ${roundedClass} ${className}`}>
-                <img src={blog.image_url} alt={blog.title || ''} className={`h-full w-full object-cover ${imgClassName}`} loading="lazy" />
+                <img src={blog.image_url} alt={blog.title || ''} className={`h-full w-full ${imgClassName}`} loading="lazy" />
             </div>
         );
     }
