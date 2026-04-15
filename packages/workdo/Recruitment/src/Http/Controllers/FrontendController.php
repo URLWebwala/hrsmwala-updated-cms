@@ -22,36 +22,92 @@ use Workdo\Recruitment\Events\SubmitApplication;
 
 class FrontendController extends Controller
 {
-    private function getUserIdFromRequest(Request $request)
+    private function getUserIdFromRequest(Request $request): ?int
+    {
+        $userSlug = $request->route('userSlug');
+        if (! $userSlug) {
+            return null;
+        }
+
+        return User::where('slug', $userSlug)->value('id');
+    }
+
+    private function getBrandSettings(?int $userId = null): array
+    {
+        $settings = $userId
+            ? RecruitmentSetting::where('created_by', $userId)->pluck('value', 'key')
+            : collect();
+
+        return [
+            'logo' => $settings['logo_dark'] ?? 'packages/workdo/Recruitment/src/Resources/images/logo.png',
+            'favicon' => $settings['favicon'] ?? 'packages/workdo/Recruitment/src/Resources/images/favicon.png',
+            'titleText' => $settings['title_text'] ?? 'Careers',
+            'footerText' => $settings['footer_text'] ?? '© ' . date('Y') . ' WorkDo. All rights reserved.',
+        ];
+    }
+
+    public function publicJobListings(Request $request)
     {
         try {
-            $userSlug = $request->route('userSlug');
-            if ($userSlug) {
-                $user = User::where('slug', $userSlug)->first();
-                if ($user) {
-                    return $user->id;
-                }
+            $jobs = JobPosting::where('is_published', true)
+                ->with(['jobType', 'location'])
+                ->latest()
+                ->get();
+
+            if ($jobs->isEmpty()) {
+                return Inertia::render('Recruitment/Frontend/JobListings', [
+                    'jobs' => [],
+                    'jobCategories' => ['All'],
+                    'jobLocations' => [],
+                    'jobTypes' => [],
+                    'userSlug' => null,
+                    'siteSettings' => $this->getBrandSettings(),
+                ]);
             }
-            $settings = RecruitmentSetting::where('created_by', $user->id)->pluck('value', 'key');
-            return Inertia::render('Recruitment/Frontend/NotFound', [
-                'userSlug' => $userSlug ?? 'default',
-                'brandSettings' => [
-                    'logo' => $settings['logo_dark'] ?? 'packages/workdo/Recruitment/src/Resources/images/logo.png',
-                    'favicon' => $settings['favicon'] ?? 'packages/workdo/Recruitment/src/Resources/images/favicon.png',
-                    'titleText' => $settings['title_text'] ?? 'Careers',
-                    'footerText' => $settings['footer_text'] ?? '© ' . date('Y') . ' WorkDo. All rights reserved.'
-                ]
+
+            $userIds = $jobs->pluck('created_by')->filter()->unique()->values();
+            $usersById = User::whereIn('id', $userIds)->select('id', 'slug', 'name')->get()->keyBy('id');
+
+            $jobs = $jobs
+                ->filter(function ($job) use ($usersById) {
+                    $user = $usersById->get($job->created_by);
+                    return ! empty($user?->slug);
+                })
+                ->map(function ($job) use ($usersById) {
+                    $user = $usersById->get($job->created_by);
+                    return [
+                        'id' => $job->id,
+                        'encrypted_id' => $job->encrypted_id,
+                        'title' => $job->title,
+                        'location' => $job->location ? $job->location->name : 'Not specified',
+                        'jobType' => $job->jobType ? $job->jobType->name : 'Full Time',
+                        'salaryFrom' => $job->min_salary ?? 0,
+                        'salaryTo' => $job->max_salary ?? 0,
+                        'postedDate' => $job->publish_date ? Carbon::parse($job->publish_date)->format('Y-m-d') : $job->created_at->format('Y-m-d'),
+                        'deadlineDate' => $job->application_deadline ? Carbon::parse($job->application_deadline)->format('Y-m-d') : null,
+                        'skills' => $job->skills ? explode(',', trim($job->skills)) : [],
+                        'featured' => (bool) ($job->is_featured ?? false),
+                        'description' => $job->description ?? '',
+                        'job_application' => $job->job_application ?? 'existing',
+                        'application_url' => $job->application_url,
+                        'userSlug' => $user?->slug,
+                        'companyName' => $user?->name ?? 'Company',
+                    ];
+                })
+                ->values();
+
+            return Inertia::render('Recruitment/Frontend/JobListings', [
+                'jobs' => $jobs,
+                'jobCategories' => ['All', 'Featured Job', 'Saved Job'],
+                'jobLocations' => JobLocation::where('status', 1)->select('id', 'name')->get(),
+                'jobTypes' => JobType::where('is_active', 1)->select('id', 'name')->get(),
+                'userSlug' => null,
+                'siteSettings' => $this->getBrandSettings(),
             ]);
         } catch (\Exception $e) {
-            $settings = RecruitmentSetting::where('created_by', $user->id)->pluck('value', 'key');
             return Inertia::render('Recruitment/Frontend/NotFound', [
-                'userSlug' => $userSlug ?? 'default',
-                'brandSettings' => [
-                    'logo' => $settings['logo_dark'] ?? 'packages/workdo/Recruitment/src/Resources/images/logo.png',
-                    'favicon' => $settings['favicon'] ?? 'packages/workdo/Recruitment/src/Resources/images/favicon.png',
-                    'titleText' => $settings['title_text'] ?? 'Careers',
-                    'footerText' => $settings['footer_text'] ?? '© ' . date('Y') . ' WorkDo. All rights reserved.'
-                ]
+                'userSlug' => $request->route('userSlug') ?? 'default',
+                'brandSettings' => $this->getBrandSettings(),
             ]);
         }
     }
@@ -60,6 +116,12 @@ class FrontendController extends Controller
     {
         try {
             $userId = $this->getUserIdFromRequest($request);
+            if (! $userId) {
+                return Inertia::render('Recruitment/Frontend/NotFound', [
+                    'userSlug' => $userSlug,
+                    'brandSettings' => $this->getBrandSettings(),
+                ]);
+            }
 
             $jobs = JobPosting::where('is_published', true)
                 ->where('created_by', $userId)

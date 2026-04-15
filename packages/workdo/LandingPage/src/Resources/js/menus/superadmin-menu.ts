@@ -31,10 +31,16 @@ export const cmsSuperAdminMenu = (t: (key: string) => string) => ({
             order: 3
         },
         {
+            title: t('Blogs'),
+            href: route('blogs.index'),
+            permission: 'manage-blogs',
+            order: 4
+        },
+        {
             title: t('Newsletter Subscribers'),
             href: route('newsletter-subscribers.index'),
             permission: 'manage-newsletter-subscribers',
-            order: 4
+            order: 5
         }
     ]
 });

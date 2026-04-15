@@ -185,6 +185,44 @@ export default function Footer({ settings }: FooterProps) {
         const legalPages = customPages.filter((p: { slug: string }) => policySlugs.includes(p.slug));
         
         let navigationSections = [...(sectionData.navigation_sections || [])];
+        const resolvedBlogHref = typeof (globalThis as any).route === 'function'
+            ? (globalThis as any).route('blog.index')
+            : '/blog';
+
+        const linkPointsToBlogIndex = (l: any) => {
+            const href = String(l?.href || '').toLowerCase();
+            return href.includes('/blog') && !href.includes('/blog/');
+        };
+
+        // Remove a standalone "Blog" column if it only duplicates the public blog list link (keeps footer tidy when we merge into Company).
+        navigationSections = navigationSections.filter((s: any) => {
+            const t = String(s?.title || '').toLowerCase().trim();
+            if (t !== 'blog' || !Array.isArray(s?.links) || s.links.length !== 1) return true;
+            const only = s.links[0];
+            return !(linkPointsToBlogIndex(only) || String(only?.text || '').toLowerCase().includes('all blog'));
+        });
+
+        const hasBlogIndexLink = navigationSections.some((s: any) =>
+            (s?.links || []).some((l: any) => linkPointsToBlogIndex(l))
+        );
+
+        if (!hasBlogIndexLink) {
+            const blogLink = { text: 'All Blogs', href: resolvedBlogHref, target: '_self' as const };
+            const companyIdx = navigationSections.findIndex(
+                (s: any) => String(s?.title || '').toLowerCase().trim() === 'company'
+            );
+            if (companyIdx >= 0) {
+                const company = navigationSections[companyIdx];
+                const links = [...(company.links || [])];
+                links.push(blogLink);
+                navigationSections[companyIdx] = { ...company, links };
+            } else {
+                navigationSections.push({
+                    title: 'Blog',
+                    links: [blogLink],
+                });
+            }
+        }
         
         // Add a "Resources" section if we have legal pages and a section with that title doesn't exist
         if (legalPages.length > 0 && !navigationSections.some(s => s.title?.toLowerCase() === 'resources')) {

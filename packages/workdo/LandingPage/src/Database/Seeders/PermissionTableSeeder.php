@@ -30,6 +30,11 @@ class PermissionTableSeeder extends Seeder
             ['name' => 'edit-newsletter-subscribers', 'module' => 'landing-page', 'label' => 'Edit Newsletter Subscribers'],
             ['name' => 'delete-newsletter-subscribers', 'module' => 'landing-page', 'label' => 'Delete Newsletter Subscribers'],
             ['name' => 'export-newsletter-subscribers', 'module' => 'landing-page', 'label' => 'Export Newsletter Subscribers'],
+            ['name' => 'manage-blogs', 'module' => 'landing-page', 'label' => 'Manage Blogs'],
+            ['name' => 'view-blogs', 'module' => 'landing-page', 'label' => 'View Blogs'],
+            ['name' => 'create-blogs', 'module' => 'landing-page', 'label' => 'Create Blogs'],
+            ['name' => 'edit-blogs', 'module' => 'landing-page', 'label' => 'Edit Blogs'],
+            ['name' => 'delete-blogs', 'module' => 'landing-page', 'label' => 'Delete Blogs'],
         ];
 
         $company_role = Role::where('name', 'superadmin')->first();

@@ -9,8 +9,10 @@ use App\Models\AddOn;
 use App\Models\Plan;
 use App\Models\User;
 use Workdo\LandingPage\Models\LandingPageSetting;
+use Workdo\LandingPage\Models\Blog;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use Workdo\LandingPage\Models\CustomPage;
 use Illuminate\Support\Facades\Auth;
 
@@ -51,13 +53,15 @@ class LandingPageController extends Controller
         $settingsData['custom_pages'] = $customPages;
         $settingsData = $this->normalizeLandingSettings($settingsData);
         $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
+        $featuredBlogs = Blog::where('is_active', true)->latest('published_at')->latest('id')->take(3)->get();
 
         return Inertia::render('LandingPage/Landing', [
             'auth' => [
                 'user' => $request->user(),
                 'lang' => app()->getLocale()
             ],
-            'settings' => $settingsData
+            'settings' => $settingsData,
+            'blogs' => $featuredBlogs,
         ]);
     }
 
@@ -107,6 +111,38 @@ class LandingPageController extends Controller
         ]);
     }
 
+    public function careers()
+    {
+        // Prefer dedicated public careers index when Recruitment routes are available.
+        if (Route::has('recruitment.frontend.public.careers.index')) {
+            return redirect()->route('recruitment.frontend.public.careers.index');
+        }
+
+        // Fallback: redirect to first company slug that has at least one published job.
+        try {
+            $slug = DB::table('job_postings as jp')
+                ->join('users as u', 'u.id', '=', 'jp.created_by')
+                ->where('jp.is_published', true)
+                ->whereNotNull('u.slug')
+                ->where('u.slug', '!=', '')
+                ->orderByDesc('jp.id')
+                ->value('u.slug');
+
+            if (is_string($slug) && $slug !== '') {
+                return redirect()->to(url('/' . $slug . '/careers'));
+            }
+        } catch (\Throwable $e) {
+            // Continue with final fallback.
+        }
+
+        $defaultSlug = $this->getCareerDefaultSlug();
+        if ($defaultSlug) {
+            return redirect()->to(url('/' . $defaultSlug . '/careers'));
+        }
+
+        return redirect()->route('landing.page');
+    }
+
     public function settings()
     {
         if(Auth::user()->can('manage-landing-page')){
@@ -137,10 +173,11 @@ class LandingPageController extends Controller
                             'benefits' => true,
                             'gallery' => true,
                             'how_works_videos' => true,
+                            'blogs' => true,
                             'cta' => true,
                             'footer' => true
                         ],
-                        'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer']
+                        'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer']
                     ]
                 ],
                 'customPages' => $customPages
@@ -241,10 +278,11 @@ class LandingPageController extends Controller
                 'benefits' => true,
                 'gallery' => true,
                 'how_works_videos' => true,
+                'blogs' => true,
                 'cta' => true,
                 'footer' => true,
             ],
-            'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer'],
+            'section_order' => ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer'],
         ];
 
         $config = $settingsData['config_sections'] ?? [];
@@ -270,7 +308,44 @@ class LandingPageController extends Controller
                     array_splice($order, $pos + 1, 0, [$key]);
                     continue;
                 }
+                if ($key === 'blogs') {
+                    if (in_array('benefits', $order, true)) {
+                        $pos = array_search('benefits', $order, true);
+                        array_splice($order, $pos + 1, 0, [$key]);
+                        continue;
+                    }
+                    if (in_array('how_works_videos', $order, true)) {
+                        $pos = array_search('how_works_videos', $order, true);
+                        array_splice($order, $pos, 0, [$key]);
+                        continue;
+                    }
+                    if (in_array('footer', $order, true)) {
+                        $pos = array_search('footer', $order, true);
+                        array_splice($order, $pos, 0, [$key]);
+                        continue;
+                    }
+                }
                 $order[] = $key;
+            }
+        }
+
+        // Always keep blogs immediately after benefits when benefits exists.
+        if (in_array('blogs', $order, true)) {
+            $order = array_values(array_filter($order, fn ($key) => $key !== 'blogs'));
+            if (in_array('benefits', $order, true)) {
+                $benefitsPos = array_search('benefits', $order, true);
+                array_splice($order, $benefitsPos + 1, 0, ['blogs']);
+            } elseif (in_array('how_works_videos', $order, true)) {
+                $howWorksPos = array_search('how_works_videos', $order, true);
+                array_splice($order, $howWorksPos + 1, 0, ['blogs']);
+            } elseif (in_array('cta', $order, true)) {
+                $ctaPos = array_search('cta', $order, true);
+                array_splice($order, $ctaPos, 0, ['blogs']);
+            } elseif (in_array('footer', $order, true)) {
+                $footerPos = array_search('footer', $order, true);
+                array_splice($order, $footerPos, 0, ['blogs']);
+            } else {
+                $order[] = 'blogs';
             }
         }
         $config['section_order'] = $order;

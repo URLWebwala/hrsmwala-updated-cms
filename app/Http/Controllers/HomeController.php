@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Workdo\LandingPage\Models\Blog;
 
 class HomeController extends Controller
 {
@@ -58,6 +59,50 @@ class HomeController extends Controller
             }
         }
 
+        $blogInsights = [
+            'total_blogs' => 0,
+            'active_blogs' => 0,
+            'total_reads' => 0,
+            'average_reads' => 0,
+            'top_blogs' => [],
+        ];
+
+        try {
+            $totalBlogs = Blog::count();
+            $activeBlogs = Blog::where('is_active', true)->count();
+            $totalReads = (int) (Blog::sum('read_count') ?? 0);
+
+            $topBlogs = Blog::query()
+                ->where('is_active', true)
+                ->select('id', 'title', 'slug', 'category', 'author_name', 'read_count', 'published_at')
+                ->orderByDesc('read_count')
+                ->orderByDesc('published_at')
+                ->limit(7)
+                ->get()
+                ->map(function (Blog $blog) {
+                    return [
+                        'id' => $blog->id,
+                        'title' => $blog->title,
+                        'slug' => $blog->slug,
+                        'category' => $blog->category,
+                        'author_name' => $blog->author_name,
+                        'read_count' => (int) $blog->read_count,
+                        'published_at' => optional($blog->published_at)?->format('Y-m-d'),
+                    ];
+                })
+                ->values();
+
+            $blogInsights = [
+                'total_blogs' => $totalBlogs,
+                'active_blogs' => $activeBlogs,
+                'total_reads' => $totalReads,
+                'average_reads' => $totalBlogs > 0 ? (int) round($totalReads / $totalBlogs) : 0,
+                'top_blogs' => $topBlogs,
+            ];
+        } catch (\Throwable $e) {
+            // Keep dashboard resilient if blog tables/module are unavailable.
+        }
+
         return Inertia::render('SuperAdminDashboard', [
             'stats' => [
                 'order_payments' => Order::sum('price') ?? 0,
@@ -65,7 +110,8 @@ class HomeController extends Controller
                 'total_plans' => Plan::count(),
                 'total_companies' => User::where('type', 'company')->count(),
             ],
-            'chartData' => $chartData
+            'chartData' => $chartData,
+            'blogInsights' => $blogInsights,
         ]);
     }
 

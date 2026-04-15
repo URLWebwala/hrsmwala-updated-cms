@@ -12,6 +12,7 @@ import Benefits from './components/Benefits';
 import Gallery from './components/Gallery';
 import TrackerFeatures from './components/TrackerFeatures';
 import HowWorksVideos from './components/HowWorksVideos';
+import Blogs from './components/Blogs';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 
@@ -44,6 +45,7 @@ interface LandingProps {
         contact_address?: string;
         config_sections?: ConfigSections;
     };
+    blogs?: any[];
 }
 
 function WhatsAppIcon({ className = '' }: { className?: string }) {
@@ -61,7 +63,7 @@ function WhatsAppIcon({ className = '' }: { className?: string }) {
     );
 }
 
-export default function Landing({ settings }: LandingProps) {
+export default function Landing({ settings, blogs = [] }: LandingProps) {
     const getSectionData = (key: string) => {
         return settings?.config_sections?.sections?.[key] || {};
     };
@@ -74,7 +76,7 @@ export default function Landing({ settings }: LandingProps) {
     };
     
     const sectionOrder = settings?.config_sections?.section_order || 
-        ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer'];
+        ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer'];
 
     const whatsappSettings =
         settings?.config_sections?.sections?.social ||
@@ -86,6 +88,9 @@ export default function Landing({ settings }: LandingProps) {
     const whatsappHref = whatsappNumber
         ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
         : null;
+    const seoTitle = 'HRMswala - All-in-One HRM, CRM, Payroll and Business Management Software';
+    const seoDescription = 'HRMswala helps businesses manage HR, payroll, attendance, CRM, accounting, projects, and operations in one secure cloud platform.';
+    const seoKeywords = 'hrm software, crm software, payroll software, attendance management, business management software, saas platform, hrmswala';
     
     const renderSection = useCallback((sectionKey: string) => {
         if (!isSectionVisible(sectionKey)) return null;
@@ -111,21 +116,44 @@ export default function Landing({ settings }: LandingProps) {
                 return <HowWorksVideos key={sectionKey} settings={settings} />;
             case 'cta':
                 return <CTA key={sectionKey} settings={settings} />;
+            case 'blogs':
+                return <Blogs key={sectionKey} settings={settings} blogs={blogs} />;
             case 'footer':
                 return <Footer key={sectionKey} settings={settings} />;
             default:
                 return null;
         }
-    }, [settings, isSectionVisible]);
+    }, [settings, blogs, isSectionVisible]);
 
     return (
         <div className="min-h-screen bg-white">
-            <Head title="All-in-One Business Management Solution">
+            <Head title={seoTitle}>
+                <meta name="description" content={seoDescription} />
+                <meta name="keywords" content={seoKeywords} />
+                <meta property="og:title" content={seoTitle} />
+                <meta property="og:description" content={seoDescription} />
+                <meta name="twitter:title" content={seoTitle} />
+                <meta name="twitter:description" content={seoDescription} />
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             
             {/* Render sections in order */}
             {sectionOrder.map(sectionKey => renderSection(sectionKey))}
+
+            <section className="border-t border-gray-100 bg-white py-12">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Business Operations in One Platform</h2>
+                    <p className="mt-4 text-base leading-7 text-gray-600">
+                        HRMswala is a cloud SaaS platform for modern teams that need reliable HRM, CRM, payroll, accounting,
+                        and attendance management tools in one place. It helps reduce manual work, improve team visibility,
+                        and keep business data organized with role-based access and real-time reporting.
+                    </p>
+                    <p className="mt-4 text-base leading-7 text-gray-600">
+                        From employee onboarding to payroll processing and customer follow-ups, HRMswala supports daily
+                        operations with practical modules designed for startups, SMEs, and growing enterprises.
+                    </p>
+                </div>
+            </section>
 
             {/* Floating WhatsApp quick-contact button */}
             {whatsappHref && (

@@ -1,0 +1,14 @@
+site: https://hrmswala.com
+name: HRMswala
+description: HRMswala is an all-in-one business management SaaS platform for HRM, CRM, payroll, attendance, accounting, and project workflows.
+language: en
+
+allow: /
+disallow: /admin
+disallow: /dashboard
+disallow: /api/
+disallow: /internal/
+
+preferred-crawl-delay: 1
+contact: mailto:info@hrmswala.com
+sitemap: https://hrmswala.com/sitemap.xml

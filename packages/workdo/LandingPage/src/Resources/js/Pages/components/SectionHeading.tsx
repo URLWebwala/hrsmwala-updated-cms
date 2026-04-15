@@ -29,11 +29,13 @@ export default function SectionHeading({
   return (
     <div className={`flex flex-col ${alignClass} ${className || ''}`}>
       <AnimateOnScroll direction="up">
-        <h2 className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight ${titleTextClass}`}>
+        <h2 className={`text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-[1.2] pb-1 ${titleTextClass}`}>
           <span
-            className="bg-clip-text text-transparent"
+            className="inline-block bg-clip-text pb-0.5 text-transparent"
             style={{
               backgroundImage: `linear-gradient(90deg, ${accentColor}, ${gradientEnd})`,
+              lineHeight: 1.25,
+              paddingBottom: '0.12em',
             }}
           >
             {title}

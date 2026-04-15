@@ -22,7 +22,7 @@ export function LandingPreview({ settings }: LandingPreviewProps) {
   };
 
   const sectionOrder = settings?.config_sections?.section_order || 
-    ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'cta', 'footer'];
+    ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'blogs', 'cta', 'footer'];
 
   const renderMiniSection = (sectionKey: string) => {
     if (!isSectionVisible(sectionKey)) return null;
@@ -166,6 +166,20 @@ export function LandingPreview({ settings }: LandingPreviewProps) {
               <div className="text-xs border border-white px-2 py-1 rounded">
                 {sectionData.secondary_button || t('Contact')}
               </div>
+            </div>
+          </div>
+        );
+      case 'blogs':
+        return (
+          <div key={sectionKey} className="p-3 bg-white border-y">
+            <div className="text-xs font-bold text-center mb-2">{sectionData.title || t('Latest Blogs')}</div>
+            <div className="grid grid-cols-3 gap-1">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded bg-gray-100 p-1">
+                  <div className="h-4 bg-gray-200 rounded mb-1"></div>
+                  <div className="h-1.5 bg-gray-300 rounded"></div>
+                </div>
+              ))}
             </div>
           </div>
         );

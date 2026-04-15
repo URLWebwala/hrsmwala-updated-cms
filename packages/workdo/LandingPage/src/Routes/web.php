@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Workdo\LandingPage\Http\Controllers\LandingPageController;
 use Workdo\LandingPage\Http\Controllers\MarketplaceController;
 use Workdo\LandingPage\Http\Controllers\CustomPageController;
+use Workdo\LandingPage\Http\Controllers\BlogController;
 use Workdo\LandingPage\Http\Controllers\NewsletterSubscriberController;
 
 
@@ -30,6 +31,16 @@ Route::middleware(['web', 'auth'])->prefix('custom-pages')->name('custom-pages.'
     Route::delete('/{customPage}', [CustomPageController::class, 'destroy'])->name('destroy');
 });
 
+// Blog Management Routes
+Route::middleware(['web', 'auth'])->prefix('blogs')->name('blogs.')->group(function () {
+    Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::get('/create', [BlogController::class, 'create'])->name('create');
+    Route::post('/', [BlogController::class, 'store'])->name('store');
+    Route::get('/{blog}/edit', [BlogController::class, 'edit'])->name('edit');
+    Route::put('/{blog}', [BlogController::class, 'update'])->name('update');
+    Route::delete('/{blog}', [BlogController::class, 'destroy'])->name('destroy');
+});
+
 // Newsletter Subscribers Management Routes
 Route::middleware(['web', 'auth'])->prefix('newsletter-subscribers')->name('newsletter-subscribers.')->group(function () {
     Route::get('/', [NewsletterSubscriberController::class, 'index'])->name('index');
@@ -49,6 +60,9 @@ Route::middleware(['web'])->group(function () {
     Route::get('/refund-policy', function() { return app(CustomPageController::class)->show(request(), 'refund-policy'); })->name('refund-policy.show');
     Route::get('/contact-us', function() { return app(CustomPageController::class)->show(request(), 'contact-us'); })->name('contact-us.show');
     Route::get('/faq', function() { return app(CustomPageController::class)->show(request(), 'faq'); })->name('faq.show');
+    Route::get('/blog', [BlogController::class, 'publicIndex'])->name('blog.index');
+    Route::get('/blog/{slug}/views', [BlogController::class, 'viewCountJson'])->name('blog.views');
+    Route::get('/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.show');
 
     Route::get('/page/{slug}', [CustomPageController::class, 'show'])->name('custom-page.show');
     Route::post('/newsletter/subscribe', [NewsletterSubscriberController::class, 'store'])->name('newsletter.subscribe');

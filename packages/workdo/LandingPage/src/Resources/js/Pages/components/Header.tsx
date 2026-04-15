@@ -77,66 +77,22 @@ export default function Header({ settings }: HeaderProps) {
     // Use dynamic navigation items from settings or empty array
     const navigationItems = sectionData.navigation_items || [];
 
-    // Careers (Recruitment frontend) link. URL is already supported by Recruitment routes:
-    // /{userSlug}/careers
-    const inferSlugFromPath = (): string | null => {
-        if (typeof window === 'undefined') return null;
-        const path = window.location?.pathname || '/';
-        // matches "/{slug}/careers" OR "/{slug}/careers/..."
-        const m1 = path.match(/^\/([^/]+)\/careers(?:\/|$)/i);
-        if (m1?.[1]) return m1[1];
-        // matches "/{slug}/..." (best-effort fallback if landing is served under slug)
-        const m2 = path.match(/^\/([^/]+)(?:\/|$)/);
-        if (m2?.[1] && !['pricing', 'login', 'register', 'dashboard', 'page', 'marketplace', 'recruitment', 'api'].includes(m2[1].toLowerCase())) {
-            return m2[1];
-        }
-        return null;
-    };
-    const userSlug =
-        settings?.user_slug ||
-        settings?.userSlug ||
-        settings?.slug ||
-        settings?.company_slug ||
-        settings?.companySlug ||
-        settings?.workspace_slug ||
-        settings?.workspaceSlug ||
-        inferSlugFromPath() ||
-        null;
-    const careerHrefFromSettings: string | null =
-        sectionData?.career_link || sectionData?.career_url || settings?.career_url || null;
-
-    // Prefer named route (if available) to avoid 404s due to mismatched params.
-    // Recruitment route: {userSlug}/careers  -> name: recruitment.frontend.careers.jobs.index
-    let careersHref: string | null = null;
-    const fallbackCareerSlug: string | null =
-        sectionData?.career_user_slug ||
-        sectionData?.career_slug ||
-        settings?.career_user_slug ||
-        settings?.career_slug ||
-        settings?.career_default_slug ||
-        'company';
-    const careersSlugToUse = userSlug || fallbackCareerSlug;
-
-    if (careerHrefFromSettings) {
-        careersHref = careerHrefFromSettings.startsWith('/') ? careerHrefFromSettings : `/${careerHrefFromSettings}`;
-    } else if (careersSlugToUse) {
-        if (typeof (globalThis as any).route === 'function') {
-            try {
-                careersHref = (globalThis as any).route('recruitment.frontend.careers.jobs.index', { userSlug: careersSlugToUse });
-            } catch {
-                careersHref = `/${careersSlugToUse}/careers`;
-            }
-        } else {
-            careersHref = `/${careersSlugToUse}/careers`;
-        }
-    }
+    const homeHref = typeof (globalThis as any).route === 'function'
+        ? (globalThis as any).route('landing.page')
+        : '/';
 
     const policySlugs = ['privacy-policy', 'terms-and-conditions', 'terms-of-service', 'refund-policy', 'contact-us', 'faq'];
     
     // Add custom pages to navigation if they exist, but exclude policy pages from header
     const customPages = settings?.custom_pages || [];
     const customPageItems = customPages
-        .filter((page: { slug: string }) => !policySlugs.includes(page.slug))
+        .filter((page: { slug: string; title?: string }) => {
+            const slug = String(page.slug || '').toLowerCase();
+            const title = String(page.title || '').toLowerCase();
+            const isPolicy = policySlugs.includes(slug);
+            const isCareerLike = ['career', 'careers', 'carrer'].some((keyword) => slug.includes(keyword) || title.includes(keyword));
+            return !isPolicy && !isCareerLike;
+        })
         .map((page: { title: string; slug: string }) => {
             let href = `/page/${page.slug}`;
             if (page.slug === 'contact-us') {
@@ -158,22 +114,23 @@ export default function Header({ settings }: HeaderProps) {
         const text = (item.text || '').toLowerCase();
         const matchesSlug = policySlugs.some(slug => href.includes(slug));
         const matchesText = ['privacy', 'policy', 'terms', 'condition', 'faq', 'contact', 'refund'].some(keyword => text.includes(keyword));
+        const isCareerLike = ['career', 'careers', 'carrer'].some(keyword => text.includes(keyword) || href.includes(keyword));
         const isHome = text.includes('home') || href === '/' || href === '';
-        return !matchesSlug && !matchesText && !isHome;
+        return !matchesSlug && !matchesText && !isHome && !isCareerLike;
     });
 
     // Combine navigation items with custom pages
     const baseNavigationItems = [
-        { text: 'Home', href: '/', target: '_self' },
+        { text: 'Home', href: homeHref, target: '_self' },
         ...filteredNavigationItems, 
         ...customPageItems
     ];
-    const hasCareersAlready =
-        baseNavigationItems.some((i: any) => (typeof i?.href === 'string' ? i.href.toLowerCase().includes('careers') : false)) ||
-        baseNavigationItems.some((i: any) => (typeof i?.text === 'string' ? i.text.toLowerCase().includes('career') : false));
+    const blogHref = typeof (globalThis as any).route === 'function'
+        ? (globalThis as any).route('blog.index')
+        : '/blog';
     const allNavigationItems = [
         ...baseNavigationItems,
-        ...(careersHref && !hasCareersAlready ? [{ text: 'Career', href: careersHref, target: '_self' }] : []),
+        ...(baseNavigationItems.some((i: any) => (i?.href || '').toLowerCase().includes('/blog')) ? [] : [{ text: 'Blog', href: blogHref, target: '_self' }]),
     ];
 
     const renderNavItems = (isMobile = false) => {

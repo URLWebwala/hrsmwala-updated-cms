@@ -40,6 +40,7 @@ export default function Order({ data, setData, updateSectionVisibility }: OrderP
                                 benefits: t('Benefits'),
                                 gallery: t('Gallery'),
                                 how_works_videos: t('How Works Videos'),
+                                blogs: t('Blogs'),
                                 cta: t('CTA'),
                                 footer: t('Footer')
                             };

@@ -16,6 +16,7 @@
         <meta name="keywords" content="{{ $metaKeywords }}">
         <meta name="author" content="{{ $landingSettings->company_name ?? 'HRMswala SaaS' }}">
         <meta name="robots" content="index, follow">
+        <link rel="alternate" type="text/plain" href="{{ url('/llms.txt') }}" title="LLMs policy">
 
         <!-- Canonical Tag -->
         <link rel="canonical" href="{{ url()->current() }}" />
@@ -116,8 +117,13 @@
             <div>
                 <div class="spinner"><div></div><div></div></div>
                 <div style="text-align:center">
-                    <h3 style="font-size:1.125rem;font-weight:600;color:#374151">{{ __('Loading...') }}</h3>
-                    <p style="font-size:0.875rem;color:#6b7280">{{ __('Please wait while we prepare your webapp...') }}</p>
+                    <h1 style="font-size:1.25rem;font-weight:700;color:#111827;margin:0 0 0.5rem 0">HRMswala: HRM, CRM, Payroll and Business Management Software</h1>
+                    <p style="font-size:0.95rem;color:#4b5563;max-width:760px;margin:0 auto 0.5rem auto;line-height:1.6">
+                        HRMswala is an all-in-one cloud platform for HR operations, employee management, payroll, attendance,
+                        CRM workflows, accounting, and project tracking. Teams use HRMswala to simplify business processes,
+                        improve productivity, and centralize data in a secure SaaS dashboard.
+                    </p>
+                    <p style="font-size:0.875rem;color:#6b7280;margin:0">{{ __('Loading the interactive application...') }}</p>
                 </div>
             </div>
         </div>

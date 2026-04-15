@@ -19,6 +19,7 @@ import Modules from './components/settings/Modules';
 import Benefits from './components/settings/Benefits';
 import Gallery from './components/settings/Gallery';
 import HowWorksVideos from './components/settings/HowWorksVideos';
+import Blogs from './components/settings/Blogs';
 import CTA from './components/settings/CTA';
 import Footer from './components/settings/Footer';
 import Order from './components/settings/Order';
@@ -67,7 +68,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
         
 
     const [activeTab, setActiveTab] = useState<'setup' | 'layout' | 'content' | 'social' | 'engagement' | 'page'>('setup');
-    const [activeSection, setActiveSection] = useState<'general' | 'header' | 'hero' | 'stats' | 'features' | 'tracker_features' | 'modules' | 'benefits' | 'gallery' | 'how_works_videos' | 'cta' | 'footer' | 'order' | 'colors' | 'pricing'>('general');
+    const [activeSection, setActiveSection] = useState<'general' | 'header' | 'hero' | 'stats' | 'features' | 'tracker_features' | 'modules' | 'benefits' | 'gallery' | 'how_works_videos' | 'blogs' | 'cta' | 'footer' | 'order' | 'colors' | 'pricing'>('general');
     const [isLoading, setIsLoading] = useState(false);
     
     const { data, setData, post, put, processing, reset } = useForm({
@@ -91,11 +92,12 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                 benefits: true,
                 gallery: true,
                 how_works_videos: true,
+                blogs: true,
                 cta: true,
                 footer: true,
                 pricing: true
             },
-            section_order: ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'cta', 'footer']
+            section_order: ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer']
         }
     });
 
@@ -181,7 +183,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                 { key: 'layout', label: t('Layout'), sections: ['header', 'hero', 'footer'] },
                                 { key: 'content', label: t('Content'), sections: ['features', 'tracker_features', 'modules', 'benefits'] },
                                 { key: 'social', label: t('Social'), sections: ['stats', 'gallery', 'how_works_videos'] },
-                                { key: 'engagement', label: t('Engagement'), sections: ['cta'] },
+                                { key: 'engagement', label: t('Engagement'), sections: ['blogs', 'cta'] },
                                 { key: 'page', label: t('Page'), sections: ['pricing'] }
                             ].map(tab => (
                                 <button
@@ -213,7 +215,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                     layout: [{ key: 'header', label: t('Header') }, { key: 'hero', label: t('Hero') }, { key: 'footer', label: t('Footer') }],
                                     content: [{ key: 'features', label: t('Features') }, { key: 'tracker_features', label: t('Tracker Features') }, { key: 'modules', label: t('Modules') }, { key: 'benefits', label: t('Benefits') }],
                                     social: [{ key: 'stats', label: t('Stats') }, { key: 'gallery', label: t('Gallery') }, { key: 'how_works_videos', label: t('How Works Videos') }],
-                                    engagement: [{ key: 'cta', label: t('CTA') }],
+                                    engagement: [{ key: 'blogs', label: t('Blogs') }, { key: 'cta', label: t('CTA') }],
                                     page: [{ key: 'pricing', label: t('Pricing') }]
                                 };
                                 return tabSections[activeTab].map(section => (
@@ -328,6 +330,14 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                         {activeSection === 'cta' && (
                             <CTA 
                                 data={data} 
+                                getSectionData={getSectionData}
+                                updateSectionData={updateSectionData}
+                                updateSectionVisibility={updateSectionVisibility}
+                            />
+                        )}
+                        {activeSection === 'blogs' && (
+                            <Blogs
+                                data={data}
                                 getSectionData={getSectionData}
                                 updateSectionData={updateSectionData}
                                 updateSectionVisibility={updateSectionVisibility}

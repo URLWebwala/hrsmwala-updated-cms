@@ -26,6 +26,8 @@ interface Job {
     description?: string;
     job_application?: string;
     application_url?: string;
+    userSlug?: string;
+    companyName?: string;
 }
 
 interface JobListingsProps {
@@ -55,7 +57,7 @@ export default function JobListings({ userSlug, jobs, jobCategories, jobLocation
     const [savedJobs, setSavedJobs] = useState<number[]>([]);
 
     useEffect(() => {
-        const storageKey = `savedJobs_${userSlug}`;
+        const storageKey = `savedJobs_${userSlug || 'public'}`;
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
@@ -66,8 +68,8 @@ export default function JobListings({ userSlug, jobs, jobCategories, jobLocation
         }
     }, [userSlug]);
 
-    const formatSalary = (from: number, to: number) => {
-        return `${formatCurrency(from)} - ${formatCurrency(to)}`;
+    const formatSalary = (from?: number, to?: number) => {
+        return `${formatCurrency(from ?? 0)} - ${formatCurrency(to ?? 0)}`;
     };
 
     const getJobTypeColor = (jobType: string) => {
@@ -81,7 +83,7 @@ export default function JobListings({ userSlug, jobs, jobCategories, jobLocation
     };
 
     const handleSaveJob = (jobId: number) => {
-        const storageKey = `savedJobs_${userSlug}`;
+        const storageKey = `savedJobs_${userSlug || 'public'}`;
         let updatedSavedJobs;
 
         if (savedJobs.includes(jobId)) {
@@ -282,6 +284,9 @@ export default function JobListings({ userSlug, jobs, jobCategories, jobLocation
                                                 <div className="flex items-start justify-between mb-4">
                                                     <div>
                                                         <h4 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h4>
+                                                        {job.companyName && (
+                                                            <p className="text-sm font-medium text-slate-600 mb-2">{job.companyName}</p>
+                                                        )}
                                                         <div className="flex items-center text-gray-600 mb-3">
                                                             <MapPin className="h-5 w-5 mr-2 text-blue-500" />
                                                             <span className="font-medium">{job.location}</span>
@@ -361,17 +366,23 @@ export default function JobListings({ userSlug, jobs, jobCategories, jobLocation
                                                 <Button
                                                     variant="outline"
                                                     className="border-slate-300 text-slate-700 hover:bg-slate-50"
-                                                    onClick={() => userSlug && (window.location.href = route('recruitment.frontend.careers.jobs.show', { userSlug, id: job.encrypted_id }))}
+                                                    onClick={() => {
+                                                        const targetSlug = job.userSlug || userSlug;
+                                                        if (targetSlug) {
+                                                            window.location.href = route('recruitment.frontend.careers.jobs.show', { userSlug: targetSlug, id: job.encrypted_id });
+                                                        }
+                                                    }}
                                                 >
                                                     {t('View Details')}
                                                 </Button>
                                                 <Button
                                                     className="bg-slate-700 hover:bg-slate-800 text-white px-6"
                                                     onClick={() => {
+                                                        const targetSlug = job.userSlug || userSlug;
                                                         if (job.job_application === 'custom' && job.application_url) {
                                                             window.open(job.application_url, '_blank');
-                                                        } else if (userSlug) {
-                                                            window.location.href = route('recruitment.frontend.careers.jobs.apply', { userSlug, id: job.encrypted_id });
+                                                        } else if (targetSlug) {
+                                                            window.location.href = route('recruitment.frontend.careers.jobs.apply', { userSlug: targetSlug, id: job.encrypted_id });
                                                         }
                                                     }}
                                                 >
