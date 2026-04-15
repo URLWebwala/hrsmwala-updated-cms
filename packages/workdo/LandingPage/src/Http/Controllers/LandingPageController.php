@@ -53,7 +53,7 @@ class LandingPageController extends Controller
         $settingsData['custom_pages'] = $customPages;
         $settingsData = $this->normalizeLandingSettings($settingsData);
         $settingsData['career_default_slug'] = $this->getCareerDefaultSlug();
-        $featuredBlogs = Blog::where('is_active', true)->latest('published_at')->latest('id')->take(3)->get();
+        $featuredBlogs = Blog::where('is_active', true)->latest('published_at')->latest('id')->take(12)->get();
 
         return Inertia::render('LandingPage/Landing', [
             'auth' => [

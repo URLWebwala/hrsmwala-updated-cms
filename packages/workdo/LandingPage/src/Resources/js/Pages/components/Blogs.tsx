@@ -38,7 +38,7 @@ export default function Blogs({ settings, blogs = [] }: BlogsProps) {
                 />
 
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mt-10">
-                    {blogs.slice(0, 3).map((blog: any, index: number) => {
+                    {blogs.map((blog: any, index: number) => {
                         const excerpt = blogPlainExcerpt(blog.content, 155);
                         return (
                             <article
