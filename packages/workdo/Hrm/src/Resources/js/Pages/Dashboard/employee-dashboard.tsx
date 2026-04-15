@@ -80,6 +80,21 @@ interface EmployeeDashboardProps {
 export default function EmployeeDashboard({ message, stats }: EmployeeDashboardProps) {
     const { t } = useTranslation();
     const { auth } = usePage<any>().props;
+    const getLocalDateKey = (date = new Date()) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const getDateRangeDays = (start: string, end: string) => {
+        const parseDateOnly = (value: string) => {
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, (month || 1) - 1, day || 1);
+        };
+        const startDate = parseDateOnly(start);
+        const endDate = parseDateOnly(end);
+        return Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    };
 
     const [isClockedIn, setIsClockedIn] = useState(stats.attendance_data?.is_clocked_in || false);
     const [clockTime, setClockTime] = useState(stats.attendance_data?.is_clocked_in ? stats.attendance_data?.clock_in_time : '--:--');
@@ -258,7 +273,7 @@ export default function EmployeeDashboard({ message, stats }: EmployeeDashboardP
                                                                     
                                                                     {(() => {
                                                                         if (stats.attendance_data?.is_on_leave) {
-                                                                            const today = new Date().toISOString().split('T')[0];
+                                                                            const today = getLocalDateKey();
                                                                             const todayLeave = stats.recent_leave_applications?.find(leave => {
                                                                                 const leaveStart = leave.start_date.split('T')[0];
                                                                                 const leaveEnd = leave.end_date.split('T')[0];
@@ -277,7 +292,7 @@ export default function EmployeeDashboard({ message, stats }: EmployeeDashboardP
                                                                                 </div>
                                                                             );
                                                                         } else if (stats.attendance_data?.is_holiday) {
-                                                                            const today = new Date().toISOString().split('T')[0];
+                                                                            const today = getLocalDateKey();
                                                                             const todayHoliday = stats.calendar_events?.find(event => {
                                                                                 const eventStart = event.startDate.split('T')[0];
                                                                                 const eventEnd = event.endDate.split('T')[0];
@@ -289,7 +304,12 @@ export default function EmployeeDashboard({ message, stats }: EmployeeDashboardP
                                                                                     {todayHoliday && (
                                                                                         <div className="mt-3 space-y-2 text-xs text-gray-600">
                                                                                             <p><strong>{t('Title')}:</strong> {todayHoliday.title}</p>
-                                                                                            <p><strong>{t('Date')}:</strong> {formatDate(todayHoliday.startDate)} - {formatDate(todayHoliday.endDate)} ({Math.ceil((new Date(todayHoliday.endDate) - new Date(todayHoliday.startDate)) / (1000 * 60 * 60 * 24)) + 1} day{Math.ceil((new Date(todayHoliday.endDate) - new Date(todayHoliday.startDate)) / (1000 * 60 * 60 * 24)) + 1 > 1 ? 's' : ''})</p>
+                                                                                            <p><strong>{t('Date')}:</strong> {formatDate(todayHoliday.startDate)} - {formatDate(todayHoliday.endDate)} ({(() => {
+                                                                                                const start = todayHoliday.startDate.split('T')[0];
+                                                                                                const end = todayHoliday.endDate.split('T')[0];
+                                                                                                const totalDays = getDateRangeDays(start, end);
+                                                                                                return `${totalDays} day${totalDays > 1 ? 's' : ''}`;
+                                                                                            })()})</p>
                                                                                         </div>
                                                                                     )}
                                                                                 </div>

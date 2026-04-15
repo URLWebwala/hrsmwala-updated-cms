@@ -208,8 +208,18 @@ class SettingController extends Controller
     {
         if(Auth::user()->can('edit-system-settings'))
         {
+            $canEditTimezone = in_array(Auth::user()->type, ['superadmin', 'company']);
+
+            if(!$canEditTimezone)
+            {
+                $settings = (array) $request->input('settings', []);
+                $settings['timezone'] = company_setting('timezone') ?: admin_setting('timezone') ?: config('app.timezone', 'UTC');
+                $request->merge(['settings' => $settings]);
+            }
+
             $request->validate([
                 'settings.defaultLanguage' => 'required|string|max:10',
+                'settings.timezone' => 'required|string|timezone',
                 'settings.dateFormat' => 'required|string|max:50',
                 'settings.timeFormat' => 'required|string|max:50',
                 'settings.calendarStartDay' => 'required|string|max:20',
@@ -221,6 +231,8 @@ class SettingController extends Controller
                 'settings.defaultLanguage.required' => __('Default language is required.'),
                 'settings.defaultLanguage.string' => __('Default language must be a valid string.'),
                 'settings.defaultLanguage.max' => __('Default language must not exceed 10 characters.'),
+                'settings.timezone.required' => __('Timezone is required.'),
+                'settings.timezone.timezone' => __('Please select a valid timezone.'),
                 'settings.dateFormat.string' => __('Date format must be a valid string.'),
                 'settings.timeFormat.string' => __('Time format must be a valid string.'),
                 'settings.calendarStartDay.string' => __('Calendar start day must be a valid string.'),

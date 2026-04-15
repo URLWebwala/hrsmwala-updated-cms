@@ -28,6 +28,7 @@ const getCountryFlag = (countryCode: string): string => {
 
 interface SystemSettings {
   defaultLanguage: string;
+  timezone: string;
   dateFormat: string;
   timeFormat: string;
   calendarStartDay: string;
@@ -48,9 +49,11 @@ export default function SystemSettings({ userSettings, auth }: SystemSettingsPro
   const [isLoading, setIsLoading] = useState(false);
   const canEdit = auth?.user?.permissions?.includes('edit-system-settings');
   const isSuperAdmin = auth?.user?.type === 'superadmin';
+  const canEditTimezone = auth?.user?.type === 'superadmin' || auth?.user?.type === 'company';
 
   const [settings, setSettings] = useState<SystemSettings>({
     defaultLanguage: userSettings?.defaultLanguage || 'en',
+    timezone: userSettings?.timezone || 'UTC',
     dateFormat: userSettings?.dateFormat || 'Y-m-d',
     timeFormat: userSettings?.timeFormat || 'H:i',
     calendarStartDay: userSettings?.calendarStartDay || '0',
@@ -64,6 +67,7 @@ export default function SystemSettings({ userSettings, auth }: SystemSettingsPro
     if (userSettings) {
       setSettings({
         defaultLanguage: userSettings?.defaultLanguage || 'en',
+        timezone: userSettings?.timezone || 'UTC',
         dateFormat: userSettings?.dateFormat || 'Y-m-d',
         timeFormat: userSettings?.timeFormat || 'H:i',
         calendarStartDay: userSettings?.calendarStartDay || '0',
@@ -212,6 +216,28 @@ export default function SystemSettings({ userSettings, auth }: SystemSettingsPro
               </SelectContent>
             </Select>
           </div>
+
+          {canEditTimezone && (
+            <div className="space-y-3">
+              <Label>{t('Timezone')}</Label>
+              <Select
+                value={settings.timezone}
+                onValueChange={(value) => handleSelectChange('timezone', value)}
+                disabled={!canEdit}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('Select timezone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones.map((timezone) => (
+                    <SelectItem key={timezone.value} value={timezone.value}>
+                      {timezone.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label>{t('Time Format')}</Label>

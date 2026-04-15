@@ -171,6 +171,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
             // System Settings
             'defaultLanguage' => admin_setting('defaultLanguage'),
+            'timezone' => admin_setting('timezone') ?: config('app.timezone', 'UTC'),
             'dateFormat' => admin_setting('dateFormat'),
             'timeFormat' => admin_setting('timeFormat'),
             'calendarStartDay' => admin_setting('calendarStartDay'),

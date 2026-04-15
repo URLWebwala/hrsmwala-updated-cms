@@ -50,10 +50,37 @@ const getAdminSetting = (key: string, pageProps?: any) => {
 /**
  * Format date to readable format
  */
+const parseAppDate = (value: string | Date): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+
+  const trimmed = String(value).trim();
+  const sqlLikeMatch = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
+  // Parse SQL-like datetime/date as local clock values to avoid timezone shifts.
+  if (sqlLikeMatch) {
+    const [, year, month, day, hour = '0', minute = '0', second = '0'] = sqlLikeMatch;
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+  }
+
+  const fallbackDate = new Date(trimmed);
+  return isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+};
+
 const formatDate = (date: string | Date, pageProps?: any): string => {
   if (!date) return '';
   const format = getCompanySetting('dateFormat', pageProps) || 'Y-m-d';
-  const d = new Date(date);
+  const d = parseAppDate(date);
+  if (!d) return '';
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -93,7 +120,8 @@ const formatDateTime = (date: string | Date, pageProps?: any): string => {
   const dateFormat = getCompanySetting('dateFormat', pageProps) || 'Y-m-d';
   const timeFormat = getCompanySetting('timeFormat', pageProps) || 'H:i';
 
-  const d = new Date(date);
+  const d = parseAppDate(date);
+  if (!d) return '';
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

@@ -35,10 +35,15 @@ export default function Monthly() {
     const { t } = useTranslation();
     const props = usePage<MonthlyAttendanceProps>().props;
     const { attendanceData, daysInMonth, month, branches, departments, employees, summary } = props;
+    const getCurrentMonth = () => {
+        const now = new Date();
+        const monthValue = String(now.getMonth() + 1).padStart(2, '0');
+        return `${now.getFullYear()}-${monthValue}`;
+    };
     
     const urlParams = new URLSearchParams(window.location.search);
     const [filters, setFilters] = useState({
-        month: urlParams.get('month') || new Date().toISOString().slice(0, 7),
+        month: urlParams.get('month') || getCurrentMonth(),
         branch_id: urlParams.get('branch_id') || '',
         department_id: urlParams.get('department_id') || '',
         employee_id: urlParams.get('employee_id') || '',
@@ -53,7 +58,7 @@ export default function Monthly() {
 
     const clearFilters = () => {
         setFilters({
-            month: new Date().toISOString().slice(0, 7),
+            month: getCurrentMonth(),
             branch_id: '',
             department_id: '',
             employee_id: '',
