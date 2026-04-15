@@ -107,193 +107,64 @@
         <style>
             #app-loader {
                 position: fixed;
-                inset: 0;
-                background: #f8fafc;
-                z-index: 9999;
-                overflow: hidden;
-            }
-
-            #app-loader .skeleton-shell {
-                display: grid;
-                grid-template-columns: 240px 1fr;
-                height: 100%;
-            }
-
-            #app-loader .skeleton-sidebar {
-                background: #ffffff;
-                border-right: 1px solid #e5e7eb;
-                padding: 16px 12px;
-            }
-
-            #app-loader .skeleton-main {
-                padding: 16px 20px;
-            }
-
-            #app-loader .skeleton-topbar {
-                height: 56px;
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 10px;
-                margin-bottom: 16px;
-            }
-
-            #app-loader .skeleton-cards {
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            #app-loader .skeleton-card {
-                height: 96px;
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 10px;
-                padding: 12px;
-            }
-
-            #app-loader .skeleton-panel {
-                background: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 10px;
-                padding: 14px;
-            }
-
-            #app-loader .skeleton-line {
-                height: 12px;
-                border-radius: 6px;
-                background: #e5e7eb;
-                margin-bottom: 10px;
-            }
-
-            #app-loader .skeleton-line.sm { width: 38%; }
-            #app-loader .skeleton-line.md { width: 62%; }
-            #app-loader .skeleton-line.lg { width: 84%; }
-            #app-loader .skeleton-line.full { width: 100%; }
-
-            #app-loader .skeleton-row {
-                display: grid;
-                grid-template-columns: 1.1fr 1.1fr 1fr 1fr 0.8fr;
-                gap: 10px;
-                margin-top: 10px;
-            }
-
-            #app-loader .shimmer {
-                position: relative;
-                overflow: hidden;
-            }
-
-            #app-loader .shimmer::after {
-                content: '';
-                position: absolute;
                 top: 0;
-                left: -150%;
-                width: 120%;
-                height: 100%;
-                background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.7) 50%, rgba(255,255,255,0) 100%);
-                animation: shimmer 1.25s infinite;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: #ffffff;
+                z-index: 99999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition: opacity 0.4s ease;
             }
 
-            #app-loader .loading-label {
-                position: absolute;
-                right: 20px;
-                bottom: 16px;
-                font-size: 12px;
-                color: #64748b;
-                background: rgba(255, 255, 255, 0.85);
-                padding: 6px 10px;
-                border-radius: 999px;
-                border: 1px solid #e5e7eb;
+            .premium-loader {
+                display: flex;
+                gap: 10px;
+                align-items: center;
             }
 
-            @@keyframes shimmer {
-                100% {
-                    left: 130%;
-                }
+            .premium-dot {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #6366f1, #a855f7);
+                animation: premium-bounce 1.4s infinite ease-in-out both;
+                box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
             }
 
-            @media (max-width: 1024px) {
-                #app-loader .skeleton-shell {
-                    grid-template-columns: 1fr;
-                }
-                #app-loader .skeleton-sidebar {
-                    display: none;
-                }
-                #app-loader .skeleton-cards {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
+            .premium-dot:nth-child(1) { animation-delay: -0.32s; }
+            .premium-dot:nth-child(2) { animation-delay: -0.16s; }
+            .premium-dot:nth-child(3) { animation-delay: 0s; }
+
+            .premium-loader-text {
+                margin-top: 20px;
+                font-size: 15px;
+                font-weight: 500;
+                color: #475569;
+                letter-spacing: 0.5px;
+                animation: pulse-text 2s infinite;
+            }
+
+            @keyframes premium-bounce {
+                0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+                40% { transform: scale(1); opacity: 1; }
+            }
+
+            @keyframes pulse-text {
+                0%, 100% { opacity: 0.6; }
+                50% { opacity: 1; }
             }
         </style>
         <div id="app-loader">
-            <div class="skeleton-shell">
-                <aside class="skeleton-sidebar">
-                    <div class="skeleton-line lg shimmer"></div>
-                    <div class="skeleton-line md shimmer"></div>
-                    <div class="skeleton-line full shimmer"></div>
-                    <div class="skeleton-line full shimmer"></div>
-                    <div class="skeleton-line md shimmer"></div>
-                    <div class="skeleton-line full shimmer"></div>
-                    <div class="skeleton-line full shimmer"></div>
-                </aside>
-
-                <main class="skeleton-main">
-                    <div class="skeleton-topbar shimmer"></div>
-
-                    <div class="skeleton-cards">
-                        <div class="skeleton-card">
-                            <div class="skeleton-line sm shimmer"></div>
-                            <div class="skeleton-line md shimmer"></div>
-                            <div class="skeleton-line lg shimmer"></div>
-                        </div>
-                        <div class="skeleton-card">
-                            <div class="skeleton-line sm shimmer"></div>
-                            <div class="skeleton-line md shimmer"></div>
-                            <div class="skeleton-line lg shimmer"></div>
-                        </div>
-                        <div class="skeleton-card">
-                            <div class="skeleton-line sm shimmer"></div>
-                            <div class="skeleton-line md shimmer"></div>
-                            <div class="skeleton-line lg shimmer"></div>
-                        </div>
-                        <div class="skeleton-card">
-                            <div class="skeleton-line sm shimmer"></div>
-                            <div class="skeleton-line md shimmer"></div>
-                            <div class="skeleton-line lg shimmer"></div>
-                        </div>
-                    </div>
-
-                    <section class="skeleton-panel">
-                        <div class="skeleton-line md shimmer"></div>
-                        <div class="skeleton-line lg shimmer"></div>
-                        <div class="skeleton-row">
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                        </div>
-                        <div class="skeleton-row">
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                        </div>
-                        <div class="skeleton-row">
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                            <div class="skeleton-line full shimmer"></div>
-                        </div>
-                    </section>
-                </main>
-
-                <div class="loading-label">{{ __('Loading your dashboard...') }}</div>
+            <div class="premium-loader">
+                <div class="premium-dot"></div>
+                <div class="premium-dot"></div>
+                <div class="premium-dot"></div>
             </div>
-            <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
-                {{ __('Loading the interactive application...') }}
-            </div>
+            <div class="premium-loader-text">{{ __('Loading HRMswala...') }}</div>
         </div>
         <script>
             document.addEventListener('DOMContentLoaded',()=>{

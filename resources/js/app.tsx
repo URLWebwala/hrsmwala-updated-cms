@@ -14,7 +14,7 @@ import axios from "axios";
 const showGlobalLoader = () => {
     const loader = document.getElementById("app-loader");
     if (loader) {
-        loader.style.display = "block";
+        loader.style.display = "flex";
     }
 };
 
