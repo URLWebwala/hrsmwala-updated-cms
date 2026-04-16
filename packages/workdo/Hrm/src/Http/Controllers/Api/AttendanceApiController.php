@@ -19,6 +19,45 @@ class AttendanceApiController extends Controller
 {
     use ApiResponseTrait;
 
+    private function getCompanyTimezone(): string
+    {
+        $settings = getCompanyAllSetting(creatorId());
+        return $settings['timezone'] ?? $settings['company_timezone'] ?? config('app.timezone', 'UTC');
+    }
+
+    /**
+     * Parse a clock value into a Carbon instance in the company timezone.
+     * Supports full datetimes (Y-m-d H:i[:s]) and time-only strings (H:i[:s])
+     * which are anchored to the provided base date (clock-in date).
+     */
+    private function parseClockDateTime(mixed $value, string $timezone, ?Carbon $baseDate = null): Carbon
+    {
+        if ($value instanceof Carbon) {
+            return $value->copy()->setTimezone($timezone);
+        }
+
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return Carbon::now($timezone);
+        }
+
+        if (preg_match('/^\d{1,2}:\d{2}(?::\d{2})?$/', $raw)) {
+            $date = ($baseDate ? $baseDate->copy() : Carbon::now($timezone))->setTimezone($timezone);
+            $time = preg_match('/^\d{1,2}:\d{2}$/', $raw) ? ($raw . ':00') : $raw;
+            return Carbon::createFromFormat('Y-m-d H:i:s', $date->toDateString() . ' ' . $time, $timezone);
+        }
+
+        foreach (['Y-m-d H:i', 'Y-m-d H:i:s', 'Y-m-d\TH:i', 'Y-m-d\TH:i:s'] as $fmt) {
+            try {
+                return Carbon::createFromFormat($fmt, $raw, $timezone);
+            } catch (\Throwable) {
+                // try next
+            }
+        }
+
+        return Carbon::parse($raw, $timezone)->setTimezone($timezone);
+    }
+
     public function clockInOut(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -262,19 +301,20 @@ class AttendanceApiController extends Controller
             return 0;
         }
 
-        $clockInTime  = Carbon::parse($clockIn);
-        $clockOutTime = Carbon::parse($clockOut);
+        $tz = $this->getCompanyTimezone();
+        $clockInTime  = $this->parseClockDateTime($clockIn, $tz);
+        $clockOutTime = $this->parseClockDateTime($clockOut, $tz, $clockInTime);
 
         // Handle next day clock out (night shifts)
         if ($clockOutTime->lt($clockInTime)) {
             $clockOutTime->addDay();
         }
 
-        $totalMinutes = abs($clockOutTime->diffInMinutes($clockInTime));
+        $totalMinutes = $clockInTime->diffInMinutes($clockOutTime);
         $breakMinutes = 0;
         if ($shift && $shift->break_start_time && $shift->break_end_time) {
-            $breakStart = Carbon::parse($shift->break_start_time);
-            $breakEnd   = Carbon::parse($shift->break_end_time);
+            $breakStart = $this->parseClockDateTime($shift->break_start_time, $tz, $clockInTime);
+            $breakEnd   = $this->parseClockDateTime($shift->break_end_time, $tz, $clockInTime);
 
             // Handle next day break times for night shifts
             if ($breakEnd->lt($breakStart)) {
@@ -286,10 +326,10 @@ class AttendanceApiController extends Controller
                 $breakMinutes = $this->breakDuration($shift);
             } elseif ($clockInTime->lte($breakStart) && $clockOutTime->gt($breakStart) && $clockOutTime->lte($breakEnd)) {
                 // Left during break - deduct time spent on break
-                $breakMinutes = abs($clockOutTime->diffInMinutes($breakStart));
+                $breakMinutes = $breakStart->diffInMinutes($clockOutTime);
             } elseif ($clockInTime->gt($breakStart) && $clockInTime->lt($breakEnd) && $clockOutTime->gte($breakEnd)) {
                 // Came during break - deduct partial break (missed part of break)
-                $breakMinutes = abs($breakEnd->diffInMinutes($clockInTime));
+                $breakMinutes = $clockInTime->diffInMinutes($breakEnd);
             } elseif ($clockInTime->gt($breakStart) && $clockOutTime->lt($breakEnd)) {
                 // Came and left during break - no break deduction
                 $breakMinutes = 0;
@@ -308,12 +348,14 @@ class AttendanceApiController extends Controller
 
     private function breakDuration($shift)
     {
-        $breakStart = Carbon::parse($shift->break_start_time);
-        $breakEnd   = Carbon::parse($shift->break_end_time);
+        $tz = $this->getCompanyTimezone();
+        $base = Carbon::now($tz);
+        $breakStart = $this->parseClockDateTime($shift->break_start_time, $tz, $base);
+        $breakEnd   = $this->parseClockDateTime($shift->break_end_time, $tz, $base);
         if ($breakEnd->lt($breakStart)) {
             $breakEnd->addDay();
         }
-        $breakDuration = abs($breakEnd->diffInMinutes($breakStart));
+        $breakDuration = $breakStart->diffInMinutes($breakEnd);
 
         return $breakDuration;
     }
