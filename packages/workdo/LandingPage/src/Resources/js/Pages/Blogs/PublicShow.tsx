@@ -1,42 +1,26 @@
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Calendar, Eye, Tag, User } from 'lucide-react';
+import { ArrowRight, Calendar, Eye, Tag, User, ChevronLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import BlogCardCover from '../components/BlogCardCover';
 import CookieConsent from '@/components/cookie-consent';
 import { formatDate } from '@/utils/helpers';
 import {
-    blogCardSurfaceStyle,
-    blogHeadingGradientTextStyle,
-    blogHeadingUnderlineStyles,
     blogPlainExcerpt,
     resolveThemeColors,
-    themeStripGradientStyle,
 } from '../../utils/blogDisplay';
 
 export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
-    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
     const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const blogIndexUrl = (() => {
-        const raw = route('blog.index');
-        return raw.startsWith('http') ? raw : `${siteUrl}${raw}`;
-    })();
-    const pageTitle = blog.meta_title || blog.title;
-    const pageDescription = blog.meta_description || blogPlainExcerpt(blog.content || '', 160);
-    const pageKeywords = blog.meta_keywords || '';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
+    
     const themeColors = landingPageSettings?.config_sections?.colors;
     const { primary, secondary } = resolveThemeColors(themeColors);
-    const headingLine = blogHeadingUnderlineStyles(themeColors);
     const published = blog.published_at || blog.created_at;
 
     const [liveViews, setLiveViews] = useState<number>(() => Number(blog.read_count) || 0);
-
-    useEffect(() => {
-        setLiveViews(Number(blog.read_count) || 0);
-    }, [blog.id, blog.read_count]);
 
     const refreshViewCount = useCallback(async () => {
         try {
@@ -50,9 +34,7 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
             if (typeof data.read_count === 'number') {
                 setLiveViews(data.read_count);
             }
-        } catch {
-            /* ignore network errors */
-        }
+        } catch { /* ignore */ }
     }, [blog.slug]);
 
     useEffect(() => {
@@ -66,148 +48,114 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
     }, [refreshViewCount]);
 
     return (
-        <div className="min-h-screen bg-transparent">
-            <Head title={pageTitle}>
-                <meta name="description" content={pageDescription} />
-                <meta name="keywords" content={pageKeywords} />
-                <meta name="robots" content="index,follow,max-image-preview:large" />
+        <div className="min-h-screen bg-white text-gray-900">
+            <Head title={blog.meta_title || blog.title}>
+                <meta name="description" content={blog.meta_description || blogPlainExcerpt(blog.content || '', 160)} />
+                <meta name="robots" content="index,follow" />
                 <meta property="og:type" content="article" />
-                <meta property="og:title" content={pageTitle} />
-                <meta property="og:description" content={pageDescription} />
-                {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+                <meta property="og:title" content={blog.title} />
                 {blog.image_url && <meta property="og:image" content={blog.image_url} />}
-                {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-                {published && <meta property="article:published_time" content={published} />}
-                {blog.updated_at && <meta property="article:modified_time" content={blog.updated_at} />}
-                {blog.author_name && <meta property="article:author" content={blog.author_name} />}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={pageTitle} />
-                <meta name="twitter:description" content={pageDescription} />
-                {blog.image_url && <meta name="twitter:image" content={blog.image_url} />}
-                <script type="application/ld+json">{JSON.stringify({
-                    '@context': 'https://schema.org',
-                    '@type': 'BlogPosting',
-                    headline: blog.title,
-                    mainEntityOfPage: canonicalUrl || undefined,
-                    keywords: pageKeywords || undefined,
-                    author: { '@type': 'Person', name: blog.author_name },
-                    publisher: {
-                        '@type': 'Organization',
-                        name: landingPageSettings?.company_name || 'HRMswala',
-                        logo: siteUrl ? { '@type': 'ImageObject', url: `${siteUrl}/logo.png` } : undefined,
-                    },
-                    datePublished: blog.published_at,
-                    dateModified: blog.updated_at,
-                    image: blog.image_url || undefined,
-                    description: pageDescription || undefined,
-                })}</script>
-                <script type="application/ld+json">{JSON.stringify({
-                    '@context': 'https://schema.org',
-                    '@type': 'BreadcrumbList',
-                    itemListElement: [
-                        {
-                            '@type': 'ListItem',
-                            position: 1,
-                            name: 'Blog',
-                            item: blogIndexUrl || undefined,
-                        },
-                        {
-                            '@type': 'ListItem',
-                            position: 2,
-                            name: blog.title,
-                            item: canonicalUrl || undefined,
-                        },
-                    ],
-                })}</script>
             </Head>
+            
             <Header settings={landingPageSettings} />
-            <main className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10 xl:px-12 py-12 pb-24">
-                <Link href={route('blog.index')} className="text-sm font-medium text-gray-500 hover:text-gray-800">
-                    ← Back to Blog
+            
+            <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
+                {/* Navigation & Breadcrumb */}
+                <Link 
+                    href={route('blog.index')} 
+                    className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-900 transition-colors mb-8 group"
+                >
+                    <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    Back to Insights
                 </Link>
 
-                <h1 className="mt-6 text-3xl font-bold leading-[1.2] tracking-tight pb-1 sm:text-4xl lg:text-5xl">
-                    <span style={blogHeadingGradientTextStyle(primary, secondary)}>{blog.title}</span>
-                </h1>
-                <div className="mt-4 flex items-center gap-2" aria-hidden>
-                    <div className="h-1.5 w-24 shrink-0 rounded-full" style={headingLine.main} />
-                    <div className="h-1.5 w-10 shrink-0 rounded-full" style={headingLine.tail} />
+                {/* Article Header */}
+                <header className="mb-12">
+                    <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight tracking-tight mb-8">
+                        <span dangerouslySetInnerHTML={{ __html: blog.title }} />
+                    </h1>
+
+                    {/* Meta Row */}
+                    <div className="flex flex-wrap items-center gap-3">
+                        {blog.category && (
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-[11px] font-black uppercase tracking-widest shadow-sm">
+                                <Tag className="w-3.5 h-3.5" />
+                                {blog.category}
+                            </div>
+                        )}
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-widest">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {published ? formatDate(published) : ''}
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-widest">
+                            <User className="w-3.5 h-3.5" />
+                            {blog.author_name}
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-widest">
+                            <Eye className="w-3.5 h-3.5" />
+                            {liveViews} Views
+                        </div>
+                    </div>
+                </header>
+
+                {/* Main Image (Fixed format - No Cropping) */}
+                <div className="relative aspect-[21/9] bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 p-2 mb-16 shadow-2xl">
+                    {blog.image_url ? (
+                        <img 
+                            src={blog.image_url} 
+                            alt={blog.title} 
+                            className="w-full h-full object-contain" 
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                             <span className="text-6xl font-bold text-gray-200">{(blog.title || '?').charAt(0)}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="mt-8 shadow-sm ring-1 ring-black/5 rounded-2xl overflow-hidden">
-                    <BlogCardCover
-                        blog={blog}
-                        coverHeightClass="min-h-[260px] h-[360px] max-h-[520px] sm:h-[400px] lg:h-[440px] lg:max-h-[560px]"
-                    />
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-2">
-                    {blog.category ? (
-                        <span
-                            className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-                            style={{ backgroundColor: primary }}
-                        >
-                            <Tag className="mr-1.5 h-3.5 w-3.5 opacity-90" aria-hidden />
-                            {blog.category}
-                        </span>
-                    ) : null}
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700">
-                        <Calendar className="h-3.5 w-3.5 text-gray-500" aria-hidden />
-                        {published ? formatDate(published) : ''}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700">
-                        <User className="h-3.5 w-3.5 text-gray-500" aria-hidden />
-                        {blog.author_name}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 tabular-nums">
-                        <Eye className="h-3.5 w-3.5 text-gray-500" aria-hidden />
-                        {liveViews} {liveViews === 1 ? 'View' : 'Views'}
-                    </span>
-                </div>
-
+                {/* Article Content */}
                 <article
-                    className="prose prose-gray prose-lg mt-10 max-w-none sm:prose-xl prose-headings:font-bold"
-                    style={
-                        {
-                            '--tw-prose-links': primary,
-                            '--tw-prose-invert-links': primary,
-                        } as CSSProperties
-                    }
+                    className="prose prose-blue prose-lg md:prose-xl max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:text-gray-600 prose-p:leading-relaxed"
+                    style={{ '--tw-prose-links': primary } as CSSProperties}
                     dangerouslySetInnerHTML={{ __html: blog.content }}
                 />
 
-                {!!relatedBlogs?.length && (
-                    <section className="mt-16 border-t border-gray-200 pt-12">
-                        <h2 className="text-2xl font-bold leading-[1.2] pb-1">
-                            <span style={blogHeadingGradientTextStyle(primary, secondary)}>Read more</span>
-                        </h2>
-                        <div className="mt-3 flex items-center gap-2" aria-hidden>
-                            <div className="h-1 w-20 shrink-0 rounded-full" style={headingLine.main} />
-                            <div className="h-1 w-8 shrink-0 rounded-full" style={headingLine.tail} />
-                        </div>
-                        <p className="mt-2 text-sm text-gray-500">Other posts you may like</p>
-                        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {relatedBlogs.map((item: any, relIndex: number) => (
+                {/* Related Posts Section */}
+                {relatedBlogs && relatedBlogs.length > 0 && (
+                    <section className="mt-24 pt-16 border-t border-gray-100">
+                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Recommended <span className="text-blue-600">Reading</span></h2>
+                        <p className="text-gray-500 font-medium mb-12">Dive deeper into topics you may be interested in.</p>
+                        
+                        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                            {relatedBlogs.map((item: any) => (
                                 <Link
                                     key={item.id}
                                     href={route('blog.show', item.slug)}
-                                    className="group flex flex-col overflow-hidden rounded-xl border border-gray-200/80 shadow-sm transition-shadow hover:shadow-md"
-                                    style={blogCardSurfaceStyle(themeColors)}
+                                    className="group flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:border-gray-200 overflow-hidden"
                                 >
-                                    <BlogCardCover blog={item} coverHeightClass="h-40" />
-                                    <div className="h-1 w-full shrink-0" style={themeStripGradientStyle(themeColors, item.id + relIndex)} />
-                                    <div className="p-4">
-                                        <h3 className="font-semibold leading-[1.35] line-clamp-2 pb-0.5 transition-opacity group-hover:opacity-90">
-                                            <span style={blogHeadingGradientTextStyle(primary, secondary)}>{item.title}</span>
-                                        </h3>
-                                        <p className="mt-2 text-xs text-gray-500">{item.author_name}</p>
-                                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">{blogPlainExcerpt(item.content, 100)}</p>
-                                        <span
-                                            className="mt-3 inline-flex items-center gap-1 text-sm font-bold"
-                                            style={{ color: primary }}
-                                        >
+                                    {/* Related Thumb (No Cropping) */}
+                                    <div className="relative aspect-[16/10] bg-gray-50 flex items-center justify-center p-2 overflow-hidden">
+                                        {item.image_url ? (
+                                            <img 
+                                                src={item.image_url} 
+                                                alt={item.title} 
+                                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" 
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                 <span className="text-4xl font-bold text-gray-200">{(item.title || '?').charAt(0)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-6">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2" dangerouslySetInnerHTML={{ __html: item.title }} />
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                                            <User className="w-3 h-3" />
+                                            {item.author_name}
+                                        </p>
+                                        <span className="inline-flex items-center gap-2 text-sm font-black transition-all group-hover:gap-3" style={{ color: primary }}>
                                             Read More
-                                            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                                            <ArrowRight className="h-4 w-4" />
                                         </span>
                                     </div>
                                 </Link>
@@ -216,6 +164,7 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
                     </section>
                 )}
             </main>
+
             <Footer settings={landingPageSettings} />
             <CookieConsent settings={adminAllSetting || {}} />
         </div>

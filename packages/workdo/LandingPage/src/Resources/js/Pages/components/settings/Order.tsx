@@ -29,13 +29,25 @@ export default function Order({ data, setData, updateSectionVisibility }: OrderP
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-3">
-                        {(data.config_sections?.section_order || []).map((sectionKey, index) => {
-                            const sectionNames = {
+                        {(() => {
+                            const currentOrder = [...(data.config_sections?.section_order || [])];
+                            if (!currentOrder.includes('why_choose')) {
+                                const trackerIndex = currentOrder.indexOf('tracker_features');
+                                if (trackerIndex !== -1) {
+                                    currentOrder.splice(trackerIndex + 1, 0, 'why_choose');
+                                } else {
+                                    currentOrder.push('why_choose');
+                                }
+                            }
+                            return currentOrder;
+                        })().map((sectionKey, index) => {
+                            const sectionNames: Record<string, string> = {
                                 header: t('Header'),
                                 hero: t('Hero'),
                                 stats: t('Stats'),
                                 features: t('Features'),
                                 tracker_features: t('Tracker Features'),
+                                why_choose: t('Why Choose'),
                                 modules: t('Modules'),
                                 benefits: t('Benefits'),
                                 gallery: t('Gallery'),

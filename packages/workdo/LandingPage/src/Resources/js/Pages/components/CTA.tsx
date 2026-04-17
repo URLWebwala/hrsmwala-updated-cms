@@ -1,8 +1,6 @@
-import { ArrowRight } from 'lucide-react';
-import { getImagePath } from '@/utils/helpers';
+ import { ArrowRight, Mail, PlayCircle, Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AnimateOnScroll from './AnimateOnScroll';
-import SectionHeading from './SectionHeading';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -10,81 +8,29 @@ interface CTAProps {
     settings?: any;
 }
 
-const CTA_VARIANTS = {
-    cta1: {
-        section: 'py-20',
-        container: 'max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center',
-        title: 'text-3xl md:text-4xl font-bold text-white mb-6',
-        subtitle: 'text-xl text-white/90 mb-8',
-        buttons: 'flex flex-col sm:flex-row gap-4 justify-center',
-        layout: 'centered'
-    },
-    cta2: {
-        section: 'bg-white py-20',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        title: 'text-3xl md:text-4xl font-bold text-gray-900 mb-6',
-        subtitle: 'text-xl text-gray-600 mb-8',
-        buttons: 'flex flex-col sm:flex-row gap-4',
-        layout: 'split'
-    },
-    cta3: {
-        section: 'bg-gray-50 py-20',
-        container: 'max-w-4xl mx-auto px-4 sm:px-6 lg:px-8',
-        title: 'text-3xl md:text-4xl font-bold text-gray-900 mb-6',
-        subtitle: 'text-lg text-gray-600 mb-8',
-        buttons: 'flex flex-col sm:flex-row gap-4 justify-center',
-        layout: 'card'
-    },
-    cta4: {
-        section: 'py-20',
-        container: 'max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center',
-        title: 'text-4xl md:text-5xl font-bold text-white mb-6',
-        subtitle: 'text-xl text-white/90 mb-10',
-        buttons: 'flex flex-col sm:flex-row gap-6 justify-center',
-        layout: 'gradient'
-    },
-    cta5: {
-        section: 'bg-gradient-to-b from-gray-50 to-white py-20 border-t border-gray-100',
-        container: 'max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center',
-        title: 'text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6',
-        subtitle: 'text-base md:text-lg text-gray-600 mb-8',
-        buttons: 'flex flex-col sm:flex-row gap-4 justify-center items-center',
-        layout: 'minimal'
-    }
-};
-
 export default function CTA({ settings }: CTAProps) {
     const { t } = useTranslation();
     const [emailInput, setEmailInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const sectionData = settings?.config_sections?.sections?.cta || {};
-    const variant = sectionData.variant || 'cta1';
-    const config = CTA_VARIANTS[variant as keyof typeof CTA_VARIANTS] || CTA_VARIANTS.cta1;
-    
     const title = sectionData.title || 'Ready to Transform Your Business?';
-    const subtitle = sectionData.subtitle || 'Join thousands of businesses already using Hrmswala SaaS to streamline their operations.';
+    const subtitle = sectionData.subtitle || 'Join thousands of businesses already using Hrmswala to automate operations.';
     const primaryButton = sectionData.primary_button || 'Start Free Trial';
+    const primaryLink = sectionData.primary_button_link || route('register');
     const secondaryButton = sectionData.secondary_button || 'Contact Sales';
-    const newsletterTitle = sectionData.newsletter_title || 'Stay Updated with HRMSWALA';
-    const newsletterDescription =
-        sectionData.newsletter_description ||
-        'Get the latest updates, product features, and business insights delivered straight to your inbox.';
-    const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe Now';
-    const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
+    const secondaryLink = sectionData.secondary_button_link || route('login');
+    
+    const newsletterTitle = sectionData.newsletter_title || 'Subscribe to Newsletter';
+    const newsletterButtonText = sectionData.newsletter_button_text || 'Join Now';
+    
+    const colors = settings?.config_sections?.colors || { primary: '#3b82f6', secondary: '#2563eb', accent: '#f59e0b' };
 
     const handleNewsletterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!emailInput.trim()) {
-            toast.error('Please enter your email address');
-            return;
-        }
-
+        if (!emailInput.trim()) { toast.error('Please enter your email address'); return; }
         setIsSubmitting(true);
-
         try {
-            // `route` is available globally in this project (Ziggy)
             const response = await fetch(route('newsletter.subscribe'), {
                 method: 'POST',
                 headers: {
@@ -94,263 +40,102 @@ export default function CTA({ settings }: CTAProps) {
                 },
                 body: JSON.stringify({ email: emailInput.trim() }),
             });
-
             const data = await response.json();
-
             if (data.success) {
-                toast.success(data.message || 'Thank you for subscribing to our newsletter!');
+                toast.success(data.message || 'Subscribed successfully!');
                 setEmailInput('');
-            } else {
-                toast.error(data.message || 'Failed to subscribe. Please try again.');
-            }
-        } catch {
-            toast.error('An error occurred. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
+            } else { toast.error(data.message || 'Failed to subscribe.'); }
+        } catch { toast.error('An error occurred.'); } finally { setIsSubmitting(false); }
     };
-
-    const renderNewsletter = (tone: 'dark' | 'light') => {
-        const inputBase =
-            'w-full px-4 py-3 rounded-lg text-sm focus:outline-none transition-all duration-300 disabled:opacity-50';
-        const inputTone =
-            tone === 'dark'
-                ? 'bg-white/15 backdrop-blur-md border border-white/25 text-white placeholder-white/60 focus:border-white focus:bg-white/20'
-                : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500';
-
-        return (
-            <div className="mt-10 max-w-2xl mx-auto text-center">
-                <h3 className={`text-base md:text-lg font-semibold ${tone === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    {newsletterTitle}
-                </h3>
-                <p className={`text-sm md:text-base mt-2 ${tone === 'dark' ? 'text-white/80' : 'text-gray-600'}`}>
-                    {newsletterDescription}
-                </p>
-                <form onSubmit={handleNewsletterSubmit} className="mt-5 flex flex-col sm:flex-row items-stretch justify-center w-full gap-3 sm:gap-0">
-                    <input
-                        type="email"
-                        placeholder="Enter email"
-                        value={emailInput}
-                        onChange={(e) => setEmailInput(e.target.value)}
-                        disabled={isSubmitting}
-                        className={`${inputBase} ${inputTone} sm:rounded-r-none sm:max-w-[420px]`}
-                    />
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="text-white px-6 py-3 rounded-lg sm:rounded-l-none font-semibold transition-all duration-300 disabled:opacity-50 whitespace-nowrap"
-                        style={{ backgroundColor: colors.primary }}
-                        onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.secondary)}
-                        onMouseLeave={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = colors.primary)}
-                    >
-                        {isSubmitting ? 'Subscribing...' : newsletterButtonText}
-                    </button>
-                </form>
-            </div>
-        );
-    };
-
-    const getBackgroundStyle = () => {
-        if (config.layout === 'centered') {
-            return { backgroundColor: `${colors.primary}12` };
-        }
-        if (config.layout === 'gradient') {
-            return { 
-                background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 50%, ${colors.accent} 100%)`,
-                backgroundAttachment: 'fixed'
-            };
-        }
-        return {};
-    };
-
-    const renderButtons = () => {
-        const primaryLink = sectionData.primary_button_link || '#';
-        const secondaryLink = sectionData.secondary_button_link || '#';
-        const isCenteredLight = config.layout === 'centered';
-        
-        return (
-            <div className={config.buttons}>
-                <a 
-                    href={primaryLink}
-                    className={`inline-flex items-center justify-center text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                        config.layout === 'minimal' 
-                            ? 'text-base px-8 py-3.5 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5' 
-                            : config.layout === 'card'
-                                ? 'text-base px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-                                : 'text-lg'
-                    } ${
-                        config.layout === 'split' || isCenteredLight
-                            ? 'shadow-lg hover:shadow-xl'
-                            : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
-                    }`}
-                    style={{ 
-                        backgroundColor:
-                            config.layout === 'split' || config.layout === 'minimal' || config.layout === 'card' || isCenteredLight
-                                ? colors.primary
-                                : undefined,
-                        boxShadow: config.layout === 'minimal' || config.layout === 'card' ? `0 4px 14px 0 ${colors.primary}40` : undefined
-                    }}
-                >
-                    {primaryButton}
-                    <ArrowRight className={`ml-2 ${config.layout === 'minimal' || config.layout === 'card' ? 'h-5 w-5' : 'h-5 w-5'}`} />
-                </a>
-                <a 
-                    href={secondaryLink}
-                    className={`inline-flex items-center justify-center border-2 px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 ${
-                        config.layout === 'minimal' 
-                            ? 'text-base px-8 py-3.5 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5' 
-                            : config.layout === 'card'
-                                ? 'text-base px-10 py-4 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl shadow-sm hover:shadow-lg transform hover:-translate-y-1'
-                                : config.layout === 'split'
-                                    ? 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 shadow-md hover:shadow-lg'
-                                    : isCenteredLight
-                                        ? 'hover:text-white shadow-sm hover:shadow-md'
-                                        : 'border-white text-white hover:bg-white hover:text-gray-900 backdrop-blur-sm'
-                    }`}
-                    style={
-                        isCenteredLight
-                            ? {
-                                  borderColor: colors.primary,
-                                  color: colors.primary,
-                              }
-                            : undefined
-                    }
-                    onMouseEnter={(e) => {
-                        if (!isCenteredLight) return;
-                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = colors.primary;
-                        (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!isCenteredLight) return;
-                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
-                        (e.currentTarget as HTMLAnchorElement).style.color = colors.primary;
-                    }}
-                >
-                    {secondaryButton}
-                </a>
-            </div>
-        );
-    };
-
-    if (config.layout === 'split') {
-        return (
-            <section className={config.section}>
-                <div className={config.container}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <SectionHeading
-                                title={title}
-                                subtitle={subtitle}
-                                align="left"
-                                accentColor={colors.primary}
-                                className="mb-8"
-                            />
-                            <AnimateOnScroll direction="up" delayMs={160}>
-                                {renderButtons()}
-                            </AnimateOnScroll>
-                            <AnimateOnScroll direction="up" delayMs={220}>
-                                {renderNewsletter('light')}
-                            </AnimateOnScroll>
-                        </div>
-                        <AnimateOnScroll direction="up" delayMs={140} className="relative overflow-hidden rounded-xl shadow-2xl">
-                            {sectionData.image ? (
-                                <img 
-                                    src={sectionData.image.startsWith('http') ? sectionData.image : getImagePath(sectionData.image)}
-                                    alt="CTA Image"
-                                    className="w-full h-80 object-cover"
-                                />
-                            ) : (
-                                <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-80 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                            <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <p className="text-gray-500 font-medium">{t('Upload CTA Image')}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </AnimateOnScroll>
-                    </div>
-                </div>
-            </section>
-        );
-    }
-
-    if (config.layout === 'card') {
-        return (
-            <section className={config.section}>
-                <div className={config.container}>
-                    <div className="bg-white p-8 md:p-12 lg:p-16 rounded-2xl shadow-xl text-center border border-gray-200/50 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-50/80 via-white to-gray-50/80"></div>
-                        <div className="relative z-10 space-y-8">
-                            <div className="space-y-6">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{
-                                    backgroundColor: `${colors.primary}15`,
-                                    border: `2px solid ${colors.primary}25`
-                                }}>
-                                    <svg className="w-8 h-8" style={{ color: colors.primary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">{title}</h2>
-                                    <p className="text-base md:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">{subtitle}</p>
-                                </div>
-                            </div>
-                            <div className="pt-4">
-                                {renderButtons()}
-                            </div>
-                            <AnimateOnScroll direction="up" delayMs={220}>
-                                {renderNewsletter('light')}
-                            </AnimateOnScroll>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        );
-    }
-
-    if (config.layout === 'minimal') {
-        return (
-            <section className={config.section}>
-                <div className={config.container}>
-                    <SectionHeading
-                        title={title}
-                        subtitle={subtitle}
-                        accentColor={colors.primary}
-                        className="mb-8"
-                    />
-                    <AnimateOnScroll direction="up" delayMs={160}>
-                        {renderButtons()}
-                    </AnimateOnScroll>
-                    <AnimateOnScroll direction="up" delayMs={220}>
-                        {renderNewsletter('light')}
-                    </AnimateOnScroll>
-                </div>
-            </section>
-        );
-    }
 
     return (
-        <section className={config.section} style={getBackgroundStyle()}>
-            {config.layout === 'gradient' && (
-                <div className="absolute inset-0 bg-black/20"></div>
-            )}
-            <div className={`${config.container} relative z-10`}>
-                <SectionHeading
-                    title={title}
-                    subtitle={subtitle}
-                    accentColor={colors.primary}
-                    className="mb-8"
-                    tone={config.layout === 'gradient' ? 'dark' : 'light'}
-                />
-                <AnimateOnScroll direction="up" delayMs={160}>
-                    {renderButtons()}
-                </AnimateOnScroll>
-                <AnimateOnScroll direction="up" delayMs={220}>
-                    {renderNewsletter(config.layout === 'gradient' ? 'dark' : 'light')}
+        <section className="relative py-20 bg-[#fcfcff] overflow-hidden">
+            {/* Minimal Background Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)] pointer-events-none"></div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <AnimateOnScroll direction="up">
+                    <div className="relative bg-white border border-gray-100 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.05)] overflow-hidden">
+                        
+                        <div className="flex flex-col lg:flex-row items-stretch">
+                            
+                            {/* Left Side: Impact Content */}
+                            <div className="flex-1 p-8 md:p-14 lg:p-16 border-b lg:border-b-0 lg:border-r border-gray-50 flex flex-col justify-center">
+                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-8 w-fit">
+                                    <Rocket className="w-3.5 h-3.5" />
+                                    {t('Fast Growing SaaS')}
+                                </div>
+                                
+                                <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 tracking-tight leading-tight">
+                                    {t(title)}
+                                </h2>
+                                <p className="text-base text-gray-500 font-medium mb-10 max-w-lg leading-relaxed">
+                                    {t(subtitle)}
+                                </p>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <a 
+                                        href={primaryLink}
+                                        className="w-full sm:w-auto px-8 py-4 rounded-xl font-black text-sm text-white shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                                        style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary || colors.primary})` }}
+                                    >
+                                        {t(primaryButton)}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </a>
+                                    <a 
+                                        href={secondaryLink}
+                                        className="w-full sm:w-auto px-8 py-4 rounded-xl font-black text-sm text-gray-600 bg-white border border-gray-100 transition-all hover:bg-gray-50 hover:border-gray-200 shadow-sm flex items-center justify-center gap-2 group"
+                                    >
+                                        <PlayCircle className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                        {t(secondaryButton)}
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Newsletter (Compact) */}
+                            <div className="lg:w-1/3 bg-gray-50/50 p-8 md:p-14 lg:p-16 flex flex-col justify-center relative overflow-hidden">
+                                {/* Decorative Glow */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+                                
+                                <div className="relative space-y-6">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-500">
+                                            <Mail className="w-5 h-5" />
+                                        </div>
+                                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t(newsletterTitle)}</h3>
+                                    </div>
+                                    
+                                    <p className="text-xs font-bold text-gray-400 leading-relaxed">
+                                        {t('Stay connected with our latest updates and features.')}
+                                    </p>
+
+                                    <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                                        <input
+                                            type="email"
+                                            placeholder={t('Enter email address')}
+                                            value={emailInput}
+                                            onChange={(e) => setEmailInput(e.target.value)}
+                                            disabled={isSubmitting}
+                                            className="w-full bg-white border border-gray-100 rounded-xl px-5 py-4 text-xs font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/5 transition-all shadow-sm"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full py-4 rounded-xl font-black text-[10px] text-white shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                                            style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary || colors.primary})` }}
+                                        >
+                                            {isSubmitting ? t('Wait...') : t(newsletterButtonText)}
+                                        </button>
+                                    </form>
+                                    
+                                    <p className="text-[10px] font-medium text-gray-300 text-center">
+                                        {t('Safe & Secure. No Spam.')}
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </AnimateOnScroll>
             </div>
         </section>

@@ -93,11 +93,12 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                 gallery: true,
                 how_works_videos: true,
                 blogs: true,
+                why_choose: true,
                 cta: true,
                 footer: true,
                 pricing: true
             },
-            section_order: ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer']
+            section_order: ['header', 'hero', 'stats', 'features', 'tracker_features', 'why_choose', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer']
         }
     });
 
@@ -127,7 +128,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
 
         post(route('landing-page.store'), {
             preserveScroll: true,
-            onSuccess: (page) => {
+            onSuccess: (page: any) => {
                 setIsLoading(false);
                 if (page.props.flash?.success) {
                     toast.success(page.props.flash.success);
@@ -240,7 +241,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                         {activeSection === 'general' && (
                             <General 
                                 data={data} 
-                                updateSectionData={(field, value) => setData(field, value)} 
+                                updateSectionData={(field: any, value: any) => setData(field, value)} 
                                 updateConfigSection={(key, updates) => updateSectionData(key, updates)}
                             />
                         )}

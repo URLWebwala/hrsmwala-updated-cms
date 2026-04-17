@@ -14,6 +14,7 @@ import TrackerFeatures from './components/TrackerFeatures';
 import HowWorksVideos from './components/HowWorksVideos';
 import Blogs from './components/Blogs';
 import CTA from './components/CTA';
+import WhyChoose from './components/WhyChoose';
 import Footer from './components/Footer';
 
 // Type definitions for better type safety
@@ -70,13 +71,14 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
     const { adminAllSetting } = usePage().props as any;
     const favicon = getAdminSetting('favicon');
     const faviconUrl = favicon ? getImagePath(favicon) : null;
+    const colors = settings?.config_sections?.colors || { primary: '#3b82f6', secondary: '#2563eb' };
     
     const isSectionVisible = (key: string) => {
         return settings?.config_sections?.section_visibility?.[key] !== false;
     };
     
-    const sectionOrder = settings?.config_sections?.section_order || 
-        ['header', 'hero', 'stats', 'features', 'tracker_features', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer'];
+    const sectionOrder = [...(settings?.config_sections?.section_order || 
+        ['header', 'hero', 'stats', 'features', 'tracker_features', 'why_choose', 'modules', 'benefits', 'gallery', 'how_works_videos', 'blogs', 'cta', 'footer'])];
 
     const whatsappSettings =
         settings?.config_sections?.sections?.social ||
@@ -91,57 +93,76 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
     const seoTitle = 'HRMswala - All-in-One HRM, CRM, Payroll and Business Management Software';
     const seoDescription = 'HRMswala helps businesses manage HR, payroll, attendance, CRM, accounting, projects, and operations in one secure cloud platform.';
     const seoKeywords = 'hrm software, crm software, payroll software, attendance management, business management software, saas platform, hrmswala';
+
     const renderSeoHighlight = () => (
-        <section className="relative py-24 bg-white overflow-hidden">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] rounded-full bg-purple-100/50 blur-[100px] pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] rounded-full bg-indigo-100/50 blur-[100px] pointer-events-none"></div>
+        <section className="relative py-28 bg-[#fcfcff] overflow-hidden">
+            {/* Ambient Background Glows - Using Theme Colors */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-20" style={{ backgroundColor: colors.primary }}></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-20" style={{ backgroundColor: colors.secondary || colors.primary }}></div>
             
             <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Premium Glassmorphic Card */}
-                <div className="relative rounded-[2.5rem] p-[1px] overflow-hidden bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 shadow-2xl shadow-indigo-100/50 group">
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl transition-opacity duration-500 group-hover:bg-white/30"></div>
-                    <div className="relative bg-white/80 p-10 md:p-14 lg:p-16 rounded-[calc(2.5rem-1px)] border border-white/60 backdrop-blur-xl transition-transform duration-500">
-                        <div className="flex flex-col lg:flex-row gap-12 items-center justify-between">
-                            <div className="flex-1">
+                <div className="relative rounded-[3.5rem] p-[2px] overflow-hidden group shadow-2xl transition-all duration-500 hover:shadow-indigo-100/40" 
+                    style={{ background: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary || colors.primary}40)` }}>
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[60px] group-hover:bg-white/40 transition-colors"></div>
+                    <div className="relative bg-white/80 p-10 md:p-16 lg:p-20 rounded-[calc(3.5rem-2px)] border border-white/60 backdrop-blur-3xl transition-transform duration-500">
+                        <div className="flex flex-col lg:flex-row gap-16 items-center justify-between">
+                            <div className="flex-1 text-left">
                                 {/* Badge */}
-                                <div className="inline-flex items-center space-x-2 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-1.5 ring-1 ring-indigo-200/50 border border-indigo-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                                    <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">Premium Business Suite</span>
+                                <div className="inline-flex items-center space-x-2 rounded-full px-5 py-2 border transition-all duration-300 hover:shadow-lg"
+                                    style={{ backgroundColor: `${colors.primary}10`, borderColor: `${colors.primary}20` }}>
+                                    <span className="flex h-2.5 w-2.5 rounded-full animate-pulse" style={{ backgroundColor: colors.primary }}></span>
+                                    <span className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: colors.primary }}>Premium Business Suite</span>
                                 </div>
                                 
                                 {/* Heading */}
-                                <h2 className="mt-8 text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 leading-tight">
-                                    Business Operations in One Platform
+                                <h2 className="mt-10 text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                                    <span 
+                                        style={{ 
+                                            background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary || '#1e40af'})`,
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            backgroundClip: 'text',
+                                            color: 'transparent',
+                                            display: 'inline-block'
+                                        }}
+                                    >
+                                        Business Operations in <br/>
+                                        One Unified Platform
+                                    </span>
                                 </h2>
                                 
                                 {/* Content */}
-                                <div className="mt-8 space-y-5">
-                                    <p className="text-lg leading-relaxed text-slate-600 font-medium">
+                                <div className="mt-10 space-y-6">
+                                    <p className="text-xl leading-relaxed text-gray-500 font-bold max-w-2xl">
                                         HRMswala is a cloud SaaS platform for modern teams that need reliable HRM, CRM, payroll, accounting,
-                                        and attendance management tools in one place. It helps reduce manual work, improve team visibility,
-                                        and keep business data organized with role-based access and real-time reporting.
+                                        and attendance management tools in one place.
                                     </p>
-                                    <p className="text-lg leading-relaxed text-slate-600">
-                                        From employee onboarding to payroll processing and customer follow-ups, HRMswala supports daily
-                                        operations with practical modules designed for startups, SMEs, and growing enterprises.
+                                    <p className="text-lg leading-relaxed text-gray-400 font-medium max-w-2xl">
+                                        It helps reduce manual work, improve team visibility, and keep business data organized with role-based access and real-time reporting. Designed for startups, SMEs, and growing enterprises.
                                     </p>
                                 </div>
                             </div>
                             
                             {/* Decorative Animated Graphic */}
-                            <div className="hidden lg:flex flex-shrink-0 w-[400px] justify-center items-center relative">
-                                <div className="relative w-64 h-64 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-50 flex items-center justify-center animate-[spin_15s_linear_infinite] shadow-inner border-4 border-white">
-                                    <div className="absolute inset-0 rounded-full border border-indigo-200/50 transform scale-110"></div>
-                                    <div className="absolute inset-0 rounded-full border border-purple-200/50 transform scale-125"></div>
-                                    <div className="absolute w-44 h-44 rounded-full bg-white shadow-2xl flex items-center justify-center animate-[spin_15s_reverse_linear_infinite]">
-                                        <svg className="w-16 h-16 text-indigo-600 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="hidden lg:flex flex-shrink-0 w-[450px] justify-center items-center relative">
+                                <div className="relative w-80 h-80 rounded-[3rem] bg-gradient-to-tr from-white to-gray-50 flex items-center justify-center animate-[spin_20s_linear_infinite] shadow-2xl border-4 border-white">
+                                    <div className="absolute inset-0 rounded-[3rem] border-2 border-dashed opacity-20 transform scale-110" style={{ borderColor: colors.primary }}></div>
+                                    <div className="absolute inset-0 rounded-full border-2 border-dashed opacity-20 transform scale-125 rotate-45" style={{ borderColor: colors.primary }}></div>
+                                    
+                                    <div className="absolute w-52 h-52 rounded-[2.5rem] bg-white shadow-2xl flex items-center justify-center animate-[spin_20s_reverse_linear_infinite] border border-gray-50">
+                                        <svg className="w-20 h-20 drop-shadow-2xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: colors.primary }}>
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                         </svg>
                                     </div>
-                                    {/* Orbits */}
-                                    <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 border-4 border-white drop-shadow-md"></div>
-                                    <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border-4 border-white drop-shadow-md"></div>
+                                    
+                                    {/* Elevated Orbits */}
+                                    <div className="absolute -top-6 -right-6 w-16 h-16 rounded-2xl bg-white border-4 border-white shadow-2xl flex items-center justify-center transition-transform hover:rotate-12">
+                                        <div className="w-8 h-8 rounded-full opacity-20" style={{ backgroundColor: colors.primary }}></div>
+                                    </div>
+                                    <div className="absolute -bottom-10 left-10 w-20 h-20 rounded-[2rem] bg-white border-4 border-white shadow-2xl flex items-center justify-center transition-transform hover:-rotate-12">
+                                        <div className="w-10 h-10 rounded-full opacity-20" style={{ backgroundColor: colors.secondary || colors.primary }}></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -155,26 +176,17 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
         if (!isSectionVisible(sectionKey)) return null;
         
         switch (sectionKey) {
-            case 'header':
-                return <Header key={sectionKey} settings={settings} />;
-            case 'hero':
-                return <Hero key={sectionKey} settings={settings} />;
-            case 'stats':
-                return <Stats key={sectionKey} settings={settings} />;
-            case 'features':
-                return <Features key={sectionKey} settings={settings} />;
-            case 'tracker_features':
-                return <TrackerFeatures key={sectionKey} settings={settings} />;
-            case 'modules':
-                return <Modules key={sectionKey} settings={settings} />;
-            case 'benefits':
-                return <Benefits key={sectionKey} settings={settings} />;
-            case 'gallery':
-                return <Gallery key={sectionKey} settings={settings} />;
-            case 'how_works_videos':
-                return <HowWorksVideos key={sectionKey} settings={settings} />;
-            case 'cta':
-                return <CTA key={sectionKey} settings={settings} />;
+            case 'header': return <Header key={sectionKey} settings={settings} />;
+            case 'hero': return <Hero key={sectionKey} settings={settings} />;
+            case 'stats': return <Stats key={sectionKey} settings={settings} />;
+            case 'features': return <Features key={sectionKey} settings={settings} />;
+            case 'tracker_features': return <TrackerFeatures key={sectionKey} settings={settings} />;
+            case 'why_choose': return <WhyChoose key={sectionKey} settings={settings} />;
+            case 'modules': return <Modules key={sectionKey} settings={settings} />;
+            case 'benefits': return <Benefits key={sectionKey} settings={settings} />;
+            case 'gallery': return <Gallery key={sectionKey} settings={settings} />;
+            case 'how_works_videos': return <HowWorksVideos key={sectionKey} settings={settings} />;
+            case 'cta': return <CTA key={sectionKey} settings={settings} />;
             case 'blogs':
                 return (
                     <div key={sectionKey}>
@@ -182,12 +194,10 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
                         <Blogs settings={settings} blogs={blogs} />
                     </div>
                 );
-            case 'footer':
-                return <Footer key={sectionKey} settings={settings} />;
-            default:
-                return null;
+            case 'footer': return <Footer key={sectionKey} settings={settings} />;
+            default: return null;
         }
-    }, [settings, blogs, isSectionVisible]);
+    }, [settings, blogs, isSectionVisible, colors]);
 
     return (
         <div className="min-h-screen bg-white">
@@ -201,83 +211,47 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             
-            {/* Render sections in order */}
             {sectionOrder.map(sectionKey => renderSection(sectionKey))}
 
-            {/* Floating WhatsApp quick-contact button */}
             {whatsappHref && (
                 <>
-                    {/* Desktop: modern edge tab */}
                     <a
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 z-[60] group animate-[waFloat_3s_ease-in-out_infinite]"
-                        aria-label="Chat on WhatsApp"
-                        title="Chat on WhatsApp"
                     >
                         <div
-                            className="text-white rounded-l-[12px] shadow-[0_10px_28px_rgba(22,163,74,0.35)] border border-white/25 overflow-hidden transition-all duration-300 group-hover:-translate-x-0.5 group-hover:shadow-[0_18px_42px_rgba(22,163,74,0.5)]"
+                            className="text-white rounded-l-[12px] shadow-[0_10px_28px_rgba(22,163,74,0.35)] border border-white/25 overflow-hidden transition-all duration-300 group-hover:-translate-x-0.5"
                             style={{ background: 'linear-gradient(180deg, #22C55E 0%, #16A34A 55%, #15803D 100%)' }}
                         >
                             <div className="h-[154px] w-[46px] flex flex-col items-center justify-center gap-3">
-                                <span
-                                    className="text-[15px] font-semibold leading-none text-white"
-                                    style={{
-                                        writingMode: 'vertical-rl',
-                                        transform: 'rotate(180deg)',
-                                        letterSpacing: '0.12em',
-                                        fontFamily: 'Poppins, Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-                                    }}
-                                >
+                                <span className="text-[15px] font-black leading-none text-white" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.12em' }}>
                                     WhatsApp
                                 </span>
-                                <span className="h-6 w-6 rounded-full border border-white/70 flex items-center justify-center bg-transparent">
-                                    <WhatsAppIcon className="h-3.5 w-3.5 drop-shadow-sm transition-transform duration-300 group-hover:scale-110" />
+                                <span className="h-6 w-6 rounded-full border border-white/70 flex items-center justify-center">
+                                    <WhatsAppIcon className="h-3.5 w-3.5" />
                                 </span>
                             </div>
                         </div>
                     </a>
-
-                    {/* Mobile: clean floating action button */}
                     <a
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="md:hidden fixed bottom-5 right-4 z-[60] animate-[waFloat_3s_ease-in-out_infinite]"
-                        aria-label="Chat on WhatsApp"
-                        title="Chat on WhatsApp"
                     >
-                        <div
-                            className="h-14 w-14 rounded-full text-white shadow-2xl border-2 border-white flex items-center justify-center transition-all duration-300 active:scale-95 hover:shadow-[0_18px_36px_rgba(22,163,74,0.45)]"
-                            style={{ background: 'linear-gradient(180deg, #22C55E 0%, #16A34A 55%, #15803D 100%)' }}
-                        >
-                            <WhatsAppIcon className="h-6 w-6 transition-transform duration-300" />
+                        <div className="h-14 w-14 rounded-full text-white shadow-2xl border-2 border-white flex items-center justify-center"
+                            style={{ background: 'linear-gradient(180deg, #22C55E 0%, #16A34A 55%, #15803D 100%)' }}>
+                            <WhatsAppIcon className="h-6 w-6" />
                         </div>
                     </a>
                 </>
             )}
 
             <style>{`
-                @keyframes waFloat {
-                    0%, 100% {
-                        transform: translateY(-50%);
-                    }
-                    50% {
-                        transform: translateY(calc(-50% - 6px));
-                    }
-                }
-
-                @media (max-width: 767px) {
-                    @keyframes waFloat {
-                        0%, 100% {
-                            transform: translateY(0);
-                        }
-                        50% {
-                            transform: translateY(-5px);
-                        }
-                    }
-                }
+                @keyframes waFloat { 0%, 100% { transform: translateY(-50%); } 50% { transform: translateY(calc(-50% - 6px)); } }
+                @media (max-width: 767px) { @keyframes waFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } } }
             `}</style>
             
             <CookieConsent settings={adminAllSetting || {}} />

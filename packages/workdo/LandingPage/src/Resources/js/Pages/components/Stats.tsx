@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Users, Globe, Headset, CheckCircle2 } from 'lucide-react';
 import AnimateOnScroll from './AnimateOnScroll';
 import { useInView } from './useInView';
 
@@ -6,74 +8,28 @@ interface StatsProps {
     settings?: any;
 }
 
-const STATS_VARIANTS = {
-    stats1: {
-        section: 'py-16',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-2 md:grid-cols-4 gap-8 text-center',
-        statValue: 'text-4xl md:text-5xl font-bold text-white mb-2',
-        statLabel: 'text-blue-100 text-sm md:text-base',
-        layout: 'colored'
-    },
-    stats2: {
-        section: 'bg-gray-50 py-20',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8',
-        statValue: 'text-4xl md:text-5xl font-bold mb-3',
-        statLabel: 'text-gray-600 text-sm md:text-base font-medium',
-        layout: 'cards'
-    },
-    stats3: {
-        section: 'bg-white py-16',
-        container: 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12',
-        statValue: 'text-3xl md:text-4xl font-bold text-gray-900 mb-2',
-        statLabel: 'text-gray-600 text-sm md:text-base font-medium',
-        layout: 'minimal'
-    },
-    stats4: {
-        section: 'bg-gray-900 py-20',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-2 md:grid-cols-4 gap-8',
-        statValue: 'text-xl md:text-2xl font-bold text-white',
-        statLabel: 'text-gray-300 text-xs md:text-sm font-medium',
-        layout: 'circular'
-    },
-    stats5: {
-        section: 'py-20',
-        container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-2 md:grid-cols-4 gap-8 text-center',
-        statValue: 'text-4xl md:text-5xl font-bold text-white mb-2',
-        statLabel: 'text-white text-sm md:text-base opacity-90',
-        layout: 'gradient'
-    }
-};
-
 export default function Stats({ settings }: StatsProps) {
+    const { t } = useTranslation();
     const sectionData = settings?.config_sections?.sections?.stats || {};
-    const variant = sectionData.variant || 'stats1';
-    const config = STATS_VARIANTS[variant as keyof typeof STATS_VARIANTS] || STATS_VARIANTS.stats1;
-    
-    const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
+    const colors = settings?.config_sections?.colors || { primary: '#3b82f6', secondary: '#2563eb', accent: '#f59e0b' };
     
     const defaultStats = [
-        { label: 'Businesses Trust Us', value: '20,000+' },
-        { label: 'Uptime Guarantee', value: '99.9%' },
-        { label: 'Customer Support', value: '24/7' },
-        { label: 'Countries Worldwide', value: '70+' }
+        { label: 'Businesses Trust Us', value: '120+', icon: 'users' },
+        { label: 'Uptime Guarantee', value: '99.9%', icon: 'check' },
+        { label: 'Customer Support', value: '24/7', icon: 'support' },
+        { label: 'Countries Worldwide', value: '70+', icon: 'globe' }
     ];
     
     const stats = sectionData.stats?.length > 0 ? sectionData.stats : defaultStats;
 
-    const { ref: sectionRef, inView } = useInView<HTMLElement>({
-        rootMargin: '0px 0px -20% 0px',
-        threshold: 0.2,
+    const { ref: sectionRef, inView } = useInView<HTMLDivElement>({
+        rootMargin: '0px 0px -10% 0px',
+        threshold: 0.1,
     });
 
     const parsedStats = useMemo(() => {
         return stats.map((s: any) => {
             const raw = String(s?.value ?? '');
-            // extract leading number (with commas/decimals)
             const match = raw.match(/^[\s]*([\d,]+(?:\.\d+)?)/);
             if (!match) return { ...s, _numeric: null, _suffix: raw };
             const numeric = Number(match[1].replace(/,/g, ''));
@@ -87,23 +43,21 @@ export default function Stats({ settings }: StatsProps) {
     );
 
     useEffect(() => {
-        // Reset when leaving viewport so it can run again on scroll up/down
         if (!inView) {
             setAnimatedValues(parsedStats.map((s: any) => (typeof s._numeric === 'number' ? 0 : NaN)));
             return;
         }
 
         const start = performance.now();
-        const duration = 1100;
+        const duration = 1500;
         const targets = parsedStats.map((s: any) => (typeof s._numeric === 'number' ? s._numeric : NaN));
 
         let raf = 0;
         const tick = (now: number) => {
             const t = Math.min(1, (now - start) / duration);
-            // easeOutCubic
-            const eased = 1 - Math.pow(1 - t, 3);
+            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
             setAnimatedValues(
-                targets.map((target) => {
+                targets.map((target: number) => {
                     if (!Number.isFinite(target)) return NaN;
                     const v = target * eased;
                     return target % 1 === 0 ? Math.round(v) : Math.round(v * 10) / 10;
@@ -116,77 +70,55 @@ export default function Stats({ settings }: StatsProps) {
         return () => cancelAnimationFrame(raf);
     }, [inView, parsedStats]);
 
-    const getBackgroundStyle = () => {
-        if (config.layout === 'colored') {
-            return { backgroundColor: colors.primary };
+    const getIcon = (icon?: string, index?: number) => {
+        const iconType = icon || defaultStats[index ?? 0]?.icon;
+        switch (iconType) {
+            case 'globe': return <Globe className="w-5 h-5 md:w-6 md:h-6" />;
+            case 'support': return <Headset className="w-5 h-5 md:w-6 md:h-6" />;
+            case 'check': return <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />;
+            case 'users':
+            default: return <Users className="w-5 h-5 md:w-6 md:h-6" />;
         }
-        if (config.layout === 'gradient') {
-            return { background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary}, ${colors.accent})` };
-        }
-        return {};
-    };
-
-    const renderStat = (stat: any, index: number) => {
-        const numeric = (stat as any)._numeric as number | null;
-        const suffix = (stat as any)._suffix as string;
-        const animated = animatedValues[index];
-        const displayValue =
-            typeof numeric === 'number' && Number.isFinite(animated)
-                ? `${animated.toLocaleString()}${suffix ? suffix : ''}`
-                : stat.value;
-
-        if (config.layout === 'cards') {
-            return (
-                <div key={index} className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1">
-                    <div className={config.statValue} style={{ color: colors.primary }}>{displayValue}</div>
-                    <div className={config.statLabel}>{stat.label}</div>
-                    <div className="mt-4 w-12 h-1 mx-auto rounded-full transition-all duration-300" style={{ backgroundColor: colors.primary, opacity: 0.3 }}></div>
-                </div>
-            );
-        }
-
-        if (config.layout === 'minimal') {
-            return (
-                <div key={index} className="text-center group">
-                    <div className={`${config.statValue} transition-all duration-300 group-hover:scale-105`} style={{ color: colors.primary }}>{displayValue}</div>
-                    <div className={config.statLabel}>{stat.label}</div>
-                    <div className="mt-3 w-8 h-0.5 mx-auto rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100" style={{ backgroundColor: colors.primary }}></div>
-                </div>
-            );
-        }
-
-        if (config.layout === 'circular') {
-            return (
-                <div key={index} className="text-center group">
-                    <div className="relative w-28 h-28 mx-auto mb-6">
-                        <div className="absolute inset-0 rounded-full border-4 border-white/20 transition-all duration-300 group-hover:border-white/40"></div>
-                        <div className="absolute inset-2 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-105" style={{ backgroundColor: `${colors.primary}20` }}>
-                            <div className={config.statValue}>{displayValue}</div>
-                        </div>
-                    </div>
-                    <div className={config.statLabel}>{stat.label}</div>
-                </div>
-            );
-        }
-
-        // Default layout (colored/gradient)
-        return (
-            <div key={index}>
-                <div className={config.statValue}>{displayValue}</div>
-                <div className={config.statLabel}>{stat.label}</div>
-            </div>
-        );
     };
 
     return (
-        <section ref={sectionRef} className={config.section} style={getBackgroundStyle()}>
-            <div className={config.container}>
+        <div ref={sectionRef} className="relative z-20 -mt-10 mb-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <AnimateOnScroll direction="up">
-                    <div className={config.grid}>
-                        {parsedStats.map((stat: any, index: number) => renderStat(stat, index))}
+                    <div className="bg-white rounded-[2.5rem] md:rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] border border-gray-100 p-3 md:p-4 backdrop-blur-xl">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+                            {parsedStats.map((stat: any, index: number) => {
+                                const numeric = stat._numeric as number | null;
+                                const suffix = stat._suffix as string;
+                                const animated = animatedValues[index];
+                                const displayValue = typeof numeric === 'number' && Number.isFinite(animated)
+                                    ? `${animated.toLocaleString()}${suffix}`
+                                    : stat.value;
+
+                                return (
+                                    <div key={index} className="px-6 py-6 md:py-4 group transition-all duration-300 hover:bg-gray-50/50 first:rounded-t-[2rem] lg:first:rounded-l-full last:rounded-b-[2rem] lg:last:rounded-r-full">
+                                        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm" style={{ backgroundColor: `${colors.primary}10`, color: colors.primary }}>
+                                                {getIcon(stat.icon, index)}
+                                            </div>
+                                            <div className="text-center md:text-left">
+                                                <div className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
+                                                    <span className="bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to bottom, #111827, #374151)` }}>
+                                                        {displayValue}
+                                                    </span>
+                                                </div>
+                                                <div className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                                                    {t(stat.label)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </AnimateOnScroll>
             </div>
-        </section>
+        </div>
     );
 }
