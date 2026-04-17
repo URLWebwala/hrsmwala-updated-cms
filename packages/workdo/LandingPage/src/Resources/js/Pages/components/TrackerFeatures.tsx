@@ -121,7 +121,7 @@ export default function TrackerFeatures({ settings }: TrackerFeaturesProps) {
                                         {/* Mockup Frame - Clean Image (No more CSS overlay needed) */}
                                         <div className="relative rounded-[2.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-8 border-white transition-transform duration-500 group-hover/app:scale-[1.05]">
                                             <img 
-                                                src={getImagePath('tracker-app.png')} 
+                                                src={`${window.location.origin}/assets/images/landing/tracker-app.png`} 
                                                 alt="HRMswala Tracker App" 
                                                 className="w-full max-w-[320px] h-auto object-cover"
                                             />
