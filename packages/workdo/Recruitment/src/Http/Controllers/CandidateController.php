@@ -445,6 +445,15 @@ class CandidateController extends Controller
             // Send Status Change email
             if ($oldStatus != $candidate->status) {
                 try {
+                    $statusTemplates = [
+                        0 => 'Application Received',
+                        1 => 'Application Shortlisted',
+                        2 => 'Interview Scheduled',
+                        3 => 'Offer Letter',
+                        4 => 'Hired Notification',
+                        5 => 'Application Rejected'
+                    ];
+
                     $statusList = [
                         0 => 'Applied',
                         1 => 'Screening',
@@ -453,6 +462,8 @@ class CandidateController extends Controller
                         4 => 'Hired',
                         5 => 'Rejected'
                     ];
+
+                    $templateName = $statusTemplates[$candidate->status] ?? 'Application Status Changed';
 
                     $companyName = company_setting('company_name', creatorId()) ?: 'Our Company';
                     $companyEmail = company_setting('company_email', creatorId()) ?: '';
@@ -466,13 +477,14 @@ class CandidateController extends Controller
                         'job_title' => $candidate->job_posting ? $candidate->job_posting->title : '-',
                         'status' => $statusList[$candidate->status] ?? 'Unknown',
                         'tracking_id' => $candidate->tracking_id,
+                        'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),
                         'company_name' => $companyName,
                         'company_email' => $companyEmail,
                         'company_address' => $fullAddress,
                     ];
 
                     \App\Models\EmailTemplate::sendEmailTemplate(
-                        'Application Status Changed',
+                        $templateName,
                         [$candidate->email],
                         $emailData,
                         creatorId()

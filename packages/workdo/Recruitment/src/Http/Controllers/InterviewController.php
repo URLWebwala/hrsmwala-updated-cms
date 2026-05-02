@@ -208,7 +208,7 @@ class InterviewController extends Controller
 
             // Send Interview Scheduled email
             try {
-                $rounds = \Workdo\Recruitment\Models\InterviewRound::whereIn('id', $interview->round_ids)->pluck('name')->toArray();
+                $rounds = InterviewRound::whereIn('id', $interview->round_ids)->pluck('name')->toArray();
                 
                 $companyName = company_setting('company_name', creatorId()) ?: 'Our Company';
                 $companyEmail = company_setting('company_email', creatorId()) ?: '';
@@ -339,7 +339,7 @@ class InterviewController extends Controller
                 return response()->json([]);
             }
 
-            $rounds = InterviewRound::where('job_id', $candidate->job_id)
+            $rounds = \App\Models\InterviewRound::where('job_id', $candidate->job_id)
                 ->where('created_by', creatorId())
                 ->select('id', 'name')
                 ->get();

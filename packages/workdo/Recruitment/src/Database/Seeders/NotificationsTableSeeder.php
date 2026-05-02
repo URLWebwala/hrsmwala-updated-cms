@@ -16,11 +16,17 @@ class NotificationsTableSeeder extends Seeder
         $notifications = [
             'Application Received',
             'Application Status Changed',
+            'Application Shortlisted',
             'Interview Scheduled',
             'Offer Letter',
+            'Hired Notification',
+            'Application Rejected',
         ];
         
         $permissions = [
+            'manage-recruitment',
+            'manage-recruitment',
+            'manage-recruitment',
             'manage-recruitment',
             'manage-recruitment',
             'manage-recruitment',

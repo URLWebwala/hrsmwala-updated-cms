@@ -350,8 +350,8 @@ class AttendanceController extends Controller
 
     private function getWorkingHour($shift)
     {
-        $start = \Carbon\Carbon::parse($shift->start_time);
-        $end = \Carbon\Carbon::parse($shift->end_time);
+        $start = Carbon::parse($shift->start_time);
+        $end = Carbon::parse($shift->end_time);
 
         // Handle night shifts
         if ($shift->is_night_shift && $end->lt($start)) {
