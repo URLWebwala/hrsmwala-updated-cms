@@ -34,14 +34,18 @@ export interface Candidate {
     profile_path?: string;
     resume_path?: string;
     cover_letter_path?: string;
-    status: boolean;
+    status: any;
+    tracking_id?: string;
     application_date?: any;
     custom_question?: any;
     job_id?: number;
     jobPosting?: JobPosting;
+    job_posting?: JobPosting;
     source_id?: number;
     candidateSource?: CandidateSource;
+    candidate_source?: CandidateSource;
     created_at: string;
+    notes?: string;
 }
 
 export interface CreateCandidateFormData {

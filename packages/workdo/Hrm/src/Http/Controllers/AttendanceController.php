@@ -117,7 +117,7 @@ class AttendanceController extends Controller
             }
 
             // Validate working day, leave, and holiday
-            $date = \Carbon\Carbon::today();
+            $date = Carbon::today();
 
             $workingDays = getCompanyAllSetting(creatorId())['working_days'] ?? '';
             $workingDaysArray = json_decode($workingDays, true) ?? [];
@@ -205,7 +205,7 @@ class AttendanceController extends Controller
                 }
             }
             // Validate working day, leave, and holiday
-            $date = \Carbon\Carbon::today();
+            $date = Carbon::today();
 
             $workingDays = getCompanyAllSetting(creatorId())['working_days'] ?? '';
             $workingDaysArray = json_decode($workingDays, true) ?? [];

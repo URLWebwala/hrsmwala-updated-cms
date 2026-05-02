@@ -339,7 +339,7 @@ class InterviewController extends Controller
                 return response()->json([]);
             }
 
-            $rounds = \App\Models\InterviewRound::where('job_id', $candidate->job_id)
+            $rounds = InterviewRound::where('job_id', $candidate->job_id)
                 ->where('created_by', creatorId())
                 ->select('id', 'name')
                 ->get();

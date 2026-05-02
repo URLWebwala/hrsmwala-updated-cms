@@ -159,8 +159,8 @@ export default function Index() {
             render: (value: any, row: any) => {
                 const statusOptions = { "0": "New", "1": "Screening", "2": "Interview", "3": "Offer", "4": "Hired", "5": "Rejected" };
                 const statusColors = { "0": "bg-blue-100 text-blue-800", "1": "bg-yellow-100 text-yellow-800", "2": "bg-purple-100 text-purple-800", "3": "bg-orange-100 text-orange-800", "4": "bg-green-100 text-green-800", "5": "bg-red-100 text-red-800" };
-                const displayValue = statusOptions[value] || value || '-';
-                const colorClass = statusColors[value] || 'bg-gray-100 text-gray-800';
+                const displayValue = (statusOptions as any)[value] || value || '-';
+                const colorClass = (statusColors as any)[value] || 'bg-gray-100 text-gray-800';
 
                 if (auth.user?.permissions?.includes('edit-candidates')) {
                     return (
@@ -424,7 +424,7 @@ export default function Index() {
                                     {candidates?.data?.map((candidate) => {
                                         const statusOptions: any = { "0": "New", "1": "Screening", "2": "Interview", "3": "Offer", "4": "Hired", "5": "Rejected" };
                                         const statusColors: any = { "0": "bg-blue-100 text-blue-800", "1": "bg-yellow-100 text-yellow-800", "2": "bg-purple-100 text-purple-800", "3": "bg-orange-100 text-orange-800", "4": "bg-green-100 text-green-800", "5": "bg-red-100 text-red-800" };
-                                        const statusInfo = { label: statusOptions[candidate.status] || candidate.status || '-', class: statusColors[candidate.status] || 'bg-gray-100 text-gray-800' };
+                                        const statusInfo = { label: (statusOptions as any)[String(candidate.status)] || candidate.status || '-', class: (statusColors as any)[String(candidate.status)] || 'bg-gray-100 text-gray-800' };
 
                                         return (
                                             <Card key={candidate.id} className="flex flex-col h-full hover:shadow-md transition-shadow duration-200">
@@ -449,11 +449,11 @@ export default function Index() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Job')}</p>
-                                                            <p className="font-medium">{candidate.job_posting?.title || '-'}</p>
+                                                            <p className="font-medium">{(candidate as any).job_posting?.title || candidate.jobPosting?.title || '-'}</p>
                                                         </div>
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Source')}</p>
-                                                            <p className="font-medium">{candidate.candidate_source?.name || '-'}</p>
+                                                            <p className="font-medium">{(candidate as any).candidate_source?.name || candidate.candidateSource?.name || '-'}</p>
                                                         </div>
                                                     </div>
                                                     <div className="text-xs min-w-0">
