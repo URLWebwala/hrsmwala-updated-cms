@@ -748,6 +748,7 @@ class AttendanceController extends Controller
                 $attendanceData[] = [
                     'id' => $employee->id,
                     'name' => $employee->user->name ?? '',
+                    'avatar' => $employee->user->avatar ?? '',
                     'attendance' => $employeeAttendance
                 ];
             }

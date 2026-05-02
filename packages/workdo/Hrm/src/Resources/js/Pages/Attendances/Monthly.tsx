@@ -11,6 +11,7 @@ import { Filter, Download, Calendar as CalendarIcon, Users as UsersIcon, Clock, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getImagePath } from '@/utils/helpers';
 
 interface MonthlyAttendanceProps {
     attendanceData: any[];
@@ -298,7 +299,29 @@ export default function Monthly() {
                                         attendanceData.map((emp, idx) => (
                                             <tr key={emp.id} className={cn("hover:bg-primary/[0.02] transition-colors", idx % 2 === 0 ? "bg-card" : "bg-muted/5")}>
                                                 <td className="sticky left-0 bg-inherit z-10 px-6 py-3.5 text-xs font-bold text-foreground border-b border-r border-border backdrop-blur-sm shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                                                    {emp.name}
+                                                    <div className="flex items-center gap-3">
+                                                        <TooltipProvider>
+                                                            <Tooltip delayDuration={0}>
+                                                                <TooltipTrigger>
+                                                                    {emp.avatar ? (
+                                                                        <img
+                                                                            src={getImagePath(emp.avatar)}
+                                                                            alt="Avatar"
+                                                                            className="w-8 h-8 rounded-full object-cover border border-primary/20"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+                                                                            <UsersIcon className="h-4 w-4 text-primary" />
+                                                                        </div>
+                                                                    )}
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{emp.name}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                        <span className="truncate">{emp.name}</span>
+                                                    </div>
                                                 </td>
                                                 {Object.entries(emp.attendance).map(([day, status]: any) => (
                                                     <td key={day} className="px-1 py-1 text-center border-b border-x border-border/30 min-w-[35px]">

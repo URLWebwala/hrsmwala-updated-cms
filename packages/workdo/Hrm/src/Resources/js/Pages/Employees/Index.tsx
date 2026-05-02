@@ -150,6 +150,7 @@ export default function Index() {
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
+                    <span className="font-medium text-sm text-gray-900">{row.user?.name || '-'}</span>
                 </div>
             )
         },
