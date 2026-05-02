@@ -137,10 +137,10 @@ export default function Index() {
                                     <img
                                         src={getImagePath(row.user.avatar)}
                                         alt="Avatar"
-                                        className="w-8 h-8 rounded-full object-cover"
+                                        className="w-8 h-8 rounded-full object-cover border"
                                     />
                                 ) : (
-                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border">
+                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
                                         <UsersIcon className="h-4 w-4 text-primary" />
                                     </div>
                                 )}
