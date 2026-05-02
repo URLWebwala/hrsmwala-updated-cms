@@ -234,12 +234,33 @@ class InterviewController extends Controller
                     'company_address' => $companyAddress ?: $fullAddress,
                 ];
 
+                // Send Interview Scheduled email to Candidate
                 \App\Models\EmailTemplate::sendEmailTemplate(
                     'Interview Scheduled',
                     [$candidate->email],
                     $emailData,
                     creatorId()
                 );
+
+                // Send Assignment email to Interviewers
+                if (!empty($interview->interviewer_ids)) {
+                    $interviewers = User::whereIn('id', $interview->interviewer_ids)->get();
+                    foreach ($interviewers as $interviewer) {
+                        $interviewerData = array_merge($emailData, [
+                            'interviewer_name' => $interviewer->name,
+                            'candidate_phone' => $candidate->phone ?? '-',
+                            'candidate_experience' => $candidate->experience_years ?? '-',
+                            'candidate_skills' => $candidate->skills ?? '-',
+                        ]);
+
+                        \App\Models\EmailTemplate::sendEmailTemplate(
+                            'Interview Assigned to Interviewer',
+                            [$interviewer->email],
+                            $interviewerData,
+                            creatorId()
+                        );
+                    }
+                }
             } catch (\Exception $e) {
                 \Log::error('Recruitment Interview Email Error: ' . $e->getMessage());
             }
