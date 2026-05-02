@@ -435,11 +435,15 @@ class CandidateController extends Controller
             }
 
             $validated = request()->validate([
-                'status' => 'required|in:0,1,2,3,4,5'
+                'status' => 'required|in:0,1,2,3,4,5',
+                'rejection_note' => 'nullable|string'
             ]);
 
             $oldStatus = $candidate->status;
             $candidate->status = $validated['status'];
+            if ($validated['status'] == 5 && !empty($validated['rejection_note'])) {
+                $candidate->notes = ($candidate->notes ? $candidate->notes . "\n" : "") . "Rejection Reason: " . $validated['rejection_note'];
+            }
             $candidate->save();
 
             // Send Status Change email
@@ -481,6 +485,7 @@ class CandidateController extends Controller
                         'company_name' => $companyName,
                         'company_email' => $companyEmail,
                         'company_address' => $fullAddress,
+                        'rejection_note' => $validated['rejection_note'] ?? '',
                     ];
 
                     \App\Models\EmailTemplate::sendEmailTemplate(

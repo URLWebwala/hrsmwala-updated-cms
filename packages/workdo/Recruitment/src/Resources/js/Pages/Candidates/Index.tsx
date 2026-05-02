@@ -49,6 +49,11 @@ export default function Index() {
         mode: '',
         data: null
     });
+    const [rejectionModal, setRejectionModal] = useState({
+        isOpen: false,
+        candidateId: null as number | null,
+        reason: ''
+    });
 
     const [showFilters, setShowFilters] = useState(false);
 
@@ -75,13 +80,14 @@ export default function Index() {
         });
     };
 
-    const updateStatus = (candidateId: number, newStatus: string) => {
+    const updateStatus = (candidateId: number, newStatus: string, reason: string = '') => {
         router.patch(route('recruitment.candidates.update-status', candidateId), {
-            status: newStatus
+            status: newStatus,
+            rejection_note: reason
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                // Status updated successfully
+                setRejectionModal({ isOpen: false, candidateId: null, reason: '' });
             }
         });
     };
@@ -180,7 +186,7 @@ export default function Index() {
                                 <DropdownMenuItem onClick={() => updateStatus(row.id, '4')}>
                                     {t('Hired')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateStatus(row.id, '5')}>
+                                <DropdownMenuItem onClick={() => setRejectionModal({ isOpen: true, candidateId: row.id, reason: '' })}>
                                     {t('Rejected')}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -558,6 +564,23 @@ export default function Index() {
                 onConfirm={confirmDelete}
                 variant="destructive"
             />
+
+            <Dialog open={rejectionModal.isOpen} onOpenChange={(open) => setRejectionModal(prev => ({ ...prev, isOpen: open }))}>
+                <div className="p-6">
+                    <h2 className="text-lg font-semibold mb-4">{t('Rejection Reason')}</h2>
+                    <p className="text-sm text-muted-foreground mb-4">{t('Please provide a reason for rejecting this candidate. This will be sent to the candidate.')}</p>
+                    <textarea
+                        className="w-full min-h-[100px] p-2 border rounded-md mb-4"
+                        placeholder={t('Enter rejection reason...')}
+                        value={rejectionModal.reason}
+                        onChange={(e) => setRejectionModal(prev => ({ ...prev, reason: e.target.value }))}
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setRejectionModal({ isOpen: false, candidateId: null, reason: '' })}>{t('Cancel')}</Button>
+                        <Button variant="destructive" onClick={() => rejectionModal.candidateId && updateStatus(rejectionModal.candidateId, '5', rejectionModal.reason)}>{t('Reject Candidate')}</Button>
+                    </div>
+                </div>
+            </Dialog>
         </AuthenticatedLayout>
     );
 }

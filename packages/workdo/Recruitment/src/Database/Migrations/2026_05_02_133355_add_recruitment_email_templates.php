@@ -51,8 +51,8 @@ return new class extends Migration
             ],
             'Application Rejected' => [
                 'subject' => 'Update on your application for {job_title}',
-                'variables' => '{"Candidate Name":"candidate_name","Job Title":"job_title","Company Name":"company_name"}',
-                'content' => '<p>Hello {candidate_name},</p><p>Thank you for your interest in the <strong>{job_title}</strong> position at <strong>{company_name}</strong> and for taking the time to apply.</p><p>After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.</p><p>We appreciate your interest in our company and wish you the best of luck in your job search.</p><p>Best regards,<br>Recruitment Team<br>{company_name}</p>'
+                'variables' => '{"Candidate Name":"candidate_name","Job Title":"job_title","Company Name":"company_name","Rejection Note":"rejection_note"}',
+                'content' => '<p>Hello {candidate_name},</p><p>Thank you for your interest in the <strong>{job_title}</strong> position at <strong>{company_name}</strong> and for taking the time to apply.</p><p>After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.</p><div style=\'background: #fdf2f2; padding: 15px; border-radius: 5px; border: 1px solid #fee2e2; margin: 15px 0;\'><p><strong>Note from hiring team:</strong></p><p>{rejection_note}</p></div><p>We appreciate your interest in our company and wish you the best of luck in your job search.</p><p>Best regards,<br>Recruitment Team<br>{company_name}</p>'
             ]
         ];
 
