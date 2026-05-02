@@ -2,22 +2,26 @@ import { PaginatedData, ModalState, AuthContext } from '@/types/common';
 
 export interface Branch {
     id: number;
-    name: string;
+    branch_name: string;
 }
 
 export interface Department {
     id: number;
-    name: string;
+    branch_id: number;
+    department_name: string;
 }
 
 export interface User {
     id: number;
     name: string;
+    avatar?: string;
+    is_disable?: number;
 }
 
 export interface Designation {
     id: number;
-    name: string;
+    department_id: number;
+    designation_name: string;
 }
 
 export interface Employee {
@@ -129,7 +133,7 @@ export interface EditEmployeeFormData {
 
 export interface EmployeeFilters {
     employee_id: string;
-    'user.name': string;
+    user_name: string;
     branch_id: string;
     department_id: string;
     employment_type: string;
