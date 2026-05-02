@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useFormFields } from '@/hooks/useFormFields';
 
-export default function Create({ onSuccess }: CreateInterviewProps) {
+export default function Create({ onSuccess, candidateId }: CreateInterviewProps) {
     const { candidates, jobpostings, interviewrounds, interviewtypes, employees } = usePage<any>().props;
     const [filteredJobs, setFilteredJobs] = useState(jobpostings || []);
     const [filteredRounds, setFilteredRounds] = useState(interviewrounds || []);
@@ -31,7 +31,7 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
         interview_mode: 'offline',
         interviewer_ids: [] as string[],
         status: '0',
-        candidate_id: '',
+        candidate_id: candidateId?.toString() || '',
         job_id: '',
         round_id: '',
         round_ids: [] as string[],

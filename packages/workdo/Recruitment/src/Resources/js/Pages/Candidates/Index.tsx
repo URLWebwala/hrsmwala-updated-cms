@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Plus, Edit as EditIcon, Trash2, Eye, Users as UsersIcon, Download, FileImage, ChevronDown } from "lucide-react";
+import { Plus, Edit as EditIcon, Trash2, Eye, Users as UsersIcon, Download, FileImage, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FilterButton } from '@/components/ui/filter-button';
 import { Pagination } from "@/components/ui/pagination";
@@ -24,6 +24,7 @@ import Create from './Create';
 import EditCandidate from './Edit';
 
 import NoRecordsFound from '@/components/no-records-found';
+import CreateInterview from '../Interviews/Create';
 import { Candidate, CandidatesIndexProps, CandidateFilters, CandidateModalState } from './types';
 import { formatDate, formatTime, formatDateTime, formatCurrency, getImagePath } from '@/utils/helpers';
 
@@ -53,6 +54,10 @@ export default function Index() {
         isOpen: false,
         candidateId: null as number | null,
         reason: ''
+    });
+    const [interviewModal, setInterviewModal] = useState({
+        isOpen: false,
+        candidateId: null as number | null
     });
 
     const [showFilters, setShowFilters] = useState(false);
@@ -177,7 +182,7 @@ export default function Index() {
                                 <DropdownMenuItem onClick={() => updateStatus(row.id, '1')}>
                                     {t('Screening')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => updateStatus(row.id, '2')}>
+                                <DropdownMenuItem onClick={() => setInterviewModal({ isOpen: true, candidateId: row.id })}>
                                     {t('Interview')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => updateStatus(row.id, '3')}>
@@ -439,14 +444,29 @@ export default function Index() {
                                                         ) : (
                                                             <p className="text-xs text-muted-foreground">#{candidate.tracking_id || candidate.id}</p>
                                                         )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 p-3 space-y-3">
-                                                    <div className="text-xs min-w-0">
-                                                        <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Email')}</p>
-                                                        <p className="font-medium">{candidate.email || '-'}</p>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                            <p className="text-xs text-muted-foreground">{candidate.job_posting?.title || candidate.jobPosting?.title || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 p-3 space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <div className="text-xs">
+                                                <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Email')}</p>
+                                                <p className="font-medium truncate max-w-[150px]">{candidate.email || '-'}</p>
+                                            </div>
+                                            <TooltipProvider>
+                                                <Tooltip delayDuration={300}>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="sm" onClick={() => setInterviewModal({ isOpen: true, candidateId: candidate.id })} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                                            <CalendarIcon className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{t('Schedule Interview')}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Job')}</p>
                                                             <p className="font-medium">{(candidate as any).job_posting?.title || candidate.jobPosting?.title || '-'}</p>
@@ -584,6 +604,16 @@ export default function Index() {
                         </div>
                     </div>
                 </DialogContent>
+            </Dialog>
+
+            <Dialog open={interviewModal.isOpen} onOpenChange={(open) => setInterviewModal(prev => ({ ...prev, isOpen: open }))}>
+                <CreateInterview 
+                    candidateId={interviewModal.candidateId ?? undefined}
+                    onSuccess={() => {
+                        setInterviewModal({ isOpen: false, candidateId: null });
+                        router.reload();
+                    }} 
+                />
             </Dialog>
         </AuthenticatedLayout>
     );

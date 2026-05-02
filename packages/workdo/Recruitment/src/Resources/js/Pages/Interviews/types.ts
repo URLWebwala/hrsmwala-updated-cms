@@ -103,6 +103,7 @@ export interface InterviewsIndexProps {
 
 export interface CreateInterviewProps {
     onSuccess: () => void;
+    candidateId?: string | number;
 }
 
 export interface EditInterviewProps {

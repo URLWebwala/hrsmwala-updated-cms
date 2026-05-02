@@ -11,6 +11,9 @@ use Inertia\Inertia;
 use Workdo\Recruitment\Models\JobPosting;
 use Workdo\Recruitment\Models\CandidateSources;
 use Workdo\Recruitment\Models\CustomQuestion;
+use Workdo\Recruitment\Models\InterviewRound;
+use Workdo\Recruitment\Models\InterviewType;
+use App\Models\User;
 use Workdo\Recruitment\Events\CreateCandidate;
 use Workdo\Recruitment\Events\UpdateCandidate;
 use Workdo\Recruitment\Events\DestroyCandidate;
@@ -61,6 +64,9 @@ class CandidateController extends Controller
                 'candidates' => $candidates,
                 'jobpostings' => JobPosting::where('created_by', creatorId())->select('id', 'title')->get(),
                 'candidatesources' => CandidateSources::where('created_by', creatorId())->where('is_active', 1)->select('id', 'name')->get(),
+                'interviewrounds' => InterviewRound::where('created_by', creatorId())->select('id', 'name')->get(),
+                'interviewtypes' => InterviewType::where('created_by', creatorId())->select('id', 'name')->get(),
+                'employees' => User::where('created_by', creatorId())->where('type', '!=', 'client')->select('id', 'name')->get(),
             ]);
         } else {
             return back()->with('error', __('Permission denied'));
@@ -452,7 +458,7 @@ class CandidateController extends Controller
                     $statusTemplates = [
                         0 => 'Application Received',
                         1 => 'Application Shortlisted',
-                        2 => 'Interview Scheduled',
+                        // 2 => 'Interview Scheduled', // Removed: Interviews should be scheduled via Interview module to fill details
                         3 => 'Offer Letter',
                         4 => 'Hired Notification',
                         5 => 'Application Rejected'
