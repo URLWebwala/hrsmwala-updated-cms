@@ -2,12 +2,15 @@ import { PaginatedData, ModalState, AuthContext } from '@/types/common';
 
 export interface Candidate {
     id: number;
-    name: string;
+    name?: string;
+    first_name?: string;
+    last_name?: string;
 }
 
 export interface JobPosting {
     id: number;
-    name: string;
+    name?: string;
+    title?: string;
 }
 
 export interface InterviewRound {
@@ -29,19 +32,23 @@ export interface Interview {
     meeting_link?: any;
     interview_mode?: string;
     interviewers?: string;
-    interviewer_ids?: string[];
+    interviewer_ids?: any;
     interviewer_names?: string;
-    status: boolean;
-    feedback_submitted?: boolean;
+    status: any;
+    feedback_submitted?: any;
     candidate_id?: number;
     candidate?: Candidate;
     job_id?: number;
     jobPosting?: JobPosting;
+    job_posting?: JobPosting;
     round_id?: number;
-    round_ids?: string[];
+    round_ids?: any;
+    round_names?: string;
     interviewRound?: InterviewRound;
+    interview_round?: InterviewRound;
     interview_type_id?: number;
     interviewType?: InterviewType;
+    interview_type?: InterviewType;
     created_at: string;
 }
 

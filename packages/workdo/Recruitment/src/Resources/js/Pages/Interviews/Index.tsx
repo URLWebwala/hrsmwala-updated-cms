@@ -430,8 +430,8 @@ export default function Index() {
                                                         <CalendarIcon className="h-5 w-5 text-primary" />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <h3 className="font-semibold text-sm leading-tight">{`${interview.candidate?.first_name || ''} ${interview.candidate?.last_name || ''}`.trim() || 'Unknown Candidate'}</h3>
-                                                        <p className="text-xs text-muted-foreground">{interview.jobPosting?.title || interview.job_posting?.title || '-'}</p>
+                                                        <h3 className="font-semibold text-sm leading-tight">{`${interview.candidate?.first_name || ''} ${interview.candidate?.last_name || ''}`.trim() || interview.candidate?.name || 'Unknown Candidate'}</h3>
+                                                        <p className="text-xs text-muted-foreground">{interview.jobPosting?.title || interview.job_posting?.title || interview.jobPosting?.name || '-'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 p-3 space-y-3">
@@ -442,40 +442,46 @@ export default function Index() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Round')}</p>
-                                                            <p className="font-medium">{interview.interviewRound?.name || interview.interview_round?.name || '-'}</p>
+                                                            <p className="font-medium truncate" title={interview.round_names}>{interview.round_names || interview.interviewRound?.name || interview.interview_round?.name || '-'}</p>
                                                         </div>
                                                         <div className="text-xs min-w-0">
-                                                            <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Type')}</p>
-                                                            <p className="font-medium">{interview.interviewType?.name || interview.interview_type?.name || '-'}</p>
+                                                            <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Interviewers')}</p>
+                                                            <p className="font-medium truncate" title={interview.interviewer_names}>{interview.interviewer_names || '-'}</p>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
+                                                            <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Mode')}</p>
+                                                            <p className="font-medium capitalize">{t(interview.interview_mode || '-')}</p>
+                                                        </div>
+                                                        <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Location')}</p>
-                                                            <p className={`font-medium ${
-                                                                interview.location === 'Online' ? 'text-blue-600' : 'text-gray-900'
-                                                            }`}>
+                                                            <p className={`font-medium truncate ${
+                                                                interview.location === 'Online' || interview.interview_mode === 'online' ? 'text-blue-600' : 'text-gray-900'
+                                                            }`} title={interview.location}>
                                                                 {interview.location || '-'}
                                                             </p>
                                                         </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Duration')}</p>
                                                             <p className="font-medium">{interview.duration ? `${interview.duration} min` : '-'}</p>
+                                                        </div>
+                                                        <div className="text-xs min-w-0">
+                                                            <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Status')}</p>
+                                                            <span className={`px-2 py-1 rounded-full text-xs inline-block ${statusInfo.class}`}>
+                                                                {t(statusInfo.label)}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="text-xs min-w-0">
                                                             <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Feedback')}</p>
-                                                            <span className={`px-2 py-1 rounded-full text-xs  ${
+                                                            <span className={`px-2 py-1 rounded-full text-xs inline-block ${
                                                                 isSubmitted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                                                             }`}>
                                                                 {t(isSubmitted ? 'Submitted' : 'Pending')}
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-xs min-w-0">
-                                                            <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Status')}</p>
-                                                            <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.class}`}>
-                                                                {t(statusInfo.label)}
                                                             </span>
                                                         </div>
                                                     </div>
