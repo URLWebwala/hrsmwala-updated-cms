@@ -122,13 +122,17 @@ export default function Index() {
             key: 'round_name',
             header: t('Round'),
             sortable: true,
-            render: (value: any, row: any) => row.interviewRound?.name || row.interview_round?.name || (row.round_id ? `Round ID: ${row.round_id}` : '-')
+            render: (value: any, row: any) => row.round_names || row.interviewRound?.name || row.interview_round?.name || (row.round_id ? `Round ID: ${row.round_id}` : '-')
         },
         {
-            key: 'interview_type_name',
-            header: t('Interview Type'),
+            key: 'interview_mode',
+            header: t('Interview Mode'),
             sortable: true,
-            render: (value: any, row: any) => row.interviewType?.name || row.interview_type?.name || (row.interview_type_id ? `Type ID: ${row.interview_type_id}` : '-')
+            render: (value: any, row: any) => (
+                <span className="capitalize">
+                    {t(row.interview_mode || '-')}
+                </span>
+            )
         },
         {
             key: 'scheduled_date',

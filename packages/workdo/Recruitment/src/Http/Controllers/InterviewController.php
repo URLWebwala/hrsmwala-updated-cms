@@ -104,13 +104,23 @@ class InterviewController extends Controller
                 ->paginate(request('per_page', 10))
                 ->withQueryString();
 
-            // Process interviewer names for each interview
+            // Process interviewer and round names for each interview
             $interviews->getCollection()->transform(function ($interview) {
+                // Interviewers
                 if ($interview->interviewer_ids) {
                     $interviewerIds = is_array($interview->interviewer_ids) ? $interview->interviewer_ids : json_decode($interview->interviewer_ids, true);
                     if ($interviewerIds) {
                         $interviewerNames = User::whereIn('id', $interviewerIds)->pluck('name')->toArray();
                         $interview->interviewer_names = implode(', ', $interviewerNames);
+                    }
+                }
+
+                // Rounds
+                if ($interview->round_ids) {
+                    $roundIds = is_array($interview->round_ids) ? $interview->round_ids : json_decode($interview->round_ids, true);
+                    if ($roundIds) {
+                        $roundNames = InterviewRound::whereIn('id', $roundIds)->pluck('name')->toArray();
+                        $interview->round_names = implode(', ', $roundNames);
                     }
                 }
                 return $interview;
@@ -138,6 +148,7 @@ class InterviewController extends Controller
                 'interviewrounds' => InterviewRound::where('created_by', creatorId())->where('status', 1)->select('id', 'name')->get(),
                 'interviewtypes' => InterviewType::where('created_by', creatorId())->where('is_active', 1)->select('id', 'name')->get(),
                 'employees' => User::emp()->where('created_by', creatorId())->select('id', 'name')->get(),
+                'company_address' => company_setting('company_address', creatorId()) ?: '',
             ]);
         } else {
             return back()->with('error', __('Permission denied'));
@@ -216,6 +227,13 @@ class InterviewController extends Controller
                 $companyCity = company_setting('company_city', creatorId()) ?: '';
                 $fullAddress = trim($companyAddress . ($companyCity ? ', ' . $companyCity : ''));
 
+                $interviewerNames = User::whereIn('id', $interview->interviewer_ids ?? [])->pluck('name')->toArray();
+                
+                $locationDisplay = $interview->location;
+                if ($interview->interview_mode == 'online') {
+                    $locationDisplay = $interview->meeting_link ?: '-';
+                }
+
                 $emailData = [
                     'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
                     'candidate_email' => $candidate->email,
@@ -223,9 +241,10 @@ class InterviewController extends Controller
                     'interview_date' => $interview->scheduled_date,
                     'interview_time' => $interview->scheduled_time,
                     'interview_mode' => ucfirst($interview->interview_mode),
-                    'interview_location' => $interview->location,
+                    'interview_location' => $locationDisplay,
                     'interview_round' => implode(', ', $rounds),
                     'interview_rounds' => implode(', ', $rounds),
+                    'interviewer_name' => implode(', ', $interviewerNames) ?: '-',
                     'meeting_link' => $interview->meeting_link ?? '-',
                     'tracking_id' => $candidate->tracking_id,
                     'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),

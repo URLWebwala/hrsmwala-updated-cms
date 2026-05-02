@@ -16,7 +16,7 @@ import axios from 'axios';
 import { useFormFields } from '@/hooks/useFormFields';
 
 export default function Create({ onSuccess, candidateId }: CreateInterviewProps) {
-    const { candidates, jobpostings, interviewrounds, interviewtypes, employees } = usePage<any>().props;
+    const { candidates, jobpostings, interviewrounds, interviewtypes, employees, company_address } = usePage<any>().props;
     const allCandidates = Array.isArray(candidates) ? candidates : (candidates?.data || []);
     const [filteredJobs, setFilteredJobs] = useState(jobpostings || []);
     const [filteredRounds, setFilteredRounds] = useState(interviewrounds || []);
@@ -27,7 +27,7 @@ export default function Create({ onSuccess, candidateId }: CreateInterviewProps)
         scheduled_date: '',
         scheduled_time: '',
         duration: '',
-        location: '',
+        location: company_address || '',
         meeting_link: '',
         interview_mode: 'offline',
         interviewer_ids: [] as string[],

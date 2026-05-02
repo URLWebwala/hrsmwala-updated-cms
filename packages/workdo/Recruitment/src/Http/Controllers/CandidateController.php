@@ -67,6 +67,7 @@ class CandidateController extends Controller
                 'interviewrounds' => InterviewRound::where('created_by', creatorId())->select('id', 'name')->get(),
                 'interviewtypes' => InterviewType::where('created_by', creatorId())->select('id', 'name')->get(),
                 'employees' => User::where('created_by', creatorId())->where('type', '!=', 'client')->select('id', 'name')->get(),
+                'company_address' => company_setting('company_address', creatorId()) ?: '',
             ]);
         } else {
             return back()->with('error', __('Permission denied'));
