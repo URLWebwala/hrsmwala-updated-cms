@@ -171,6 +171,9 @@ class EmailTemplate extends Model
 
             '{candidate_name}',
             '{candidate_email}',
+            '{candidate_phone}',
+            '{candidate_experience}',
+            '{candidate_skills}',
             '{job_title}',
             '{tracking_link}',
             '{rejection_note}',
@@ -292,6 +295,9 @@ class EmailTemplate extends Model
 
             'candidate_name' => '-',
             'candidate_email' => '-',
+            'candidate_phone' => '-',
+            'candidate_experience' => '-',
+            'candidate_skills' => '-',
             'job_title' => '-',
             'tracking_link' => '-',
             'rejection_note' => '-',
@@ -364,6 +370,10 @@ class EmailTemplate extends Model
         $arrValue['app_url']      = '<a href="' . env('APP_URL') . '" target="_blank">' . env('APP_URL') . '</a>';
 
 
-        return str_replace($arrVariable, array_values($arrValue), $content);
+        foreach ($arrVariable as $variable) {
+            $key = str_replace(['{', '}'], '', $variable);
+            $content = str_replace($variable, $arrValue[$key] ?? '-', $content);
+        }
+        return $content;
     }
 }
