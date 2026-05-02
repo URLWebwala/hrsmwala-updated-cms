@@ -631,7 +631,10 @@ class AttendanceController extends Controller
             $departmentId = $request->department_id;
             $employeeId = $request->employee_id;
 
-            $employeesQuery = Employee::has('user')->with('user')->where('created_by', creatorId());
+            $lastDayOfMonth = $monthYear->copy()->endOfMonth();
+            $employeesQuery = Employee::has('user')->with('user')
+                ->where('created_by', creatorId())
+                ->where('date_of_joining', '<=', $lastDayOfMonth->toDateString());
             if ($branchId) $employeesQuery->where('branch_id', $branchId);
             if ($departmentId) $employeesQuery->where('department_id', $departmentId);
             if ($employeeId) $employeesQuery->where('user_id', $employeeId);
