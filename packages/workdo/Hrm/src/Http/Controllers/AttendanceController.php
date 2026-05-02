@@ -371,8 +371,18 @@ class AttendanceController extends Controller
         $totalHour = $totalHourData['total_working_hours'];
 
 
+        $tz = $this->getCompanyTimezone();
+        $clockInTime = $this->parseClockDateTime($clockIn, $tz);
+        $dayOfWeek = $clockInTime->dayOfWeek;
+
         // Step 2: Calculate overtime
         $standardHours = ($shift && $this->getWorkingHour($shift) > 0) ? $this->getWorkingHour($shift) : 8;
+
+        $saturdayType = getCompanyAllSetting(creatorId())['saturday_type'] ?? 'full';
+        if ($dayOfWeek == 6 && $saturdayType == 'half') {
+            $standardHours = $standardHours / 2;
+        }
+
         $overtimeHours = max(0, round($totalHour - $standardHours, 2));
 
         // Step 3: Calculate overtime amount
@@ -652,6 +662,8 @@ class AttendanceController extends Controller
             $daysInMonth = $monthYear->daysInMonth;
             $workingDays = getCompanyAllSetting(creatorId())['working_days'] ?? '';
             $workingDaysArray = json_decode($workingDays, true) ?? [];
+            $saturdayType = getCompanyAllSetting(creatorId())['saturday_type'] ?? 'full';
+            $saturdayWorkingWeeks = json_decode(getCompanyAllSetting(creatorId())['saturday_working_weeks'] ?? '[1, 2, 3, 4, 5]', true);
             $today = Carbon::now($timezone)->startOfDay();
             $attendanceData = [];
 
@@ -680,7 +692,12 @@ class AttendanceController extends Controller
                             $status = 'P';
                             $totalPresent++;
                         } elseif ($empDayAtt->status === 'half day') {
-                            $status = 'H';
+                            if ($dateObj->dayOfWeek == 6 && $saturdayType == 'half') {
+                                $status = 'P';
+                                $totalPresent++;
+                            } else {
+                                $status = 'H';
+                            }
                         } else {
                             $status = 'A';
                         }
@@ -702,6 +719,12 @@ class AttendanceController extends Controller
                             ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
                             ->isNotEmpty();
                         $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
+                        if ($dateObj->dayOfWeek == 6) { // Saturday
+                            $weekOfMonth = ceil($dateObj->day / 7);
+                            if (!in_array($weekOfMonth, $saturdayWorkingWeeks)) {
+                                $isWorkingDay = false;
+                            }
+                        }
 
                         if ($onLeave) {
                             $status = 'L';
