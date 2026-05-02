@@ -682,9 +682,16 @@ class AttendanceController extends Controller
                     $status = '';
                     $empDayAtt = isset($allAttendances[$employee->user_id][$day]) ? $allAttendances[$employee->user_id][$day]->first() : null;
 
-                    if ($dateObj->gt($today)) {
-                        $employeeAttendance[$day] = '';
-                        continue;
+                    // Pre-calculate holiday and working day status
+                    $isHoliday = $holidays
+                        ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
+                        ->isNotEmpty();
+                    $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
+                    if ($dateObj->dayOfWeek == 6) { // Saturday
+                        $weekOfMonth = ceil($dateObj->day / 7);
+                        if (!in_array($weekOfMonth, $saturdayWorkingWeeks)) {
+                            $isWorkingDay = false;
+                        }
                     }
                     
                     if ($empDayAtt) {
@@ -715,23 +722,17 @@ class AttendanceController extends Controller
                             ->filter(fn($l) => $dateObj->betweenIncluded(Carbon::parse($l->start_date, $timezone)->startOfDay(), Carbon::parse($l->end_date, $timezone)->startOfDay()))
                             ->isNotEmpty();
 
-                        $isHoliday = $holidays
-                            ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
-                            ->isNotEmpty();
-                        $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
-                        if ($dateObj->dayOfWeek == 6) { // Saturday
-                            $weekOfMonth = ceil($dateObj->day / 7);
-                            if (!in_array($weekOfMonth, $saturdayWorkingWeeks)) {
-                                $isWorkingDay = false;
-                            }
-                        }
-
                         if ($onLeave) {
                             $status = 'L';
-                            $totalLeave++;
+                            if ($dateObj->lte($today)) {
+                                $totalLeave++;
+                            }
                         } elseif ($isHoliday || !$isWorkingDay) {
                             // Official Leave / non-working day
                             $status = 'O';
+                        } elseif ($dateObj->gt($today)) {
+                            // Future working day - leave empty
+                            $status = '';
                         } else {
                             // Mark absent when no attendance record on working day
                             $status = 'A';
