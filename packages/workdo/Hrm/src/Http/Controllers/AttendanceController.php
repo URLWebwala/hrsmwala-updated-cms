@@ -621,7 +621,7 @@ class AttendanceController extends Controller
             $departmentId = $request->department_id;
             $employeeId = $request->employee_id;
 
-            $employeesQuery = Employee::with('user')->where('created_by', creatorId());
+            $employeesQuery = Employee::has('user')->with('user')->where('created_by', creatorId());
             if ($branchId) $employeesQuery->where('branch_id', $branchId);
             if ($departmentId) $employeesQuery->where('department_id', $departmentId);
             if ($employeeId) $employeesQuery->where('user_id', $employeeId);
@@ -720,7 +720,7 @@ class AttendanceController extends Controller
 
                 $attendanceData[] = [
                     'id' => $employee->id,
-                    'name' => $employee->user->name,
+                    'name' => $employee->user->name ?? '',
                     'attendance' => $employeeAttendance
                 ];
             }
