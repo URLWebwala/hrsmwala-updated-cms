@@ -44,6 +44,12 @@ export default function Create({ onSuccess, candidateId }: CreateInterviewProps)
     const calendarFields = useFormFields('createCalendarSyncField', data, setData, errors, 'create', t, 'Recruitment');
 
     useEffect(() => {
+        if (!data.location && company_address) {
+            setData('location', company_address);
+        }
+    }, [company_address]);
+
+    useEffect(() => {
         if (data.candidate_id) {
             // Get interview rounds for candidate
             axios.get(route('recruitment.candidates.interview-rounds', data.candidate_id))
