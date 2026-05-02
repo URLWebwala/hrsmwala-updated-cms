@@ -17,6 +17,7 @@ import { useFormFields } from '@/hooks/useFormFields';
 
 export default function Create({ onSuccess, candidateId }: CreateInterviewProps) {
     const { candidates, jobpostings, interviewrounds, interviewtypes, employees } = usePage<any>().props;
+    const allCandidates = Array.isArray(candidates) ? candidates : (candidates?.data || []);
     const [filteredJobs, setFilteredJobs] = useState(jobpostings || []);
     const [filteredRounds, setFilteredRounds] = useState(interviewrounds || []);
     const [filteredInterviewTypes, setFilteredInterviewTypes] = useState(interviewtypes || []);
@@ -54,7 +55,7 @@ export default function Create({ onSuccess, candidateId }: CreateInterviewProps)
                 });
 
             // Check if candidate's job is remote work
-            const selectedCandidate = candidates.find((c: any) => c.id.toString() === data.candidate_id);
+            const selectedCandidate = allCandidates.find((c: any) => c.id.toString() === data.candidate_id);
             if (selectedCandidate) {
                 axios.get(route('recruitment.candidates.job-location', data.candidate_id))
                     .then(response => {
@@ -93,9 +94,9 @@ export default function Create({ onSuccess, candidateId }: CreateInterviewProps)
                             <SelectValue placeholder={t('Select Candidate')} />
                         </SelectTrigger>
                         <SelectContent>
-                            {candidates.map((item: any) => (
+                            {allCandidates.map((item: any) => (
                                 <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
+                                    {item.name || `${item.first_name || ''} ${item.last_name || ''}`.trim()}
                                 </SelectItem>
                             ))}
                         </SelectContent>
