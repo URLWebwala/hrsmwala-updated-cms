@@ -18,7 +18,7 @@ class StoreInterviewRequest extends FormRequest
             'round_id' => 'nullable|exists:interview_rounds,id',
             'round_ids' => 'required|array',
             'round_ids.*' => 'exists:interview_rounds,id',
-            'interview_type_id' => 'required|exists:interview_types,id',
+            'interview_type_id' => 'nullable|exists:interview_types,id',
             'scheduled_date' => 'required|date|after_or_equal:today',
             'scheduled_time' => 'required',
             'duration' => 'required|integer|min:1',

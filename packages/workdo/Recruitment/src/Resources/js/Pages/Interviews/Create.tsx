@@ -141,33 +141,7 @@ export default function Create({ onSuccess, candidateId }: CreateInterviewProps)
                     )}
                 </div>
 
-                <div>
-                    <Label htmlFor="interview_type_id" required>{t('Interview Type')} </Label>
-                    <Select value={data.interview_type_id?.toString() || ''} onValueChange={(value) => setData('interview_type_id', value)} required>
-                        <SelectTrigger>
-                            <SelectValue placeholder={t('Select Interview Type')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {interviewtypes.map((item: any) => (
-                                <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <InputError message={errors.interview_type_id} />
-                    {(!interviewtypes || interviewtypes.length === 0) && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                            {t('Create interview type here. ')}
-                            <a
-                                href={route('recruitment.interview-types.index')}
-                                className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                            >
-                                {t('interview type')}
-                            </a>.
-                        </p>
-                    )}
-                </div>
+
 
                 <div>
                     <Label required>{t('Scheduled Date')}</Label>
