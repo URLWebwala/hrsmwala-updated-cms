@@ -140,11 +140,9 @@ export default function Index() {
                                         className="w-8 h-8 rounded-full object-cover"
                                     />
                                 ) : (
-                                    <img
-                                        src={getImagePath('avatar.png')}
-                                        alt="Avatar"
-                                        className="w-8 h-8 rounded-full object-cover"
-                                    />
+                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border">
+                                        <UsersIcon className="h-4 w-4 text-primary" />
+                                    </div>
                                 )}
                             </TooltipTrigger>
                             <TooltipContent>
