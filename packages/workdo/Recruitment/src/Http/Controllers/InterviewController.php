@@ -193,8 +193,8 @@ class InterviewController extends Controller
                 if (!empty($validated['location'])) {
                     $interview->location = $validated['location'];
                 } else {
-                    $companySettings = getCompanyAllSetting(creatorId());
-                    $interview->location = $companySettings['company_address'] ?? $companySettings['address'] ?? 'Office';
+                    $companyAddress = company_setting('company_address', creatorId());
+                    $interview->location = $companyAddress ?: 'Office';
                 }
                 $interview->meeting_link = null;
             }
@@ -225,12 +225,13 @@ class InterviewController extends Controller
                     'interview_mode' => ucfirst($interview->interview_mode),
                     'interview_location' => $interview->location,
                     'interview_round' => implode(', ', $rounds),
+                    'interview_rounds' => implode(', ', $rounds),
                     'meeting_link' => $interview->meeting_link ?? '-',
                     'tracking_id' => $candidate->tracking_id,
                     'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),
                     'company_name' => $companyName,
                     'company_email' => $companyEmail,
-                    'company_address' => $fullAddress,
+                    'company_address' => $companyAddress ?: $fullAddress,
                 ];
 
                 \App\Models\EmailTemplate::sendEmailTemplate(
@@ -343,6 +344,13 @@ class InterviewController extends Controller
                 ->where('created_by', creatorId())
                 ->select('id', 'name')
                 ->get();
+
+            // Fallback to all rounds if no job-specific rounds found
+            if ($rounds->isEmpty()) {
+                $rounds = InterviewRound::where('created_by', creatorId())
+                    ->select('id', 'name')
+                    ->get();
+            }
 
             return response()->json($rounds);
         } else {

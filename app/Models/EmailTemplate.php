@@ -187,6 +187,7 @@ class EmailTemplate extends Model
             '{interview_mode}',
             '{interview_location}',
             '{interview_round}',
+            '{interview_rounds}',
             '{meeting_link}',
             '{status}',
 
