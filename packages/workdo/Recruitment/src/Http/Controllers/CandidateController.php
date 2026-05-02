@@ -443,31 +443,43 @@ class CandidateController extends Controller
             $candidate->save();
 
             // Send Status Change email
-            if ($oldStatus != $candidate->status && company_setting('email_fromAddress', creatorId())) {
-                $statusList = [
-                    0 => 'Applied',
-                    1 => 'Screening',
-                    2 => 'Interview',
-                    3 => 'Offer',
-                    4 => 'Hired',
-                    5 => 'Rejected'
-                ];
+            if ($oldStatus != $candidate->status) {
+                try {
+                    $statusList = [
+                        0 => 'Applied',
+                        1 => 'Screening',
+                        2 => 'Interview',
+                        3 => 'Offer',
+                        4 => 'Hired',
+                        5 => 'Rejected'
+                    ];
 
-                $emailData = [
-                    'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
-                    'candidate_email' => $candidate->email,
-                    'job_title' => $candidate->job_posting ? $candidate->job_posting->title : '-',
-                    'status' => $statusList[$candidate->status] ?? 'Unknown',
-                    'tracking_id' => $candidate->tracking_id,
-                    'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),
-                ];
+                    $companyName = company_setting('company_name', creatorId()) ?: 'Our Company';
+                    $companyEmail = company_setting('company_email', creatorId()) ?: '';
+                    $companyAddress = company_setting('company_address', creatorId()) ?: '';
+                    $companyCity = company_setting('company_city', creatorId()) ?: '';
+                    $fullAddress = trim($companyAddress . ($companyCity ? ', ' . $companyCity : ''));
 
-                \App\Models\EmailTemplate::sendEmailTemplate(
-                    'Application Status Changed',
-                    [$candidate->email],
-                    $emailData,
-                    creatorId()
-                );
+                    $emailData = [
+                        'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
+                        'candidate_email' => $candidate->email,
+                        'job_title' => $candidate->job_posting ? $candidate->job_posting->title : '-',
+                        'status' => $statusList[$candidate->status] ?? 'Unknown',
+                        'tracking_id' => $candidate->tracking_id,
+                        'company_name' => $companyName,
+                        'company_email' => $companyEmail,
+                        'company_address' => $fullAddress,
+                    ];
+
+                    \App\Models\EmailTemplate::sendEmailTemplate(
+                        'Application Status Changed',
+                        [$candidate->email],
+                        $emailData,
+                        creatorId()
+                    );
+                } catch (\Exception $e) {
+                    \Log::error('Recruitment Status Email Error: ' . $e->getMessage());
+                }
             }
 
             return redirect()->back()->with('success', __('Status updated successfully'));

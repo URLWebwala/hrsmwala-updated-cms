@@ -207,9 +207,15 @@ class InterviewController extends Controller
             $interview->save();
 
             // Send Interview Scheduled email
-            if (company_setting('email_fromAddress', creatorId())) {
+            try {
                 $rounds = \Workdo\Recruitment\Models\InterviewRound::whereIn('id', $interview->round_ids)->pluck('name')->toArray();
                 
+                $companyName = company_setting('company_name', creatorId()) ?: 'Our Company';
+                $companyEmail = company_setting('company_email', creatorId()) ?: '';
+                $companyAddress = company_setting('company_address', creatorId()) ?: '';
+                $companyCity = company_setting('company_city', creatorId()) ?: '';
+                $fullAddress = trim($companyAddress . ($companyCity ? ', ' . $companyCity : ''));
+
                 $emailData = [
                     'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
                     'candidate_email' => $candidate->email,
@@ -220,7 +226,11 @@ class InterviewController extends Controller
                     'interview_location' => $interview->location,
                     'interview_round' => implode(', ', $rounds),
                     'meeting_link' => $interview->meeting_link ?? '-',
-                    'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug]),
+                    'tracking_id' => $candidate->tracking_id,
+                    'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),
+                    'company_name' => $companyName,
+                    'company_email' => $companyEmail,
+                    'company_address' => $fullAddress,
                 ];
 
                 \App\Models\EmailTemplate::sendEmailTemplate(
@@ -229,6 +239,8 @@ class InterviewController extends Controller
                     $emailData,
                     creatorId()
                 );
+            } catch (\Exception $e) {
+                \Log::error('Recruitment Interview Email Error: ' . $e->getMessage());
             }
 
             CreateInterview::dispatch($request, $interview);

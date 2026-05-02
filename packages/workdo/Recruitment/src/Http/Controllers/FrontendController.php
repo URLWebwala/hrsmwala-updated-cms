@@ -959,8 +959,14 @@ class FrontendController extends Controller
             SubmitApplication::dispatch($request, $candidate);
 
             // Send Application Received email
-            if (company_setting('email_fromAddress', $userId)) {
+            try {
                 $trackingLink = route('recruitment.frontend.careers.track.form', ['userSlug' => $userSlug]);
+                
+                $companyName = company_setting('company_name', $userId) ?: 'Our Company';
+                $companyEmail = company_setting('company_email', $userId) ?: '';
+                $companyAddress = company_setting('company_address', $userId) ?: '';
+                $companyCity = company_setting('company_city', $userId) ?: '';
+                $fullAddress = trim($companyAddress . ($companyCity ? ', ' . $companyCity : ''));
 
                 $emailData = [
                     'candidate_name' => $firstName . ' ' . $lastName,
@@ -968,6 +974,10 @@ class FrontendController extends Controller
                     'job_title' => $job->title,
                     'tracking_id' => $trackingId,
                     'tracking_link' => $trackingLink,
+                    'tracking_url' => $trackingLink,
+                    'company_name' => $companyName,
+                    'company_email' => $companyEmail,
+                    'company_address' => $fullAddress,
                 ];
 
                 \App\Models\EmailTemplate::sendEmailTemplate(
@@ -976,6 +986,8 @@ class FrontendController extends Controller
                     $emailData,
                     $userId
                 );
+            } catch (\Exception $e) {
+                \Log::error('Recruitment Application Email Error: ' . $e->getMessage());
             }
 
             return response()->json([

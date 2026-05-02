@@ -177,6 +177,9 @@ class EmailTemplate extends Model
             '{salary}',
             '{start_date}',
             '{download_url}',
+            '{company_name}',
+            '{company_email}',
+            '{company_address}',
 
             '{interview_date}',
             '{interview_time}',
