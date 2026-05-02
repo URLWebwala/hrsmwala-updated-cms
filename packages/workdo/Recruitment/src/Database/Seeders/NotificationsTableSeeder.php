@@ -14,11 +14,17 @@ class NotificationsTableSeeder extends Seeder
         
         // email notification
         $notifications = [
-            'Application Received'
+            'Application Received',
+            'Application Status Changed',
+            'Interview Scheduled',
+            'Offer Letter',
         ];
         
         $permissions = [
-            'manage-recruitment'
+            'manage-recruitment',
+            'manage-recruitment',
+            'manage-recruitment',
+            'manage-recruitment',
         ];
         
         foreach($notifications as $key => $n) {

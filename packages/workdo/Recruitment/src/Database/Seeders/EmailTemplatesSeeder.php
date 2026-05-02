@@ -16,6 +16,8 @@ class EmailTemplatesSeeder extends Seeder
 
         $emailTemplate = [
             'Application Received',
+            'Application Status Changed',
+            'Interview Scheduled',
             'Offer Letter',
         ];
 
