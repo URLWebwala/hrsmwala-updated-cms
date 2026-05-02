@@ -720,6 +720,13 @@ class FrontendController extends Controller
             return null;
         }
 
+        $rounds = [];
+        if (!empty($interview->round_ids)) {
+            $rounds = \Workdo\Recruitment\Models\InterviewRound::whereIn('id', $interview->round_ids)->pluck('name')->toArray();
+        } elseif ($interview->interviewRound) {
+            $rounds = [$interview->interviewRound->name];
+        }
+
         return [
             'id' => $interview->id,
             'date' => $interview->scheduled_date,
@@ -727,7 +734,9 @@ class FrontendController extends Controller
             'duration' => $interview->duration,
             'location' => $interview->location,
             'meeting_link' => $interview->meeting_link,
-            'round' => $interview->interviewRound ? $interview->interviewRound->name : 'Interview',
+            'mode' => $interview->interview_mode ?? 'offline',
+            'round' => implode(', ', $rounds) ?: 'Interview',
+            'rounds' => $rounds,
             'type' => $interview->interviewType ? $interview->interviewType->name : 'General',
             'status' => $interview->status
         ];

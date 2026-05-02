@@ -46,7 +46,9 @@ interface InterviewDetails {
     duration: string;
     location: string;
     meeting_link: string;
+    mode: string;
     round: string;
+    rounds: string[];
     type: string;
     status: string;
 }
@@ -93,7 +95,7 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
     const [updatingOffer, setUpdatingOffer] = useState<number | null>(null);
 
     // Fallback application data when no real data is available
-    const fallbackApplication = {
+    const fallbackApplication: ApplicationStatus = {
         currentStatus: 0,
         timeline: [
             {
@@ -101,35 +103,40 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
                 title: t('Application Submitted'),
                 description: t('Your application has been successfully submitted'),
                 date: new Date().toISOString().split('T')[0],
-                completed: true
+                completed: true,
+                details: null
             },
             {
                 status: 1,
                 title: t('Screening'),
                 description: t('Your application is being screened by our team'),
                 date: null,
-                completed: false
+                completed: false,
+                details: null
             },
             {
                 status: 2,
                 title: t('Interview'),
                 description: t('Interview process will be scheduled'),
                 date: null,
-                completed: false
+                completed: false,
+                details: null
             },
             {
                 status: 3,
                 title: t('Offer'),
                 description: t('Job offer decision pending'),
                 date: null,
-                completed: false
+                completed: false,
+                details: null
             },
             {
                 status: 4,
                 title: t('Final Decision'),
                 description: t('We will notify you of our final decision'),
                 date: null,
-                completed: false
+                completed: false,
+                details: null
             }
         ]
     };
@@ -238,6 +245,7 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
             userSlug={userSlug}
             brandSettings={brandSettings}
             currentPage="track"
+            title={`${t('Application Status')} - ${trackingId}`}
         >
             <Head title={`${t('Application Status')} - ${trackingId}`} />
 
@@ -323,7 +331,14 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
                                                 {/* Interview Details */}
                                                 {step.status === 2 && step.details && (
                                                     <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                                        <h4 className="text-sm font-medium text-purple-900 mb-2">{t('Interview Details')}</h4>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h4 className="text-sm font-medium text-purple-900">{t('Interview Details')}</h4>
+                                                            {step.details.mode && (
+                                                                <Badge className={step.details.mode === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800'}>
+                                                                    {step.details.mode === 'online' ? t('Online') : t('Offline')}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                         <div className="space-y-2 text-sm text-purple-800">
                                                             <div className="flex items-center">
                                                                 <Calendar className="h-4 w-4 mr-2" />
@@ -333,13 +348,13 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
                                                                 <Clock className="h-4 w-4 mr-2" />
                                                                 <span>{t('Duration')}: {step.details.duration} {t('minutes')}</span>
                                                             </div>
-                                                            {step.details.location && (
+                                                            {step.details.mode === 'offline' && step.details.location && (
                                                                 <div className="flex items-center">
                                                                     <MapPin className="h-4 w-4 mr-2" />
                                                                     <span>{step.details.location}</span>
                                                                 </div>
                                                             )}
-                                                            {step.details.meeting_link && (
+                                                            {step.details.mode === 'online' && step.details.meeting_link && (
                                                                 <div className="flex items-center">
                                                                     <Video className="h-4 w-4 mr-2" />
                                                                     <a href={step.details.meeting_link} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800 underline">
@@ -347,9 +362,9 @@ export default function TrackingDetails({ trackingId, userSlug, brandSettings, j
                                                                     </a>
                                                                 </div>
                                                             )}
-                                                            <div className="flex items-center justify-between">
+                                                            <div className="flex items-center justify-between pt-2 border-t border-purple-100">
                                                                 <div className="text-xs text-purple-600">
-                                                                    {step.details.round} - {step.details.type}
+                                                                    <span className="font-semibold">{t('Rounds')}:</span> {step.details.round}
                                                                 </div>
                                                                 <div className="text-xs">
                                                                     {step.details.status === '0' && (

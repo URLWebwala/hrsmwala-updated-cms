@@ -178,26 +178,58 @@ class InterviewController extends Controller
             $interview = new Interview();
             $interview->candidate_id = $validated['candidate_id'];
             $interview->job_id = $candidate->job_id;
-            $interview->round_id = $validated['round_id'];
+            $interview->round_ids = $validated['round_ids'];
+            $interview->round_id = $validated['round_ids'][0] ?? null; // For backward compatibility
             $interview->interview_type_id = $validated['interview_type_id'];
             $interview->scheduled_date = $validated['scheduled_date'];
             $interview->scheduled_time = $validated['scheduled_time'];
             $interview->duration = $validated['duration'];
+            $interview->interview_mode = $validated['interview_mode'];
 
-            // Set location to 'Online' for remote work jobs
-            if ($candidate->job_posting && $candidate->job_posting->location && $candidate->job_posting->location->remote_work) {
+            if ($validated['interview_mode'] == 'online') {
                 $interview->location = 'Online';
+                $interview->meeting_link = $validated['meeting_link'];
             } else {
-                $interview->location = $validated['location'];
+                if (!empty($validated['location'])) {
+                    $interview->location = $validated['location'];
+                } else {
+                    $companySettings = getCompanyAllSetting(creatorId());
+                    $interview->location = $companySettings['company_address'] ?? $companySettings['address'] ?? 'Office';
+                }
+                $interview->meeting_link = null;
             }
 
-            $interview->meeting_link = $validated['meeting_link'];
             $interview->interviewer_ids = $validated['interviewer_ids'] ?? [];
             $interview->status = $validated['status'];
 
             $interview->creator_id = Auth::id();
             $interview->created_by = creatorId();
             $interview->save();
+
+            // Send Interview Scheduled email
+            if (company_setting('email_fromAddress', creatorId())) {
+                $rounds = \Workdo\Recruitment\Models\InterviewRound::whereIn('id', $interview->round_ids)->pluck('name')->toArray();
+                
+                $emailData = [
+                    'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
+                    'candidate_email' => $candidate->email,
+                    'job_title' => $candidate->job_posting ? $candidate->job_posting->title : '-',
+                    'interview_date' => $interview->scheduled_date,
+                    'interview_time' => $interview->scheduled_time,
+                    'interview_mode' => ucfirst($interview->interview_mode),
+                    'interview_location' => $interview->location,
+                    'interview_round' => implode(', ', $rounds),
+                    'meeting_link' => $interview->meeting_link ?? '-',
+                    'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug]),
+                ];
+
+                \App\Models\EmailTemplate::sendEmailTemplate(
+                    'Interview Scheduled',
+                    [$candidate->email],
+                    $emailData,
+                    creatorId()
+                );
+            }
 
             CreateInterview::dispatch($request, $interview);
 
@@ -241,13 +273,27 @@ class InterviewController extends Controller
 
             $interview->candidate_id = $validated['candidate_id'];
             $interview->job_id = $candidate->job_id;
-            $interview->round_id = $validated['round_id'];
+            $interview->round_ids = $validated['round_ids'];
+            $interview->round_id = $validated['round_ids'][0] ?? null;
             $interview->interview_type_id = $validated['interview_type_id'];
             $interview->scheduled_date = $validated['scheduled_date'];
             $interview->scheduled_time = $validated['scheduled_time'];
             $interview->duration = $validated['duration'];
-            $interview->location = $validated['location'];
-            $interview->meeting_link = $validated['meeting_link'];
+            $interview->interview_mode = $validated['interview_mode'];
+
+            if ($validated['interview_mode'] == 'online') {
+                $interview->location = 'Online';
+                $interview->meeting_link = $validated['meeting_link'];
+            } else {
+                if (!empty($validated['location'])) {
+                    $interview->location = $validated['location'];
+                } else {
+                    $companySettings = getCompanyAllSetting(creatorId());
+                    $interview->location = $companySettings['company_address'] ?? $companySettings['address'] ?? $interview->location;
+                }
+                $interview->meeting_link = null;
+            }
+
             $interview->interviewer_ids = $validated['interviewer_ids'] ?? [];
             $interview->status = $validated['status'];
 

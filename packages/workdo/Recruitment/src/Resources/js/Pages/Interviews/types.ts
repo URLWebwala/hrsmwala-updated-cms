@@ -27,6 +27,7 @@ export interface Interview {
     duration?: number;
     location?: string;
     meeting_link?: any;
+    interview_mode?: string;
     interviewers?: string;
     interviewer_ids?: string[];
     interviewer_names?: string;
@@ -37,6 +38,7 @@ export interface Interview {
     job_id?: number;
     jobPosting?: JobPosting;
     round_id?: number;
+    round_ids?: string[];
     interviewRound?: InterviewRound;
     interview_type_id?: number;
     interviewType?: InterviewType;
@@ -49,12 +51,14 @@ export interface CreateInterviewFormData {
     duration: string;
     location: string;
     meeting_link: any;
+    interview_mode: string;
     interviewer_ids: string[];
-    status: boolean;
+    status: string;
     feedback_submitted: boolean;
     candidate_id: string;
     job_id: string;
     round_id: string;
+    round_ids: string[];
     interview_type_id: string;
     sync_to_google_calendar: boolean;
 }
@@ -65,12 +69,14 @@ export interface EditInterviewFormData {
     duration: string;
     location: string;
     meeting_link: any;
+    interview_mode: string;
     interviewer_ids: string[];
-    status: boolean;
+    status: string;
     feedback_submitted: boolean;
     candidate_id: string;
     job_id: string;
     round_id: string;
+    round_ids: string[];
     interview_type_id: string;
 }
 

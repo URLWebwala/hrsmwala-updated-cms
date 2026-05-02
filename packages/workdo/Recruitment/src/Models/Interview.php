@@ -20,6 +20,7 @@ class Interview extends Model
         'duration',
         'location',
         'meeting_link',
+        'interview_mode',
         'interviewers',
         'interviewer_ids',
         'status',
@@ -27,6 +28,7 @@ class Interview extends Model
         'candidate_id',
         'job_id',
         'round_id',
+        'round_ids',
         'interview_type_id',
         'creator_id',
         'created_by',
@@ -37,7 +39,8 @@ class Interview extends Model
         return [
             'status' => 'string',
             'feedback_submitted' => 'boolean',
-            'interviewer_ids' => 'array'
+            'interviewer_ids' => 'array',
+            'round_ids' => 'array'
         ];
     }
 

@@ -178,6 +178,14 @@ class EmailTemplate extends Model
             '{start_date}',
             '{download_url}',
 
+            '{interview_date}',
+            '{interview_time}',
+            '{interview_mode}',
+            '{interview_location}',
+            '{interview_round}',
+            '{meeting_link}',
+            '{status}',
+
             '{invoice_id}',
             '{invoice_tenant}',
             '{invoice_status}',
@@ -284,6 +292,14 @@ class EmailTemplate extends Model
             'salary' => '-',
             'start_date' => '-',
             'download_url' => '-',
+
+            'interview_date' => '-',
+            'interview_time' => '-',
+            'interview_mode' => '-',
+            'interview_location' => '-',
+            'interview_round' => '-',
+            'meeting_link' => '-',
+            'status' => '-',
 
             'invoice_id' => '-',
             'invoice_tenant' => '-',

@@ -439,14 +439,15 @@ class AttendanceController extends Controller
                 ->where('created_by', creatorId())
                 ->get();
 
-            if ($pendingClockOuts) {
+            if ($pendingClockOuts->isNotEmpty()) {
                 foreach ($pendingClockOuts as $pendingClockOut) {
+                    /** @var Attendance $pendingClockOut */
                     $employee = Employee::where('user_id', $employeeId)->where('created_by', creatorId())->first();
                     $shift = $employee ? Shift::find($employee->shift) : null;
 
                     if ($shift) {
-                        $clockInDate = \Carbon\Carbon::parse($pendingClockOut->clock_in)->format('Y-m-d');
-                        $shiftEndDateTime = \Carbon\Carbon::parse($clockInDate . ' ' . $shift->end_time);
+                        $clockInDate = Carbon::parse($pendingClockOut->clock_in)->format('Y-m-d');
+                        $shiftEndDateTime = Carbon::parse($clockInDate . ' ' . $shift->end_time);
 
                         // For night shifts, shift end is next day
                         if ($shift->end_time < $shift->start_time) {

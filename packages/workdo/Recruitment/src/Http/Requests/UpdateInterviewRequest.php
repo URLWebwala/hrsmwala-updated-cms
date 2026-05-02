@@ -15,13 +15,16 @@ class UpdateInterviewRequest extends FormRequest
     {
         return [
             'candidate_id' => 'required|exists:candidates,id',
-            'round_id' => 'required|exists:interview_rounds,id',
+            'round_id' => 'nullable|exists:interview_rounds,id',
+            'round_ids' => 'required|array',
+            'round_ids.*' => 'exists:interview_rounds,id',
             'interview_type_id' => 'required|exists:interview_types,id',
             'scheduled_date' => 'required|date|after_or_equal:today',
             'scheduled_time' => 'required',
             'duration' => 'required|integer|min:1',
+            'interview_mode' => 'required|in:online,offline',
             'location' => 'nullable|max:255',
-            'meeting_link' => 'nullable',
+            'meeting_link' => 'required_if:interview_mode,online|nullable',
             'interviewer_ids' => 'nullable|array',
             'interviewer_ids.*' => 'exists:users,id',
             'status' => 'required',

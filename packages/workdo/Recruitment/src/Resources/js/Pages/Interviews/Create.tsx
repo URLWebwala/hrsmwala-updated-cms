@@ -28,11 +28,15 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
         duration: '',
         location: '',
         meeting_link: '',
+        interview_mode: 'offline',
         interviewer_ids: [] as string[],
         status: '0',
         candidate_id: '',
+        job_id: '',
         round_id: '',
+        round_ids: [] as string[],
         interview_type_id: '',
+        feedback_submitted: false,
         sync_to_google_calendar: false,
     });
 
@@ -50,7 +54,7 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
                 });
 
             // Check if candidate's job is remote work
-            const selectedCandidate = candidates.find(c => c.id.toString() === data.candidate_id);
+            const selectedCandidate = candidates.find((c: any) => c.id.toString() === data.candidate_id);
             if (selectedCandidate) {
                 axios.get(route('recruitment.candidates.job-location', data.candidate_id))
                     .then(response => {
@@ -110,26 +114,19 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
                     )}
                 </div>
 
-                <div>
-                    <Label htmlFor="round_id" required>{t('Interview Round')} </Label>
-                    <Select
-                        value={data.round_id?.toString() || ''}
-                        onValueChange={(value) => setData('round_id', value)}
-                        disabled={!data.candidate_id}
-                        required
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={data.candidate_id ? t('Select Interview Round') : t('Select Candidate first')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {filteredRounds?.map((item: any) => (
-                                <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <InputError message={errors.round_id} />
+                <div className={!data.candidate_id ? 'opacity-50 cursor-not-allowed' : ''}>
+                    <Label htmlFor="round_ids" required>{t('Interview Round')} </Label>
+                    <MultiSelectEnhanced
+                        options={filteredRounds?.map((item: any) => ({
+                            value: item.id.toString(),
+                            label: item.name
+                        })) || []}
+                        value={data.round_ids}
+                        onValueChange={(value) => setData('round_ids', value)}
+                        placeholder={data.candidate_id ? t('Select Interview Rounds') : t('Select Candidate first')}
+                        searchable={true}
+                    />
+                    <InputError message={errors.round_ids} />
                     {(!filteredRounds || filteredRounds.length === 0) && (
                         <p className="text-xs text-muted-foreground mt-1">
                             {t('Create interview round here. ')}
@@ -210,7 +207,21 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
                     <InputError message={errors.duration} />
                 </div>
 
-                {!isRemoteJob && (
+                <div>
+                    <Label htmlFor="interview_mode" required>{t('Interview Mode')}</Label>
+                    <Select value={data.interview_mode} onValueChange={(value) => setData('interview_mode', value)} required>
+                        <SelectTrigger>
+                            <SelectValue placeholder={t('Select Mode')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="online">{t('Online')}</SelectItem>
+                            <SelectItem value="offline">{t('Offline')}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError message={errors.interview_mode} />
+                </div>
+
+                {data.interview_mode === 'offline' && (
                     <div>
                         <Label htmlFor="location">{t('Location')}</Label>
                         <Input
@@ -218,24 +229,26 @@ export default function Create({ onSuccess }: CreateInterviewProps) {
                             type="text"
                             value={data.location}
                             onChange={(e) => setData('location', e.target.value)}
-                            placeholder={t('Enter Location')}
+                            placeholder={t('Enter Location (Leave empty to use office address)')}
                         />
                         <InputError message={errors.location} />
                     </div>
                 )}
 
-                <div>
-                    <Label htmlFor="meeting_link">{t('Meeting Link')}</Label>
-                    <Input
-                        id="meeting_link"
-                        type="text"
-                        value={data.meeting_link}
-                        onChange={(e) => setData('meeting_link', e.target.value)}
-                        placeholder={t('Enter Meeting Link')}
-
-                    />
-                    <InputError message={errors.meeting_link} />
-                </div>
+                {data.interview_mode === 'online' && (
+                    <div>
+                        <Label htmlFor="meeting_link" required>{t('Meeting Link')}</Label>
+                        <Input
+                            id="meeting_link"
+                            type="text"
+                            value={data.meeting_link}
+                            onChange={(e) => setData('meeting_link', e.target.value)}
+                            placeholder={t('Enter Meeting Link')}
+                            required
+                        />
+                        <InputError message={errors.meeting_link} />
+                    </div>
+                )}
 
                 <div>
                     <Label>{t('Interviewers')}</Label>

@@ -438,8 +438,37 @@ class CandidateController extends Controller
                 'status' => 'required|in:0,1,2,3,4,5'
             ]);
 
+            $oldStatus = $candidate->status;
             $candidate->status = $validated['status'];
             $candidate->save();
+
+            // Send Status Change email
+            if ($oldStatus != $candidate->status && company_setting('email_fromAddress', creatorId())) {
+                $statusList = [
+                    0 => 'Applied',
+                    1 => 'Screening',
+                    2 => 'Interview',
+                    3 => 'Offer',
+                    4 => 'Hired',
+                    5 => 'Rejected'
+                ];
+
+                $emailData = [
+                    'candidate_name' => $candidate->first_name . ' ' . $candidate->last_name,
+                    'candidate_email' => $candidate->email,
+                    'job_title' => $candidate->job_posting ? $candidate->job_posting->title : '-',
+                    'status' => $statusList[$candidate->status] ?? 'Unknown',
+                    'tracking_id' => $candidate->tracking_id,
+                    'tracking_link' => route('recruitment.frontend.careers.track.form', ['userSlug' => Auth::user()->slug ?? 'company']),
+                ];
+
+                \App\Models\EmailTemplate::sendEmailTemplate(
+                    'Application Status Changed',
+                    [$candidate->email],
+                    $emailData,
+                    creatorId()
+                );
+            }
 
             return redirect()->back()->with('success', __('Status updated successfully'));
         } else {
