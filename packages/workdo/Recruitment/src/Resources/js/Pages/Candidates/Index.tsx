@@ -6,7 +6,7 @@ import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Plus, Edit as EditIcon, Trash2, Eye, Users as UsersIcon, Download, FileImage, ChevronDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -566,20 +566,24 @@ export default function Index() {
             />
 
             <Dialog open={rejectionModal.isOpen} onOpenChange={(open) => setRejectionModal(prev => ({ ...prev, isOpen: open }))}>
-                <div className="p-6">
-                    <h2 className="text-lg font-semibold mb-4">{t('Rejection Reason')}</h2>
-                    <p className="text-sm text-muted-foreground mb-4">{t('Please provide a reason for rejecting this candidate. This will be sent to the candidate.')}</p>
-                    <textarea
-                        className="w-full min-h-[100px] p-2 border rounded-md mb-4"
-                        placeholder={t('Enter rejection reason...')}
-                        value={rejectionModal.reason}
-                        onChange={(e) => setRejectionModal(prev => ({ ...prev, reason: e.target.value }))}
-                    />
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setRejectionModal({ isOpen: false, candidateId: null, reason: '' })}>{t('Cancel')}</Button>
-                        <Button variant="destructive" onClick={() => rejectionModal.candidateId && updateStatus(rejectionModal.candidateId, '5', rejectionModal.reason)}>{t('Reject Candidate')}</Button>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('Rejection Reason')}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                        <p className="text-sm text-muted-foreground">{t('Please provide a reason for rejecting this candidate. This will be sent to the candidate via email.')}</p>
+                        <textarea
+                            className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder={t('Enter rejection reason...')}
+                            value={rejectionModal.reason}
+                            onChange={(e) => setRejectionModal(prev => ({ ...prev, reason: e.target.value }))}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setRejectionModal({ isOpen: false, candidateId: null, reason: '' })}>{t('Cancel')}</Button>
+                            <Button variant="destructive" onClick={() => rejectionModal.candidateId && updateStatus(rejectionModal.candidateId, '5', rejectionModal.reason)}>{t('Reject Candidate')}</Button>
+                        </div>
                     </div>
-                </div>
+                </DialogContent>
             </Dialog>
         </AuthenticatedLayout>
     );
