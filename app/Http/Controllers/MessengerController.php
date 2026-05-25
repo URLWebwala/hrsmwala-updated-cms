@@ -222,10 +222,21 @@ class MessengerController extends Controller
         
         $users = $userQuery->select('id', 'name', 'email', 'avatar', 'last_seen_at')
             ->get()
-            ->map(function ($chatUser) {
+            ->map(function ($chatUser) use ($user) {
                 $cacheKey = "user_online_{$chatUser->id}";
                 $isOnline = Cache::has($cacheKey);
-                
+
+                $lastMessage = Message::where(function ($query) use ($user, $chatUser) {
+                    $query->where('from_id', $user->id)->where('to_id', $chatUser->id);
+                })->orWhere(function ($query) use ($user, $chatUser) {
+                    $query->where('from_id', $chatUser->id)->where('to_id', $user->id);
+                })->latest()->first();
+
+                $unreadCount = Message::where('from_id', $chatUser->id)
+                    ->where('to_id', $user->id)
+                    ->where('seen', 0)
+                    ->count();
+
                 return [
                     'id' => $chatUser->id,
                     'name' => $chatUser->name,
@@ -233,6 +244,14 @@ class MessengerController extends Controller
                     'avatar' => $chatUser->avatar,
                     'is_online' => $isOnline,
                     'last_seen_at' => $chatUser->last_seen_at,
+                    'last_message' => $lastMessage ? [
+                        'id' => $lastMessage->id,
+                        'body' => $lastMessage->body,
+                        'from_id' => $lastMessage->from_id,
+                        'to_id' => $lastMessage->to_id,
+                        'created_at' => optional($lastMessage->created_at)->toISOString(),
+                    ] : null,
+                    'unread_count' => $unreadCount,
                 ];
             });
             

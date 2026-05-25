@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { UserX, Download } from "lucide-react";
 import { useFlashMessages } from "@/hooks/useFlashMessages";
 import HeaderNotifications from "@/components/header-notifications";
+import FloatingChatWidget from "@/components/floating-chat-widget";
 
 function AuthenticatedLayoutContent({
     header,
@@ -153,6 +154,7 @@ function AuthenticatedLayoutContent({
             </SidebarInset>
         </SidebarProvider>
         <CookieConsent settings={adminAllSetting || {}} />
+        <FloatingChatWidget />
         </div>
         </>
     );
