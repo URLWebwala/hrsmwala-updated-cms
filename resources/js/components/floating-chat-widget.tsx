@@ -15,8 +15,11 @@ import {
     Paperclip,
     Loader2,
     User as UserIcon,
+    Bot,
+    Smile,
 } from 'lucide-react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
+import { EmojiPicker } from '@/components/ui/emoji-picker';
 import { cn } from '@/lib/utils';
 
 interface ChatUser {
@@ -69,9 +72,11 @@ function formatTimeHM(iso: string): string {
 
 export default function FloatingChatWidget() {
     const { t } = useTranslation();
-    const pageProps = usePage().props as any;
+    const page = usePage();
+    const pageProps = page.props as any;
     const auth = pageProps?.auth;
-    const currentUrl = (typeof window !== 'undefined') ? window.location.pathname : '';
+    // Use Inertia's reactive page URL so the visibility check updates on SPA navigation.
+    const currentUrl = page.url || (typeof window !== 'undefined' ? window.location.pathname : '');
 
     const permissions: string[] = useMemo(() => {
         const p = auth?.user?.permissions;
@@ -83,7 +88,15 @@ export default function FloatingChatWidget() {
         return permissions.includes('manage-messenger') || auth?.user?.type === 'superadmin';
     }, [auth?.user?.id, auth?.user?.type, permissions]);
 
-    const isOnMessengerPage = currentUrl.startsWith('/messenger');
+    const isOnMessengerPage = currentUrl.includes('/messenger');
+    // Show the floating chat-bot ONLY on dashboard pages. We detect dashboards by the
+    // Inertia component name (every dashboard renders a component whose name contains
+    // "dashboard" — e.g. `dashboard`, `SuperAdminDashboard`, `Hrm/Dashboard/company-dashboard`,
+    // `Taskly/Dashboard/CompanyDashboard`, `Lead/Dashboard/UserDashboard`,
+    // `Pos/Dashboard/Index`, `SupportTicket/Dashboard/ClientDashboard`, etc.).
+    // This is more reliable than URL matching since module dashboards use varied URLs
+    // (/hrm, /crm, /pos, /account, /recruitment, /project/dashboard, /dashboard/support-ticket).
+    const isOnDashboardPage = /dashboard/i.test(page.component || '');
 
     const [isOpen, setIsOpen] = useState(false);
     const [view, setView] = useState<'list' | 'chat'>('list');
@@ -96,6 +109,7 @@ export default function FloatingChatWidget() {
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [sending, setSending] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +139,14 @@ export default function FloatingChatWidget() {
         if (typeof document === 'undefined') return '';
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }, []);
+
+    const chatBgUrl = useMemo(() => {
+        const prefix = (pageProps as any)?.imageUrlPrefix as string | undefined;
+        const base = prefix
+            ? prefix.replace(/storage\/media\/?$/, '')
+            : (typeof window !== 'undefined' ? `${window.location.origin}/` : '/');
+        return `${base.replace(/\/$/, '')}/assets/images/chat-bg.png`;
+    }, [pageProps]);
 
     const apiHeaders = useMemo(
         () => ({
@@ -295,6 +317,7 @@ export default function FloatingChatWidget() {
         setMessages([]);
         setMessageText('');
         setSelectedFile(null);
+        setShowEmojiPicker(false);
     };
 
     const handleSend = async (e?: React.FormEvent) => {
@@ -330,6 +353,7 @@ export default function FloatingChatWidget() {
         const fileToSend = selectedFile;
         setMessageText('');
         setSelectedFile(null);
+        setShowEmojiPicker(false);
         setSending(true);
 
         try {
@@ -364,7 +388,7 @@ export default function FloatingChatWidget() {
         }
     };
 
-    if (!canUseMessenger || isOnMessengerPage) {
+    if (!canUseMessenger || isOnMessengerPage || !isOnDashboardPage) {
         return null;
     }
 
@@ -381,7 +405,7 @@ export default function FloatingChatWidget() {
         <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-3 print:hidden" dir="ltr">
             {isOpen && (
                 <div className="w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-6rem)] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200">
-                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
                         <div className="flex items-center gap-2 min-w-0">
                             {view === 'chat' && selectedUser ? (
                                 <>
@@ -474,7 +498,7 @@ export default function FloatingChatWidget() {
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         placeholder={t('Search users...') as string}
-                                        className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                        className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
                                     />
                                 </div>
                             </div>
@@ -500,7 +524,7 @@ export default function FloatingChatWidget() {
                                             <div className="relative shrink-0">
                                                 <Avatar className="h-10 w-10">
                                                     {u.avatar && <AvatarImage src={avatarUrl(u)} alt={u.name} />}
-                                                    <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs">
+                                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
                                                         {u.name?.charAt(0)?.toUpperCase() || '?'}
                                                     </AvatarFallback>
                                                 </Avatar>
@@ -522,7 +546,7 @@ export default function FloatingChatWidget() {
                                                         {u.last_message?.body || t('No messages yet')}
                                                     </span>
                                                     {(u.unread_count || 0) > 0 && (
-                                                        <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-semibold">
+                                                        <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
                                                             {u.unread_count}
                                                         </span>
                                                     )}
@@ -536,7 +560,15 @@ export default function FloatingChatWidget() {
                     )}
 
                     {view === 'chat' && selectedUser && (
-                        <div className="flex flex-col flex-1 min-h-0 bg-gray-50 dark:bg-gray-950">
+                        <div
+                            className="flex flex-col flex-1 min-h-0"
+                            style={{
+                                backgroundImage: `url(${chatBgUrl})`,
+                                backgroundRepeat: 'repeat',
+                                backgroundSize: '320px',
+                                backgroundColor: '#efe7dd',
+                            }}
+                        >
                             <div className="flex-1 overflow-y-auto p-3 space-y-2">
                                 {messagesLoading ? (
                                     <div className="flex items-center justify-center h-full text-sm text-gray-400">
@@ -560,7 +592,7 @@ export default function FloatingChatWidget() {
                                                     className={cn(
                                                         'max-w-[78%] px-3 py-2 rounded-2xl text-sm shadow-sm',
                                                         mine
-                                                            ? 'bg-indigo-600 text-white rounded-br-md'
+                                                            ? 'bg-primary text-primary-foreground rounded-br-md'
                                                             : 'bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 rounded-bl-md border border-gray-100 dark:border-gray-700',
                                                     )}
                                                 >
@@ -574,7 +606,7 @@ export default function FloatingChatWidget() {
                                                             rel="noreferrer"
                                                             className={cn(
                                                                 'flex items-center gap-1 mt-1 text-xs underline',
-                                                                mine ? 'text-white/90' : 'text-indigo-600',
+                                                                mine ? 'text-primary-foreground/90' : 'text-primary',
                                                             )}
                                                         >
                                                             <Paperclip className="h-3 w-3" />
@@ -598,8 +630,17 @@ export default function FloatingChatWidget() {
                             </div>
                             <form
                                 onSubmit={handleSend}
-                                className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-2 py-2"
+                                className="relative border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-2 py-2"
                             >
+                                {showEmojiPicker && (
+                                    <EmojiPicker
+                                        onEmojiSelect={(emoji) => {
+                                            setMessageText((prev) => prev + emoji);
+                                            setShowEmojiPicker(false);
+                                        }}
+                                        className="absolute bottom-full right-2 mb-2 z-30"
+                                    />
+                                )}
                                 {selectedFile && (
                                     <div className="mb-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-between text-xs">
                                         <span className="truncate flex items-center gap-1">
@@ -619,7 +660,7 @@ export default function FloatingChatWidget() {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="p-2 text-gray-400 hover:text-indigo-600"
+                                        className="p-2 text-gray-400 hover:text-primary"
                                         aria-label={t('Attach file')}
                                     >
                                         <Paperclip className="h-4 w-4" />
@@ -639,13 +680,25 @@ export default function FloatingChatWidget() {
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
                                         placeholder={t('Type a message...') as string}
-                                        className="flex-1 px-3 py-2 text-sm rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                        className="flex-1 px-3 py-2 text-sm rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/40"
                                         disabled={sending}
                                     />
                                     <button
+                                        type="button"
+                                        onClick={() => setShowEmojiPicker((p) => !p)}
+                                        className={cn(
+                                            'p-2 transition-colors',
+                                            showEmojiPicker ? 'text-primary' : 'text-gray-400 hover:text-primary',
+                                        )}
+                                        aria-label={t('Insert emoji') as string}
+                                        title={t('Insert emoji') as string}
+                                    >
+                                        <Smile className="h-4 w-4" />
+                                    </button>
+                                    <button
                                         type="submit"
                                         disabled={sending || (!messageText.trim() && !selectedFile)}
-                                        className="p-2 rounded-full bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-700 transition-colors"
+                                        className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
                                         aria-label={t('Send')}
                                     >
                                         {sending ? (
@@ -665,17 +718,40 @@ export default function FloatingChatWidget() {
                 type="button"
                 onClick={() => setIsOpen((prev) => !prev)}
                 className={cn(
-                    'relative h-14 w-14 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500/30',
+                    'group relative h-16 w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30',
                     isOpen
                         ? 'bg-gray-700 text-white hover:bg-gray-800'
-                        : 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white',
+                        : 'chat-bot-fab bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground',
                 )}
                 aria-label={isOpen ? (t('Close chat') as string) : (t('Open chat') as string)}
                 title={isOpen ? (t('Close chat') as string) : (t('Open chat') as string)}
             >
-                {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+                {/* Pulse rings (only when closed) */}
+                {!isOpen && (
+                    <>
+                        <span className="pointer-events-none absolute inset-0 rounded-full bg-primary/40 animate-chat-bot-ping" />
+                        <span className="pointer-events-none absolute inset-0 rounded-full bg-primary/30 animate-chat-bot-ping [animation-delay:1s]" />
+                    </>
+                )}
+
+                {/* Icon: bot face when closed, X when open */}
+                {isOpen ? (
+                    <X className="h-6 w-6 relative z-10" />
+                ) : (
+                    <span className="relative z-10 animate-chat-bot-bob inline-flex items-center justify-center">
+                        {/* Antenna */}
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                            <span className="h-2 w-0.5 bg-primary-foreground/80 rounded-full" />
+                            <span className="h-1.5 w-1.5 -mt-0.5 rounded-full bg-yellow-300 shadow-[0_0_6px_rgba(253,224,71,0.9)] animate-chat-bot-blink" />
+                        </span>
+                        {/* Bot face */}
+                        <Bot className="h-7 w-7 transition-transform duration-300 group-hover:rotate-[-6deg]" strokeWidth={2.2} />
+                    </span>
+                )}
+
+                {/* Unread badge */}
                 {!isOpen && totalUnread > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white z-20 animate-bounce">
                         {totalUnread > 99 ? '99+' : totalUnread}
                     </span>
                 )}

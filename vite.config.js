@@ -45,6 +45,11 @@ export default defineConfig({
         },
     },
     build: {
+        // Keep existing build/ folder during rebuilds so Laravel can keep serving
+        // the previous manifest.json while a new one is being written. Without this,
+        // Vite wipes public/build first and any page refresh during the ~15s build
+        // window throws "Vite manifest not found".
+        emptyOutDir: false,
         rollupOptions: {
             output: {
                 manualChunks: {

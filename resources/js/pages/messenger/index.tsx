@@ -80,6 +80,14 @@ export default function MessengerPage() {
     const selectedUserId = pageProps.selectedUserId;
     const auth = pageProps.auth;
 
+    const chatBgUrl = useMemo(() => {
+        const prefix = (pageProps as any)?.imageUrlPrefix as string | undefined;
+        const base = prefix
+            ? prefix.replace(/storage\/media\/?$/, '')
+            : (typeof window !== 'undefined' ? `${window.location.origin}/` : '/');
+        return `${base.replace(/\/$/, '')}/assets/images/chat-bg.png`;
+    }, [pageProps]);
+
     const filteredUsers = useMemo(() => {
         const userList = usersState.length > 0 ? usersState : users;
         const searchLower = searchQuery.toLowerCase();
@@ -864,10 +872,10 @@ export default function MessengerPage() {
                                 style={{
                                     scrollbarWidth: 'none',
                                     msOverflowStyle: 'none',
-                                    backgroundImage: 'url(/assets/images/chat-bg.png)',
+                                    backgroundImage: `url(${chatBgUrl})`,
                                     backgroundRepeat: 'repeat',
                                     backgroundSize: '400px',
-                                    backgroundColor: '#efe7dd' // Classic WhatsApp light beige base
+                                    backgroundColor: '#efe7dd'
                                 } as React.CSSProperties}
                             >
                                 {/* Light overlay for better contrast */}
