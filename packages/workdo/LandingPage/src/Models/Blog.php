@@ -4,6 +4,7 @@ namespace Workdo\LandingPage\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Blog extends Model
 {
@@ -46,6 +47,25 @@ class Blog extends Model
             return $this->image;
         }
 
-        return rtrim(url('/'), '/') . '/storage/' . ltrim($this->image, '/');
+        $path = ltrim((string) $this->image, '/');
+
+        if (str_starts_with($path, 'storage/')) {
+            return rtrim(url('/'), '/') . '/' . $path;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        if (!str_contains($path, '/')) {
+            foreach (['blogs/', 'media/'] as $prefix) {
+                $candidatePath = $prefix . $path;
+                if (Storage::disk('public')->exists($candidatePath)) {
+                    return Storage::disk('public')->url($candidatePath);
+                }
+            }
+        }
+
+        return rtrim(url('/'), '/') . '/storage/' . $path;
     }
 }

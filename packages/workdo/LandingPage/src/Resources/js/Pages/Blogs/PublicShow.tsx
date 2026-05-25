@@ -13,8 +13,11 @@ import {
 
 export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
-    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://hrmswala.com';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : `${siteUrl}/blog/${blog.slug}`;
+    const ogImage = blog.image_url || `${siteUrl}/logo.png`;
+    const seoTitle = blog.meta_title || blog.title;
+    const seoDescription = blog.meta_description || blogPlainExcerpt(blog.content || '', 160);
     
     const themeColors = landingPageSettings?.config_sections?.colors;
     const { primary, secondary } = resolveThemeColors(themeColors);
@@ -49,12 +52,19 @@ export default function PublicShow({ blog, relatedBlogs, landingPageSettings }: 
 
     return (
         <div className="min-h-screen bg-white text-gray-900">
-            <Head title={blog.meta_title || blog.title}>
-                <meta name="description" content={blog.meta_description || blogPlainExcerpt(blog.content || '', 160)} />
+            <Head title={seoTitle}>
+                <meta name="description" content={seoDescription} />
+                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
                 <meta name="robots" content="index,follow" />
                 <meta property="og:type" content="article" />
-                <meta property="og:title" content={blog.title} />
-                {blog.image_url && <meta property="og:image" content={blog.image_url} />}
+                <meta property="og:title" content={seoTitle} />
+                <meta property="og:description" content={seoDescription} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImage} />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={seoTitle} />
+                <meta name="twitter:description" content={seoDescription} />
+                <meta name="twitter:image" content={ogImage} />
             </Head>
             
             <Header settings={landingPageSettings} />

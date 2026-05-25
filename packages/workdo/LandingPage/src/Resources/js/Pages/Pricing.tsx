@@ -70,10 +70,38 @@ export default function Pricing(props: PricingProps) {
         { q: t('Do I need a credit card to start?'), a: t('No credit card is required for the free trial or free plan. Start exploring HRMswala immediately.') },
         { q: t('What payment methods do you accept?'), a: t('We accept all major credit cards, PayPal, and local payment gateways depending on your region.') },
     ];
+    const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://hrmswala.com';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://hrmswala.com/pricing';
+    const ogImage = `${siteOrigin}/logo.png`;
+    const seoTitle = 'HRMSwala Pricing | Affordable HRM & Payroll Plans';
+    const seoDescription = 'Explore affordable HRMSwala pricing plans for HR management, payroll, attendance tracking, and employee management software.';
+    const faqSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.q,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: faq.a,
+            },
+        })),
+    };
 
     return (
         <div className="bg-[#fcfcff] font-sans text-gray-900 overflow-x-hidden">
-            <Head title="Pricing" >
+            <Head title={seoTitle}>
+                <meta name="description" content={seoDescription} />
+                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
+                <meta property="og:title" content={seoTitle} />
+                <meta property="og:description" content={seoDescription} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImage} />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={seoTitle} />
+                <meta name="twitter:description" content={seoDescription} />
+                <meta name="twitter:image" content={ogImage} />
+                <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             
@@ -95,7 +123,7 @@ export default function Pricing(props: PricingProps) {
                                         display: 'inline-block'
                                     }}
                                 >
-                                    {t('Flexible Pricing')} {t('for Growing Teams')}
+                                    {t('HRMSwala Pricing Plans')}
                                 </span>
                             </h1>
                             <p className="text-sm md:text-base text-gray-400 max-w-2xl mx-auto font-medium">

@@ -41,8 +41,8 @@
         <script type="application/ld+json">
         [
           {
-            "@@context": "https://schema.org",
-            "@@type": "Organization",
+            "@context": "https://schema.org",
+            "@type": "Organization",
             "name": "{{ $landingSettings->company_name ?? 'HRMswala' }}",
             "url": "https://hrmswala.com",
             "logo": "{{ asset('logo.png') }}",
@@ -52,73 +52,73 @@
               "https://twitter.com/hrmswala"
             ],
             "contactPoint": {
-              "@@type": "ContactPoint",
+              "@type": "ContactPoint",
               "telephone": "{{ $landingSettings->contact_phone ?? '' }}",
               "contactType": "customer service",
               "email": "{{ $landingSettings->contact_email ?? '' }}"
             }
           },
           {
-            "@@context": "https://schema.org",
-            "@@type": "SoftwareApplication",
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
             "name": "HRMswala SaaS",
             "operatingSystem": "Web, Windows, macOS, Linux, Mobile",
             "applicationCategory": "BusinessApplication",
             "description": "{{ $metaDesc }}",
             "offers": {
-              "@@type": "Offer",
+              "@type": "Offer",
               "price": "0",
               "priceCurrency": "USD",
               "availability": "https://schema.org/InStock"
             },
             "aggregateRating": {
-              "@@type": "AggregateRating",
+              "@type": "AggregateRating",
               "ratingValue": "4.9",
               "ratingCount": "1024"
             }
           },
           {
-            "@@context": "https://schema.org",
-            "@@type": "WebSite",
+            "@context": "https://schema.org",
+            "@type": "WebSite",
             "name": "HRMswala SaaS",
             "url": "https://hrmswala.com",
             "potentialAction": {
-              "@@type": "SearchAction",
-              "target": "https://hrmswala.com/blogs?search={search_term_string}",
+              "@type": "SearchAction",
+              "target": "https://hrmswala.com/blog?search={search_term_string}",
               "query-input": "required name=search_term_string"
             }
           },
           {
-            "@@context": "https://schema.org",
-            "@@type": "ItemList",
+            "@context": "https://schema.org",
+            "@type": "ItemList",
             "name": "Main Navigation",
             "itemListElement": [
               {
-                "@@type": "SiteNavigationElement",
+                "@type": "SiteNavigationElement",
                 "position": 1,
                 "name": "Home",
                 "url": "https://hrmswala.com/"
               },
               {
-                "@@type": "SiteNavigationElement",
+                "@type": "SiteNavigationElement",
                 "position": 2,
                 "name": "About Us",
                 "url": "https://hrmswala.com/page/about-us"
               },
               {
-                "@@type": "SiteNavigationElement",
+                "@type": "SiteNavigationElement",
                 "position": 3,
                 "name": "Help Center",
                 "url": "https://hrmswala.com/page/help-center"
               },
               {
-                "@@type": "SiteNavigationElement",
+                "@type": "SiteNavigationElement",
                 "position": 4,
                 "name": "Blog",
                 "url": "https://hrmswala.com/blog"
               },
               {
-                "@@type": "SiteNavigationElement",
+                "@type": "SiteNavigationElement",
                 "position": 5,
                 "name": "Pricing",
                 "url": "https://hrmswala.com/pricing"

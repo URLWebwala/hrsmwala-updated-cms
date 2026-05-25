@@ -90,8 +90,11 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
     const whatsappHref = whatsappNumber
         ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
         : null;
-    const seoTitle = 'HRMswala - All-in-One HRM, CRM, Payroll and Business Management Software';
-    const seoDescription = 'HRMswala helps businesses manage HR, payroll, attendance, CRM, accounting, projects, and operations in one secure cloud platform.';
+    const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://hrmswala.com';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://hrmswala.com';
+    const ogImage = `${siteOrigin}/logo.png`;
+    const seoTitle = 'HRMSwala - HRM, Payroll & Employee Management Software';
+    const seoDescription = 'HRMSwala is a cloud-based HRM and payroll software to manage employees, attendance, leave, payroll, and business operations efficiently.';
     const seoKeywords = 'hrm software, crm software, payroll software, attendance management, business management software, saas platform, hrmswala';
 
     const renderSeoHighlight = () => (
@@ -204,10 +207,15 @@ export default function Landing({ settings, blogs = [] }: LandingProps) {
             <Head title={seoTitle}>
                 <meta name="description" content={seoDescription} />
                 <meta name="keywords" content={seoKeywords} />
+                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
                 <meta property="og:title" content={seoTitle} />
                 <meta property="og:description" content={seoDescription} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImage} />
+                <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={seoTitle} />
                 <meta name="twitter:description" content={seoDescription} />
+                <meta name="twitter:image" content={ogImage} />
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
             

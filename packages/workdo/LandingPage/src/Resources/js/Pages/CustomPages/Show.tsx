@@ -34,6 +34,21 @@ interface ShowProps {
 export default function Show({ page, landingPageSettings }: ShowProps) {
     const { adminAllSetting } = usePage().props as any;
     const isAboutUs = page.slug === 'about-us' || page.title.toLowerCase().includes('about');
+    const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://hrmswala.com';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : `${siteOrigin}/page/${page.slug}`;
+    const ogImage = `${siteOrigin}/logo.png`;
+    const seoBySlug: Record<string, { title: string; description: string }> = {
+        'about-us': {
+            title: 'About HRMSwala | HRM & Payroll Software Company',
+            description: 'Learn about HRMSwala, a cloud HRM and payroll software company helping businesses manage employees, attendance, payroll, and HR operations.',
+        },
+        'help-center': {
+            title: 'Help Center | HRMSwala Support & Guides',
+            description: 'Get support, guides, and answers for HRMSwala HRM and payroll software including employee management, payroll, and attendance features.',
+        },
+    };
+    const seoTitle = seoBySlug[page.slug]?.title || page.meta_title || page.title;
+    const seoDescription = seoBySlug[page.slug]?.description || page.meta_description || 'Learn more about HRMSwala products, services, and platform capabilities.';
     
     const colors = landingPageSettings?.config_sections?.colors || {
         primary: '#3b82f6',
@@ -43,8 +58,17 @@ export default function Show({ page, landingPageSettings }: ShowProps) {
 
     return (
         <div className="min-h-screen bg-[#fcfcff] font-sans">
-            <Head title={page.meta_title || page.title}>
-                <meta name="description" content={page.meta_description} />
+            <Head title={seoTitle}>
+                <meta name="description" content={seoDescription} />
+                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
+                <meta property="og:title" content={seoTitle} />
+                <meta property="og:description" content={seoDescription} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImage} />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={seoTitle} />
+                <meta name="twitter:description" content={seoDescription} />
+                <meta name="twitter:image" content={ogImage} />
             </Head>
             
             <Header settings={landingPageSettings} />

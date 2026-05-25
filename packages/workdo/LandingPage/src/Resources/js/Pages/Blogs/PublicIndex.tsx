@@ -11,10 +11,11 @@ import {
 
 export default function PublicIndex({ blogs, landingPageSettings }: any) {
     const { adminAllSetting } = usePage().props as any;
-    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const blogIndexTitle = 'HRMswala Blog';
-    const blogIndexDescription = 'Read our latest business and product blogs.';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://hrmswala.com';
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : `${siteUrl}/blog`;
+    const ogImage = `${siteUrl}/logo.png`;
+    const blogIndexTitle = 'HRMSwala Blog | HR, Payroll & Employee Management Tips';
+    const blogIndexDescription = 'Read HRMSwala blogs about HR management, payroll processing, employee attendance, productivity, and business growth strategies.';
     const robotsContent = blogs?.current_page > 1 ? 'noindex,follow' : 'index,follow';
     const themeColors = landingPageSettings?.config_sections?.colors;
     const theme = resolveThemeColors(themeColors);
@@ -22,18 +23,20 @@ export default function PublicIndex({ blogs, landingPageSettings }: any) {
 
     return (
         <div className="min-h-screen bg-white text-gray-900">
-            <Head title="Blog">
+            <Head title={blogIndexTitle}>
                 <meta name="description" content={blogIndexDescription} />
                 <meta name="keywords" content="business blogs, HRM, CRM, payroll, attendance, productivity" />
                 <meta name="robots" content={robotsContent} />
                 <meta property="og:type" content="website" />
                 <meta property="og:title" content={blogIndexTitle} />
                 <meta property="og:description" content={blogIndexDescription} />
-                {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
-                {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImage} />
+                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={blogIndexTitle} />
                 <meta name="twitter:description" content={blogIndexDescription} />
+                <meta name="twitter:image" content={ogImage} />
             </Head>
             <Header settings={landingPageSettings} />
             
