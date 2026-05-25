@@ -9,33 +9,97 @@
             $landingSettings = \Workdo\LandingPage\Models\LandingPageSetting::first();
             $metaDesc = $landingSettings->meta_description ?? 'The Complete Cloud HRM Platform for Modern Enterprises. Manage employees, attendance, payroll, and more with HRMswala SaaS.';
             $metaKeywords = $landingSettings->meta_keywords ?? 'HRM SaaS, Cloud Payroll, Attendance Tracker, Employee Management, HRMswala, Business ERP';
+
+            // Build canonical URL reliably (works even when url()->current() returns base URL behind proxies)
+            $appBase = rtrim(config('app.url', 'https://hrmswala.com'), '/');
+            try { $reqPath = request()->path(); } catch (\Throwable $e) { $reqPath = '/'; }
+            if (empty($reqPath) || $reqPath === '/') {
+                $reqPath = '';
+            } else {
+                $reqPath = '/' . ltrim($reqPath, '/');
+            }
+            // Fallback to $_SERVER['REQUEST_URI'] if request()->path() returns empty
+            if ($reqPath === '' && !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] !== '/') {
+                $raw = strtok($_SERVER['REQUEST_URI'], '?');
+                if (!empty($raw) && $raw !== '/') {
+                    $reqPath = '/' . ltrim($raw, '/');
+                }
+            }
+            $currentFullUrl = $reqPath === '' ? $appBase . '/' : $appBase . $reqPath;
+            $defaultOgImage = asset('logo.png');
+            $appName = config('app.name', 'HRMswala SaaS');
+
+            // Per-page SEO defaults (so non-JS crawlers see correct title/description on initial HTML)
+            $routePath = ltrim($reqPath, '/');
+            $seoTitle = null;
+            $seoDescription = $metaDesc;
+            if ($routePath === '' || $routePath === '/') {
+                $seoTitle = 'HRMSwala - HRM, Payroll & Employee Management Software';
+                $seoDescription = 'HRMSwala is a cloud-based HRM and payroll software to manage employees, attendance, leave, payroll, and business operations efficiently.';
+            } elseif ($routePath === 'pricing') {
+                $seoTitle = 'HRMSwala Pricing | Affordable HRM & Payroll Plans';
+                $seoDescription = 'Explore affordable HRMSwala pricing plans for HR management, payroll, attendance tracking, and employee management software.';
+            } elseif ($routePath === 'blog') {
+                $seoTitle = 'HRMSwala Blog | HR, Payroll & Employee Management Tips';
+                $seoDescription = 'Read HRMSwala blogs about HR management, payroll processing, employee attendance, productivity, and business growth strategies.';
+            } elseif (str_starts_with($routePath, 'blog/')) {
+                $blogSlug = substr($routePath, 5);
+                try {
+                    $blogPost = \Workdo\LandingPage\Models\Blog::where('slug', $blogSlug)->first();
+                    if ($blogPost) {
+                        $seoTitle = $blogPost->meta_title ?: $blogPost->title;
+                        $seoDescription = $blogPost->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($blogPost->description ?? $blogPost->content ?? ''), 155);
+                    }
+                } catch (\Throwable $e) {
+                    // Silent fallback to defaults if model not available
+                }
+            } elseif ($routePath === 'page/about-us') {
+                $seoTitle = 'About HRMSwala | HRM & Payroll Software Company';
+                $seoDescription = 'HRMSwala is a leading cloud-based HRM and payroll software company helping businesses streamline employee, attendance and workforce management.';
+            } elseif ($routePath === 'page/help-center') {
+                $seoTitle = 'Help Center | HRMSwala Support & Guides';
+                $seoDescription = 'Find answers, guides, and support for HRMSwala HR and payroll software. Get help with onboarding, attendance, payroll, and more.';
+            } elseif (str_starts_with($routePath, 'page/')) {
+                $pageSlug = substr($routePath, 5);
+                try {
+                    $customPage = \Workdo\LandingPage\Models\CustomPage::where('slug', $pageSlug)->first();
+                    if ($customPage) {
+                        $seoTitle = $customPage->meta_title ?: $customPage->title;
+                        $seoDescription = $customPage->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($customPage->content ?? ''), 155);
+                    }
+                } catch (\Throwable $e) {
+                    // Silent fallback
+                }
+            }
+            $seoDescription = trim((string) $seoDescription) ?: $metaDesc;
+            $finalTitle = $seoTitle ? ($seoTitle . ' - ' . $appName) : $appName;
         ?>
 
-        <!-- SEO Meta Tags -->
-        <meta name="description" content="{{ $metaDesc }}">
+        <!-- SEO Meta Tags (page-specific values are replaced by Inertia Head when set) -->
+        <meta inertia name="description" content="{{ $seoDescription }}">
         <meta name="keywords" content="{{ $metaKeywords }}">
         <meta name="author" content="{{ $landingSettings->company_name ?? 'HRMswala SaaS' }}">
         <meta name="robots" content="index, follow">
         <link rel="alternate" type="text/plain" href="{{ url('/llms.txt') }}" title="LLMs policy">
 
         <!-- Canonical Tag -->
-        <link rel="canonical" href="{{ url()->current() }}" />
+        <link inertia rel="canonical" href="{{ $currentFullUrl }}" />
 
         <!-- Open Graph / Social Media -->
         <meta property="og:type" content="website">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="{{ config('app.name', 'HRMswala SaaS') }} - All-in-One Business Management Solution">
-        <meta property="og:description" content="{{ $metaDesc }}">
-        <meta property="og:image" content="{{ asset('logo.png') }}">
-        <meta property="og:site_name" content="{{ config('app.name', 'HRMswala SaaS') }}">
+        <meta inertia property="og:url" content="{{ $currentFullUrl }}">
+        <meta inertia property="og:title" content="{{ $finalTitle }}">
+        <meta inertia property="og:description" content="{{ $seoDescription }}">
+        <meta inertia property="og:image" content="{{ $defaultOgImage }}">
+        <meta property="og:site_name" content="{{ $appName }}">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:domain" content="hrmswala.com">
-        <meta name="twitter:url" content="{{ url()->current() }}">
-        <meta name="twitter:title" content="{{ config('app.name', 'HRMswala SaaS') }} - Modern HR Management">
-        <meta name="twitter:description" content="{{ $metaDesc }}">
-        <meta name="twitter:image" content="{{ asset('logo.png') }}">
+        <meta inertia name="twitter:url" content="{{ $currentFullUrl }}">
+        <meta inertia name="twitter:title" content="{{ $finalTitle }}">
+        <meta inertia name="twitter:description" content="{{ $seoDescription }}">
+        <meta inertia name="twitter:image" content="{{ $defaultOgImage }}">
 
         <!-- JSON-LD Structured Data for Google -->
         <script type="application/ld+json">
@@ -137,7 +201,7 @@
           gtag('config', 'G-SSK2G4XLS3');
         </script>
 
-        <title inertia>{{ config('app.name', 'HRMswala SaaS') }}</title>
+        <title inertia>{{ $finalTitle }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
