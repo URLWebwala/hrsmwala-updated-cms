@@ -349,16 +349,22 @@ if (!function_exists('assignPlan')) {
                         'module' => $moduleName,
                     ]);
                 }
-                DefaultData::dispatch($user->id, $modules);
-                $client_role = Role::where('name', 'client')->where('created_by', $user->id)->first();
-                $staff_role = Role::where('name', 'staff')->where('created_by', $user->id)->first();
+                app()->terminating(function () use ($user, $modules) {
+                    try {
+                        DefaultData::dispatch($user->id, $modules);
+                        $client_role = Role::where('name', 'client')->where('created_by', $user->id)->first();
+                        $staff_role = Role::where('name', 'staff')->where('created_by', $user->id)->first();
 
-                if (!empty($client_role)) {
-                    GivePermissionToRole::dispatch($client_role->id, 'client', $modules);
-                }
-                if (!empty($staff_role)) {
-                    GivePermissionToRole::dispatch($staff_role->id, 'staff', $modules);
-                }
+                        if (!empty($client_role)) {
+                            GivePermissionToRole::dispatch($client_role->id, 'client', $modules);
+                        }
+                        if (!empty($staff_role)) {
+                            GivePermissionToRole::dispatch($staff_role->id, 'staff', $modules);
+                        }
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Error in app()->terminating for assignPlan: ' . $e->getMessage());
+                    }
+                });
             }
             
             // Set user limits from plan (don't modify the plan itself)
