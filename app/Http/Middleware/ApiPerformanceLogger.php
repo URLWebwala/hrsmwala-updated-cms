@@ -55,17 +55,14 @@ class ApiPerformanceLogger
         }
 
         $startTime = microtime(true);
-        $exception = null;
-        $response = null;
+
+        $response = $next($request);
 
         try {
-            $response = $next($request);
-        } catch (Throwable $e) {
-            $exception = $e;
-            throw $e;
-        } finally {
             $durationMs = round((microtime(true) - $startTime) * 1000, 2);
-            $this->logRequest($request, $response, $durationMs, $exception);
+            $this->logRequest($request, $response, $durationMs, null);
+        } catch (Throwable $e) {
+            // Ignore logging errors so request never fails
         }
 
         return $response;

@@ -19,7 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\DemoModeMiddleware::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\UpdateUserActiveStatus::class,
-            \App\Http\Middleware\ApiPerformanceLogger::class,
         ]);
         $middleware->api(append: [
             \App\Http\Middleware\ApiPerformanceLogger::class,
