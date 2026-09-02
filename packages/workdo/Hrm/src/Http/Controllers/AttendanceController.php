@@ -659,8 +659,6 @@ class AttendanceController extends Controller
             $departmentId = $request->department_id;
             $employeeId = $request->employee_id;
 
-            $firstDayOfMonth = $monthYear->copy()->startOfMonth();
-            $lastDayOfMonth = $monthYear->copy()->endOfMonth();
             $employeesQuery = Employee::has('user')->with([
                 'user',
                 'terminations' => function($q) {
@@ -670,18 +668,14 @@ class AttendanceController extends Controller
                     $q->where('status', '!=', 'rejected');
                 }
             ])
-                ->where('created_by', creatorId())
-                ->where(function ($q) use ($lastDayOfMonth) {
-                    $q->whereNull('date_of_joining')
-                      ->orWhere('date_of_joining', '<=', $lastDayOfMonth->toDateString());
-                })
-                ->whereDoesntHave('terminations', function ($q) use ($firstDayOfMonth, $lastDayOfMonth) {
-                    $q->where('status', '!=', 'rejected')
-                      ->where('termination_date', '<', $firstDayOfMonth->toDateString())
-                      ->where(function ($rq) use ($lastDayOfMonth) {
-                          $rq->whereNull('rejoin_date')
-                             ->orWhere('rejoin_date', '>', $lastDayOfMonth->toDateString());
-                      });
+                ->where(function ($q) {
+                    if (Auth::user()->can('manage-any-attendances') || Auth::user()->can('manage-any-employees')) {
+                        $q->where('created_by', creatorId());
+                    } elseif (Auth::user()->can('manage-own-attendances') || Auth::user()->can('manage-own-employees')) {
+                        $q->where('creator_id', Auth::id())->orWhere('user_id', Auth::id());
+                    } else {
+                        $q->where('created_by', creatorId());
+                    }
                 });
             if ($branchId) $employeesQuery->where('branch_id', $branchId);
             if ($departmentId) $employeesQuery->where('department_id', $departmentId);
