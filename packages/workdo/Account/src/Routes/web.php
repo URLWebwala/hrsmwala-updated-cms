@@ -10,7 +10,6 @@ use Workdo\Account\Http\Controllers\BankAccountController;
 use Illuminate\Support\Facades\Route;
 use Workdo\Account\Http\Controllers\AccountTypeController;
 use Workdo\Account\Http\Controllers\DashboardController;
-use Workdo\Account\Http\Controllers\SystemSetupController;
 use Workdo\Account\Http\Controllers\VendorController;
 use Workdo\Account\Http\Controllers\CustomerController;
 use Workdo\Account\Http\Controllers\VendorPaymentController;

@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use Workdo\ProductService\Http\Controllers\DashboardController;
 use Workdo\ProductService\Http\Controllers\ProductServiceItemController;
-use Workdo\ProductService\Http\Controllers\SystemSetupController;
 use Workdo\ProductService\Http\Controllers\CategoryController;
 use Workdo\ProductService\Http\Controllers\TaxController;
 use Workdo\ProductService\Http\Controllers\UnitController;
