@@ -693,26 +693,31 @@ class AttendanceController extends Controller
             $employees = $employeesQuery->get();
             $employeeUserIds = $employees->pluck('user_id')->filter()->toArray();
 
-            // Also include any user who clocked in / has attendance records this month or is an active employee user
+            // Also include any user who clocked in / has attendance records this month AND does not have an Employee record
             $additionalUsers = collect([]);
             if (!$branchId && !$departmentId) {
                 $attUserIds = Attendance::whereYear('date', $year)
                     ->whereMonth('date', $month)
                     ->where('created_by', creatorId())
                     ->pluck('employee_id')
+                    ->unique()
                     ->toArray();
 
-                $additionalUsersQuery = User::where('created_by', creatorId())
-                    ->whereNotIn('id', $employeeUserIds)
-                    ->where(function ($q) use ($attUserIds) {
-                        $q->where('type', 'employee')
-                          ->orWhere('type', 'staff')
-                          ->orWhereIn('id', $attUserIds);
-                    });
-                if ($employeeId) {
-                    $additionalUsersQuery->where('id', $employeeId);
+                if (!empty($attUserIds)) {
+                    $allCompanyEmployeeUserIds = Employee::where('created_by', creatorId())
+                        ->pluck('user_id')
+                        ->filter()
+                        ->toArray();
+
+                    $additionalUsersQuery = User::where('created_by', creatorId())
+                        ->whereIn('id', $attUserIds)
+                        ->whereNotIn('id', $allCompanyEmployeeUserIds);
+
+                    if ($employeeId) {
+                        $additionalUsersQuery->where('id', $employeeId);
+                    }
+                    $additionalUsers = $additionalUsersQuery->get();
                 }
-                $additionalUsers = $additionalUsersQuery->get();
             }
 
             $allUserIds = array_unique(array_merge($employeeUserIds, $additionalUsers->pluck('id')->toArray()));
