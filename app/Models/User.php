@@ -331,9 +331,4 @@ class User extends Authenticatable implements MustVerifyEmail
             $vendorRole->givePermissionTo($permissions);
         }
     }
-
-    public function scopeEmp($query)
-    {
-        return $query->whereNotIn('type', ['superadmin', 'super admin', 'company', 'client', 'vendor']);
-    }
 }
