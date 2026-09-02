@@ -696,14 +696,18 @@ class AttendanceController extends Controller
             // Also include any user who clocked in / has attendance records this month or is an active employee user
             $additionalUsers = collect([]);
             if (!$branchId && !$departmentId) {
+                $attUserIds = Attendance::whereYear('date', $year)
+                    ->whereMonth('date', $month)
+                    ->where('created_by', creatorId())
+                    ->pluck('employee_id')
+                    ->toArray();
+
                 $additionalUsersQuery = User::where('created_by', creatorId())
                     ->whereNotIn('id', $employeeUserIds)
-                    ->where(function ($q) use ($year, $month) {
+                    ->where(function ($q) use ($attUserIds) {
                         $q->where('type', 'employee')
                           ->orWhere('type', 'staff')
-                          ->orWhereHas('attendances', function ($aq) use ($year, $month) {
-                              $aq->whereYear('date', $year)->whereMonth('date', $month);
-                          });
+                          ->orWhereIn('id', $attUserIds);
                     });
                 if ($employeeId) {
                     $additionalUsersQuery->where('id', $employeeId);
