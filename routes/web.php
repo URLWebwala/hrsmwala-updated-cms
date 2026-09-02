@@ -142,7 +142,7 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
 
     // API Logs & Performance Routes (SuperAdmin)
     Route::get('api-logs', [ApiLogController::class, 'index'])->name('api-logs.index');
-    Route::delete('api-logs/{apiLog}', [ApiLogController::class, 'destroy'])->name('api-logs.destroy');
+    Route::delete('api-logs/{id}', [ApiLogController::class, 'destroy'])->name('api-logs.destroy');
     Route::post('api-logs/clear', [ApiLogController::class, 'clear'])->name('api-logs.clear');
     Route::post('bank-transfer/{payment}/reject', [BankTransferPaymentController::class, 'reject'])->name('bank-transfer.reject');
     Route::delete('bank-transfer/{payment}', [BankTransferPaymentController::class, 'destroy'])->name('bank-transfer.destroy');

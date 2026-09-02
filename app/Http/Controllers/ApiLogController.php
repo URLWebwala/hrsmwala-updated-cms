@@ -6,6 +6,8 @@ use App\Models\ApiLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 
 class ApiLogController extends Controller
@@ -15,6 +17,31 @@ class ApiLogController extends Controller
         // Allow superadmin or users with manage permissions
         if (Auth::user()->type !== 'superadmin' && !Auth::user()->can('manage-settings')) {
             return redirect()->back()->with('error', __('Permission denied. Only Super Admin can view API Logs.'));
+        }
+
+        if (!Schema::hasTable('api_logs')) {
+            $emptyPaginator = new LengthAwarePaginator([], 0, 15, 1);
+            return Inertia::render('api-logs/index', [
+                'logs' => $emptyPaginator,
+                'stats' => [
+                    'total_logs' => 0,
+                    'total_errors' => 0,
+                    'total_crashes' => 0,
+                    'total_slow' => 0,
+                    'avg_duration_ms' => 0,
+                    'max_duration_ms' => 0,
+                ],
+                'filters' => [
+                    'search' => '',
+                    'type' => 'all',
+                    'method' => '',
+                    'status_code' => '',
+                    'date' => '',
+                    'sort' => 'id',
+                    'direction' => 'desc',
+                    'per_page' => 15,
+                ],
+            ]);
         }
 
         $query = ApiLog::query();
@@ -65,7 +92,7 @@ class ApiLogController extends Controller
             $query->whereDate('created_at', $request->date);
         }
 
-        // Calculate KPI Stats (using base table for quick aggregate)
+        // Calculate KPI Stats
         $totalLogs = ApiLog::count();
         $totalErrors = ApiLog::where(function ($q) {
             $q->where('status_code', '>=', 400)->orWhere('is_failed', true);
@@ -119,13 +146,15 @@ class ApiLogController extends Controller
         ]);
     }
 
-    public function destroy(ApiLog $apiLog)
+    public function destroy($id)
     {
         if (Auth::user()->type !== 'superadmin' && !Auth::user()->can('manage-settings')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $apiLog->delete();
+        if (Schema::hasTable('api_logs')) {
+            ApiLog::where('id', $id)->delete();
+        }
         return redirect()->back()->with('success', __('API Log entry deleted successfully.'));
     }
 
@@ -133,6 +162,10 @@ class ApiLogController extends Controller
     {
         if (Auth::user()->type !== 'superadmin' && !Auth::user()->can('manage-settings')) {
             return redirect()->back()->with('error', __('Permission denied.'));
+        }
+
+        if (!Schema::hasTable('api_logs')) {
+            return redirect()->back()->with('success', __('All API Logs cleared successfully.'));
         }
 
         $days = $request->input('days');
