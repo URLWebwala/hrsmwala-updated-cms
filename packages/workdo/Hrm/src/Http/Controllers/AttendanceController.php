@@ -659,6 +659,10 @@ class AttendanceController extends Controller
             $departmentId = $request->department_id;
             $employeeId = $request->employee_id;
 
+            $firstDayOfMonth = $monthYear->copy()->startOfMonth();
+            $lastDayOfMonth = $monthYear->copy()->endOfMonth();
+
+            // Fetch employees who are active in this month (exclude employees terminated before this month who haven't rejoined)
             $employeesQuery = Employee::has('user')->with([
                 'user',
                 'terminations' => function($q) {
@@ -668,24 +672,49 @@ class AttendanceController extends Controller
                     $q->where('status', '!=', 'rejected');
                 }
             ])
-                ->where(function ($q) {
-                    if (Auth::user()->can('manage-any-attendances') || Auth::user()->can('manage-any-employees')) {
-                        $q->where('created_by', creatorId());
-                    } elseif (Auth::user()->can('manage-own-attendances') || Auth::user()->can('manage-own-employees')) {
-                        $q->where('creator_id', Auth::id())->orWhere('user_id', Auth::id());
-                    } else {
-                        $q->where('created_by', creatorId());
-                    }
+                ->where('created_by', creatorId())
+                ->where(function ($q) use ($lastDayOfMonth) {
+                    $q->whereNull('date_of_joining')
+                      ->orWhere('date_of_joining', '<=', $lastDayOfMonth->toDateString());
+                })
+                ->whereDoesntHave('terminations', function ($q) use ($firstDayOfMonth, $lastDayOfMonth) {
+                    $q->where('status', '!=', 'rejected')
+                      ->where('termination_date', '<', $firstDayOfMonth->toDateString())
+                      ->where(function ($rq) use ($lastDayOfMonth) {
+                          $rq->whereNull('rejoin_date')
+                             ->orWhere('rejoin_date', '>', $lastDayOfMonth->toDateString());
+                      });
                 });
+
             if ($branchId) $employeesQuery->where('branch_id', $branchId);
             if ($departmentId) $employeesQuery->where('department_id', $departmentId);
             if ($employeeId) $employeesQuery->where('user_id', $employeeId);
             
             $employees = $employeesQuery->get();
-            $employeeIds = $employees->pluck('user_id')->toArray();
+            $employeeUserIds = $employees->pluck('user_id')->filter()->toArray();
+
+            // Also include any user who clocked in / has attendance records this month or is an active employee user
+            $additionalUsers = collect([]);
+            if (!$branchId && !$departmentId) {
+                $additionalUsersQuery = User::where('created_by', creatorId())
+                    ->whereNotIn('id', $employeeUserIds)
+                    ->where(function ($q) use ($year, $month) {
+                        $q->where('type', 'employee')
+                          ->orWhere('type', 'staff')
+                          ->orWhereHas('attendances', function ($aq) use ($year, $month) {
+                              $aq->whereYear('date', $year)->whereMonth('date', $month);
+                          });
+                    });
+                if ($employeeId) {
+                    $additionalUsersQuery->where('id', $employeeId);
+                }
+                $additionalUsers = $additionalUsersQuery->get();
+            }
+
+            $allUserIds = array_unique(array_merge($employeeUserIds, $additionalUsers->pluck('id')->toArray()));
 
             // Bulk data fetching to avoid N+1
-            $allAttendances = Attendance::whereIn('employee_id', $employeeIds)
+            $allAttendances = Attendance::whereIn('employee_id', $allUserIds)
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->where('created_by', creatorId())
@@ -694,10 +723,10 @@ class AttendanceController extends Controller
                     return Carbon::parse($item->date)->day;
                 }]);
 
-            $leaves = LeaveApplication::whereIn('employee_id', $employeeIds)
+            $leaves = LeaveApplication::whereIn('employee_id', $allUserIds)
                 ->where('status', 'approved')
                 ->where('created_by', creatorId())
-                ->whereYear('start_date', '<=', $year) // Simplified date check
+                ->whereYear('start_date', '<=', $year)
                 ->get();
             
             $holidays = Holiday::where('created_by', creatorId())
@@ -724,7 +753,6 @@ class AttendanceController extends Controller
 
                 for ($day = 1; $day <= $daysInMonth; $day++) {
                     $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
-                    $date = $dateObj->format('Y-m-d');
                     
                     // Check if date is in any termination gap (between termination_date and rejoin_date)
                     $isInTerminationGap = false;
@@ -755,35 +783,13 @@ class AttendanceController extends Controller
                         ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
                         ->isNotEmpty();
                     $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
-                    if ($dateObj->dayOfWeek == 6) { // Saturday
-                        $weekOfMonth = ceil($dateObj->day / 7);
-                        if (!in_array($weekOfMonth, $saturdayWorkingWeeks)) {
-                            $isWorkingDay = false;
-                        }
-                    }
                     
                     if ($empDayAtt) {
-                        if ($empDayAtt->status === 'present') {
-                            $status = 'P';
-                            $totalPresent++;
-                        } elseif ($empDayAtt->status === 'half day') {
-                            if ($dateObj->dayOfWeek == 6 && $saturdayType == 'half') {
-                                $status = 'P';
-                                $totalPresent++;
-                            } else {
-                                $status = 'H';
-                            }
-                        } else {
-                            $status = 'A';
-                        }
-                        
+                        $status = 'P';
+                        $totalPresent++;
                         $totalOvertimeHours += $empDayAtt->overtime_hours ?? 0;
-                        if (!empty($empDayAtt->clock_in)) {
-                            $clockInTime = Carbon::parse($empDayAtt->clock_in, $timezone)->format('H:i:s');
-                            if ($clockInTime > "09:15:00") {
-                                $totalLateCount++;
-                            }
-                        }
+                        if (!empty($empDayAtt->late)) $totalLateCount += (float)$empDayAtt->late;
+                        if (!empty($empDayAtt->early_leaving)) $totalEarlyCount += (float)$empDayAtt->early_leaving;
                     } else {
                         // Check if leave
                         $onLeave = $leaves->where('employee_id', $employee->user_id)
@@ -796,13 +802,10 @@ class AttendanceController extends Controller
                                 $totalLeave++;
                             }
                         } elseif ($isHoliday || !$isWorkingDay) {
-                            // Official Leave / non-working day
                             $status = 'O';
                         } elseif ($dateObj->gt($today)) {
-                            // Future working day - leave empty
                             $status = '';
                         } else {
-                            // Mark absent when no attendance record on working day
                             $status = 'A';
                         }
                     }
@@ -814,6 +817,47 @@ class AttendanceController extends Controller
                     'id' => $employee->id,
                     'name' => $employee->user->name ?? '',
                     'avatar' => $employee->user->avatar ?? '',
+                    'attendance' => $employeeAttendance
+                ];
+            }
+
+            // Also append any additional users who have clocked in (e.g. Priyanshi Shah, Kunj Jarsaniya)
+            foreach ($additionalUsers as $user) {
+                $employeeAttendance = [];
+
+                for ($day = 1; $day <= $daysInMonth; $day++) {
+                    $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
+                    $status = '';
+                    $empDayAtt = isset($allAttendances[$user->id][$day]) ? $allAttendances[$user->id][$day]->first() : null;
+
+                    $isHoliday = $holidays
+                        ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
+                        ->isNotEmpty();
+                    $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
+                    
+                    if ($empDayAtt) {
+                        $status = 'P';
+                        $totalPresent++;
+                        $totalOvertimeHours += $empDayAtt->overtime_hours ?? 0;
+                        if (!empty($empDayAtt->late)) $totalLateCount += (float)$empDayAtt->late;
+                        if (!empty($empDayAtt->early_leaving)) $totalEarlyCount += (float)$empDayAtt->early_leaving;
+                    } else {
+                        if ($isHoliday || !$isWorkingDay) {
+                            $status = 'O';
+                        } elseif ($dateObj->gt($today)) {
+                            $status = '';
+                        } else {
+                            $status = 'A';
+                        }
+                    }
+                    
+                    $employeeAttendance[$day] = $status;
+                }
+
+                $attendanceData[] = [
+                    'id' => 'u_' . $user->id,
+                    'name' => $user->name ?? '',
+                    'avatar' => $user->avatar ?? '',
                     'attendance' => $employeeAttendance
                 ];
             }
