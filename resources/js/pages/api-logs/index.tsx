@@ -296,7 +296,7 @@ export default function ApiLogsIndex() {
                         <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => router.reload({ preserveScroll: true })}
+                            onClick={() => router.reload()}
                             className="flex items-center gap-1.5"
                         >
                             <RefreshCw className="w-4 h-4" />
@@ -549,6 +549,7 @@ export default function ApiLogsIndex() {
                                     <tr>
                                         <td colSpan={7} className="py-12">
                                             <NoRecordsFound 
+                                                icon={Activity}
                                                 title={t('No API logs recorded yet')}
                                                 description={t('Failed requests or slow API executions will automatically be captured and displayed here.')}
                                             />
@@ -671,17 +672,25 @@ export default function ApiLogsIndex() {
                     {logs.data.length > 0 && (
                         <div className="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
                             <PerPageSelector
-                                value={perPage}
-                                onValueChange={(val) => {
+                                routeName="api-logs.index"
+                                filters={{ search, type: filterType, method: method !== 'all' ? method : '', status_code: statusCode !== 'all' ? statusCode : '', date }}
+                                defaultValue={perPage}
+                                onPageChange={(val: string) => {
                                     setPerPage(val);
                                     applyFilters({ per_page: Number(val) });
                                 }}
                             />
                             <Pagination
-                                links={logs.links}
-                                from={logs.from}
-                                to={logs.to}
-                                total={logs.total}
+                                data={{
+                                    current_page: logs.current_page,
+                                    last_page: logs.last_page,
+                                    per_page: logs.per_page,
+                                    total: logs.total,
+                                    from: logs.from,
+                                    to: logs.to
+                                }}
+                                routeName="api-logs.index"
+                                filters={{ search, type: filterType, method: method !== 'all' ? method : '', status_code: statusCode !== 'all' ? statusCode : '', date }}
                             />
                         </div>
                     )}
@@ -953,7 +962,7 @@ export default function ApiLogsIndex() {
                 open={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
                 title={t('Delete API Log')}
-                description={t('Are you sure you want to delete this API log record? This action cannot be undone.')}
+                message={t('Are you sure you want to delete this API log record? This action cannot be undone.')}
                 onConfirm={confirmDelete}
             />
 
