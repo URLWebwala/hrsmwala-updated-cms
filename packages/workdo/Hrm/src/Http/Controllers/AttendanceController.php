@@ -671,7 +671,10 @@ class AttendanceController extends Controller
                 }
             ])
                 ->where('created_by', creatorId())
-                ->where('date_of_joining', '<=', $lastDayOfMonth->toDateString())
+                ->where(function ($q) use ($lastDayOfMonth) {
+                    $q->whereNull('date_of_joining')
+                      ->orWhere('date_of_joining', '<=', $lastDayOfMonth->toDateString());
+                })
                 ->whereDoesntHave('terminations', function ($q) use ($firstDayOfMonth, $lastDayOfMonth) {
                     $q->where('status', '!=', 'rejected')
                       ->where('termination_date', '<', $firstDayOfMonth->toDateString())
