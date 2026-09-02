@@ -32,6 +32,7 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesInvoiceController;
 use App\Http\Controllers\SalesProposalController;
 use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\ApiLogController;
 use Inertia\Inertia;
 
 
@@ -138,6 +139,11 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
     Route::post('bank-transfer', [BankTransferPaymentController::class, 'store'])->name('payment.bank-transfer.store');
     Route::get('bank-transfer', [BankTransferPaymentController::class, 'index'])->name('bank-transfer.index');
     Route::post('bank-transfer/update/{id}', [BankTransferPaymentController::class, 'update'])->name('bank-transfer.update');
+
+    // API Logs & Performance Routes (SuperAdmin)
+    Route::get('api-logs', [ApiLogController::class, 'index'])->name('api-logs.index');
+    Route::delete('api-logs/{apiLog}', [ApiLogController::class, 'destroy'])->name('api-logs.destroy');
+    Route::post('api-logs/clear', [ApiLogController::class, 'clear'])->name('api-logs.clear');
     Route::post('bank-transfer/{payment}/reject', [BankTransferPaymentController::class, 'reject'])->name('bank-transfer.reject');
     Route::delete('bank-transfer/{payment}', [BankTransferPaymentController::class, 'destroy'])->name('bank-transfer.destroy');
 

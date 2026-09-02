@@ -1,4 +1,4 @@
-import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones} from 'lucide-react';
+import { LayoutGrid, Users, Building2, Settings, Shield, Image, Package, CreditCard, FileText, Ticket, Mail, Bell, Headphones, Activity} from 'lucide-react';
 import { NavItem } from '@/types';
 
 export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
@@ -93,6 +93,13 @@ export const getSuperAdminMenu = (t: (key: string) => string): NavItem[] => [
         icon: Image,
         permission: 'manage-media',
         order: 2950,
+    },
+    {
+        title: t('API Logs & Monitor'),
+        href: route('api-logs.index'),
+        icon: Activity,
+        permission: 'manage-settings',
+        order: 2980,
     },
     {
         title: t('Add-ons Manager'),
