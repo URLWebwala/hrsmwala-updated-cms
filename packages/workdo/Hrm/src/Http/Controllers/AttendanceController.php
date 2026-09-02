@@ -145,6 +145,20 @@ class AttendanceController extends Controller
                 return redirect()->back()->with('error', __('Attendance cannot be created on holidays.'));
             }
 
+            $isTerminated = \Workdo\Hrm\Models\Termination::where('employee_id', $validated['employee_id'])
+                ->where('status', '!=', 'rejected')
+                ->where('termination_date', '<', $validated['date'])
+                ->where(function($q) use ($validated) {
+                    $q->whereNull('rejoin_date')
+                      ->orWhere('rejoin_date', '>', $validated['date']);
+                })
+                ->where('created_by', creatorId())
+                ->exists();
+
+            if ($isTerminated) {
+                return redirect()->back()->with('error', __('Cannot record attendance for a terminated employee.'));
+            }
+
             $employee = Employee::where('user_id', $validated['employee_id'])->where('created_by', creatorId())->first();
             $shiftId = $employee?->shift;
 
@@ -431,7 +445,20 @@ class AttendanceController extends Controller
 
             $now = Carbon::now($this->getCompanyTimezone());
             $today = $now->toDateString();
-            $employeeId = Auth::id();
+            $employeeId = Auth::id();            
+            $isTerminated = \Workdo\Hrm\Models\Termination::where('employee_id', $employeeId)
+                ->where('status', '!=', 'rejected')
+                ->where('termination_date', '<', $today)
+                ->where(function($q) use ($today) {
+                    $q->whereNull('rejoin_date')
+                      ->orWhere('rejoin_date', '>', $today);
+                })
+                ->where('created_by', creatorId())
+                ->exists();
+
+            if ($isTerminated) {
+                return redirect()->back()->with('error', __('You cannot clock in because your employment has been terminated.'));
+            }
 
             // First check for any pending clock out and complete it
             $pendingClockOuts = Attendance::where('employee_id', $employeeId)
@@ -561,16 +588,16 @@ class AttendanceController extends Controller
                 $attendance = Attendance::where('employee_id', $employeeId)
                     ->whereNull('clock_out')
                     ->where('created_by', creatorId())
-                    ->orderBy('clock_in', 'desc')
+                    ->latest()
                     ->first();
             }
 
             if (!$attendance || !$attendance->clock_in) {
-                return redirect()->back()->with('error', __('You must clock in first.'));
+                return redirect()->back()->with('error', __('You have not clocked in yet.'));
             }
 
             if ($attendance->clock_out) {
-                return redirect()->back()->with('error', __('You have already clocked out today.'));
+                return redirect()->back()->with('error', __('You have already clocked out.'));
             }
 
             // $clockOutTime = now()->format('H:i:s');
@@ -632,10 +659,27 @@ class AttendanceController extends Controller
             $departmentId = $request->department_id;
             $employeeId = $request->employee_id;
 
+            $firstDayOfMonth = $monthYear->copy()->startOfMonth();
             $lastDayOfMonth = $monthYear->copy()->endOfMonth();
-            $employeesQuery = Employee::has('user')->with('user')
+            $employeesQuery = Employee::has('user')->with([
+                'user',
+                'terminations' => function($q) {
+                    $q->where('status', '!=', 'rejected');
+                },
+                'latestTermination' => function($q) {
+                    $q->where('status', '!=', 'rejected');
+                }
+            ])
                 ->where('created_by', creatorId())
-                ->where('date_of_joining', '<=', $lastDayOfMonth->toDateString());
+                ->where('date_of_joining', '<=', $lastDayOfMonth->toDateString())
+                ->whereDoesntHave('terminations', function ($q) use ($firstDayOfMonth, $lastDayOfMonth) {
+                    $q->where('status', '!=', 'rejected')
+                      ->where('termination_date', '<', $firstDayOfMonth->toDateString())
+                      ->where(function ($rq) use ($lastDayOfMonth) {
+                          $rq->whereNull('rejoin_date')
+                             ->orWhere('rejoin_date', '>', $lastDayOfMonth->toDateString());
+                      });
+                });
             if ($branchId) $employeesQuery->where('branch_id', $branchId);
             if ($departmentId) $employeesQuery->where('department_id', $departmentId);
             if ($employeeId) $employeesQuery->where('user_id', $employeeId);
@@ -679,10 +723,33 @@ class AttendanceController extends Controller
 
             foreach ($employees as $employee) {
                 $employeeAttendance = [];
+                $joiningDate = $employee->date_of_joining ? Carbon::parse($employee->date_of_joining, $timezone)->startOfDay() : null;
+
                 for ($day = 1; $day <= $daysInMonth; $day++) {
                     $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
                     $date = $dateObj->format('Y-m-d');
                     
+                    // Check if date is in any termination gap (between termination_date and rejoin_date)
+                    $isInTerminationGap = false;
+                    foreach ($employee->terminations as $term) {
+                        if ($term->status === 'rejected') continue;
+                        $termDate = $term->termination_date ? Carbon::parse($term->termination_date, $timezone)->startOfDay() : null;
+                        $rejoinDate = $term->rejoin_date ? Carbon::parse($term->rejoin_date, $timezone)->startOfDay() : null;
+
+                        if ($termDate && $dateObj->gt($termDate)) {
+                            if (!$rejoinDate || $dateObj->lt($rejoinDate)) {
+                                $isInTerminationGap = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // If before joining date or in a termination gap, leave status empty
+                    if (($joiningDate && $dateObj->lt($joiningDate)) || $isInTerminationGap) {
+                        $employeeAttendance[$day] = '';
+                        continue;
+                    } 
+
                     $status = '';
                     $empDayAtt = isset($allAttendances[$employee->user_id][$day]) ? $allAttendances[$employee->user_id][$day]->first() : null;
 

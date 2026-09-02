@@ -24,6 +24,20 @@ export interface Designation {
     designation_name: string;
 }
 
+export interface Termination {
+    id: number;
+    employee_id: number;
+    termination_type_id?: number;
+    termination_type?: { id: number; termination_type: string; };
+    notice_date?: string;
+    termination_date?: string;
+    rejoin_date?: string;
+    reason: string;
+    description?: string;
+    document?: string;
+    status: string;
+}
+
 export interface Employee {
     id: number;
     employee_id: string;
@@ -32,6 +46,7 @@ export interface Employee {
     shift_id?: number;
     shift?: { id: number; shift_name: string; };
     date_of_joining: string;
+    rejoin_date?: string;
     employment_type: string;
     address_line_1?: string;
     address_line_2?: string;
@@ -60,6 +75,8 @@ export interface Employee {
     department?: Department;
     designation_id?: number;
     designation?: Designation;
+    latest_termination?: Termination;
+    latestTermination?: Termination;
     created_at: string;
 }
 
@@ -150,6 +167,7 @@ export interface EmployeesIndexProps {
     branches: any[];
     departments: any[];
     designations: any[];
+    terminationtypes?: any[];
     [key: string]: unknown;
 }
 

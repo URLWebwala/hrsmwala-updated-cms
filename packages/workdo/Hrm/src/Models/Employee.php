@@ -43,6 +43,7 @@ class Employee extends Model
         'branch_id',
         'department_id',
         'designation_id',
+        'rejoin_date',
         'creator_id',
         'created_by',
     ];
@@ -51,7 +52,8 @@ class Employee extends Model
     {
         return [
             'date_of_birth' => 'date',
-            'date_of_joining' => 'date'
+            'date_of_joining' => 'date',
+            'rejoin_date' => 'date',
         ];
     }
 
@@ -80,6 +82,24 @@ class Employee extends Model
     public function shift()
     {
         return $this->belongsTo(Shift::class, 'shift', 'id');
+    }
+
+    public function terminations()
+    {
+        return $this->hasMany(Termination::class, 'employee_id', 'user_id');
+    }
+
+    public function latestTermination()
+    {
+        return $this->hasOne(Termination::class, 'employee_id', 'user_id')->latestOfMany();
+    }
+
+    public function activeTermination()
+    {
+        return $this->hasOne(Termination::class, 'employee_id', 'user_id')
+            ->where('status', '!=', 'rejected')
+            ->whereNull('rejoin_date')
+            ->latestOfMany();
     }
 
     public static function generateEmployeeId()

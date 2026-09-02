@@ -57,27 +57,39 @@ class TerminationController extends Controller
         if (Auth::user()->can('create-terminations')) {
             $validated = $request->validated();
 
-
+            $status = $validated['status'] ?? 'approved';
 
             $termination = new Termination();
-            $termination->notice_date = $validated['notice_date'];
+            $termination->notice_date = $validated['notice_date'] ?? $validated['termination_date'];
             $termination->termination_date = $validated['termination_date'];
             $termination->reason = $validated['reason'];
-            $termination->description = $validated['description'];
-            $termination->document = $validated['document'];
+            $termination->description = $validated['description'] ?? null;
+            $termination->document = $validated['document'] ?? null;
             $termination->employee_id = $validated['employee_id'];
             $termination->termination_type_id = $validated['termination_type_id'];
-            $termination->status = 'pending';
+            $termination->status = $status;
+            if ($status === 'approved') {
+                $termination->approved_by = Auth::id();
+            }
 
             $termination->creator_id = Auth::id();
             $termination->created_by = creatorId();
             $termination->save();
 
+            if ($status === 'approved') {
+                $user = User::find($validated['employee_id']);
+                if ($user) {
+                    $user->is_enable_login = 0;
+                    $user->is_disable = 1;
+                    $user->save();
+                }
+            }
+
             CreateTermination::dispatch($request, $termination);
 
-            return redirect()->route('hrm.terminations.index')->with('success', __('The termination has been created successfully.'));
+            return redirect()->back()->with('success', __('The termination has been created successfully.'));
         } else {
-            return redirect()->route('hrm.terminations.index')->with('error', __('Permission denied'));
+            return redirect()->back()->with('error', __('Permission denied'));
         }
     }
 
@@ -85,8 +97,6 @@ class TerminationController extends Controller
     {
         if (Auth::user()->can('edit-terminations')) {
             $validated = $request->validated();
-
-
 
             $termination->notice_date = $validated['notice_date'];
             $termination->termination_date = $validated['termination_date'];
@@ -109,8 +119,16 @@ class TerminationController extends Controller
     public function destroy(Termination $termination)
     {
         if (Auth::user()->can('delete-terminations')) {
+            $employeeId = $termination->employee_id;
             DestroyTermination::dispatch($termination);
             $termination->delete();
+
+            $user = User::find($employeeId);
+            if ($user) {
+                $user->is_enable_login = 1;
+                $user->is_disable = 0;
+                $user->save();
+            }
 
             return redirect()->back()->with('success', __('The termination has been deleted.'));
         } else {
@@ -127,8 +145,19 @@ class TerminationController extends Controller
 
             $termination->status = $validated['status'];
 
+            $user = User::find($termination->employee_id);
+
             if ($validated['status'] === 'approved') {
                 $termination->approved_by = Auth::id();
+                if ($user) {
+                    $user->is_enable_login = 0;
+                    $user->is_disable = 1;
+                    $user->save();
+                }
+            } elseif ($validated['status'] === 'rejected' && $user) {
+                $user->is_enable_login = 1;
+                $user->is_disable = 0;
+                $user->save();
             }
 
             $termination->save();

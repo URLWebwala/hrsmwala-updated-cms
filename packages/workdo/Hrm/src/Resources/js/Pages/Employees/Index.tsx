@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Plus, Edit as EditIcon, Trash2, Eye, Users as UsersIcon, Lock, Download, FileImage } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit as EditIcon, Trash2, Eye, Users as UsersIcon, Lock, Download, FileImage, UserX, UserCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FilterButton } from '@/components/ui/filter-button';
 import { Pagination } from "@/components/ui/pagination";
@@ -19,11 +21,16 @@ import NoRecordsFound from '@/components/no-records-found';
 import { Employee, EmployeesIndexProps, EmployeeFilters } from './types';
 import { formatDate, getImagePath } from '@/utils/helpers';
 import { usePageButtons } from '@/hooks/usePageButtons';
+import QuickTerminateModal from './QuickTerminateModal';
+import RejoinModal from './RejoinModal';
 
 export default function Index() {
     const { t } = useTranslation();
-    const { employees, auth, users, branches, departments, designations } = usePage<EmployeesIndexProps>().props;
+    const { employees, auth, users, branches, departments, designations, terminationtypes } = usePage<EmployeesIndexProps>().props;
     const urlParams = new URLSearchParams(window.location.search);
+
+    const [terminatingEmployee, setTerminatingEmployee] = useState<Employee | null>(null);
+    const [rejoiningEmployee, setRejoiningEmployee] = useState<Employee | null>(null);
 
     const [filters, setFilters] = useState<EmployeeFilters>({
         employee_id: urlParams.get('employee_id') || '',
@@ -128,31 +135,51 @@ export default function Index() {
             key: 'user.name',
             header: t('Employee Name'),
             sortable: false,
-            render: (value: any, row: any) => (
-                <div className="flex items-center gap-2">
-                    <TooltipProvider>
-                        <Tooltip delayDuration={0}>
-                            <TooltipTrigger>
-                                {row.user?.avatar ? (
-                                    <img
-                                        src={getImagePath(row.user.avatar)}
-                                        alt="Avatar"
-                                        className="w-8 h-8 rounded-full object-cover border"
-                                    />
-                                ) : (
-                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
-                                        <UsersIcon className="h-4 w-4 text-primary" />
-                                    </div>
-                                )}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{row.user?.name || '-'}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <span className="font-medium text-sm text-gray-900">{row.user?.name || '-'}</span>
-                </div>
-            )
+            render: (value: any, row: any) => {
+                const termination = row.latestTermination || row.latest_termination;
+                const isCurrentlyTerminated = !!termination && termination.status !== 'rejected' && !termination.rejoin_date;
+                const hasRejoined = !!termination && termination.status !== 'rejected' && !!termination.rejoin_date;
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger>
+                                    {row.user?.avatar ? (
+                                        <img
+                                            src={getImagePath(row.user.avatar)}
+                                            alt="Avatar"
+                                            className="w-8 h-8 rounded-full object-cover border"
+                                        />
+                                    ) : (
+                                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+                                            <UsersIcon className="h-4 w-4 text-primary" />
+                                        </div>
+                                    )}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{row.user?.name || '-'}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <div className="flex flex-col items-start">
+                            <span className="font-medium text-sm text-gray-900">{row.user?.name || '-'}</span>
+                            {isCurrentlyTerminated && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-200 mt-0.5">
+                                    <UserX className="h-3 w-3" />
+                                    {t('Terminated')}: {formatDate(termination.termination_date || '')}
+                                </span>
+                            )}
+                            {hasRejoined && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">
+                                    <UserCheck className="h-3 w-3" />
+                                    {t('Rejoined')}: {formatDate(termination.rejoin_date || '')}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
         },
         {
             key: 'branch.branch_name',
@@ -190,64 +217,103 @@ export default function Index() {
         ...(auth.user?.permissions?.some((p: string) => ['view-employees','edit-employees', 'delete-employees'].includes(p)) ? [{
             key: 'actions',
             header: t('Actions'),
-            render: (_: any, employee: Employee) => (
-                <div className="flex gap-1">
-                    {employee.user?.is_disable === 1 ? (
-                        <Tooltip delayDuration={0}>
-                            <TooltipTrigger asChild>
-                                <div className="h-8 w-8 p-0 flex items-center justify-center text-gray-400">
-                                    <Lock className="h-4 w-4" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{t('User is disabled')}</p></TooltipContent>
-                        </Tooltip>
-                    ) : (
-                        <TooltipProvider>
-                            {auth.user?.permissions?.includes('view-employees') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="sm" onClick={() => router.get(route('hrm.employees.show', employee.id))} className="h-8 w-8 p-0 text-green-600 hover:text-green-700">
-                                            <Eye className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('View')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {auth.user?.permissions?.includes('edit-employees') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="sm" onClick={() => router.visit(route('hrm.employees.edit', employee.id))} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
-                                            <EditIcon className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Edit')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {auth.user?.permissions?.includes('delete-employees') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => openDeleteDialog(employee.id)}
-                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Delete')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                        </TooltipProvider>
-                    )}
-                </div>
-            )
+            render: (_: any, employee: Employee) => {
+                const termination = employee.latestTermination || employee.latest_termination;
+                const isCurrentlyTerminated = !!termination && termination.status !== 'rejected' && !termination.rejoin_date;
+
+                return (
+                    <div className="flex gap-1">
+                        {employee.user?.is_disable === 1 && !isCurrentlyTerminated ? (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <div className="h-8 w-8 p-0 flex items-center justify-center text-gray-400">
+                                        <Lock className="h-4 w-4" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{t('User is disabled')}</p></TooltipContent>
+                            </Tooltip>
+                        ) : (
+                            <TooltipProvider>
+                                {auth.user?.permissions?.includes('view-employees') && (
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="sm" onClick={() => router.get(route('hrm.employees.show', employee.id))} className="h-8 w-8 p-0 text-green-600 hover:text-green-700">
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{t('View')}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {auth.user?.permissions?.includes('edit-employees') && (
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="sm" onClick={() => router.visit(route('hrm.employees.edit', employee.id))} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
+                                                <EditIcon className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{t('Edit')}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {isCurrentlyTerminated && (
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => setRejoiningEmployee(employee)} 
+                                                className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 bg-emerald-50/50"
+                                            >
+                                                <UserCheck className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{t('Rejoin Employee')}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {auth.user?.permissions?.some((p: string) => ['create-terminations', 'edit-terminations', 'manage-terminations', 'edit-employees'].includes(p)) && (
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => setTerminatingEmployee(employee)} 
+                                                className={`h-8 w-8 p-0 ${isCurrentlyTerminated ? 'text-rose-600 hover:text-rose-700 bg-rose-50/50' : 'text-amber-600 hover:text-amber-700'}`}
+                                            >
+                                                <UserX className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{isCurrentlyTerminated ? t('Manage Termination') : t('Terminate Employee')}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {auth.user?.permissions?.includes('delete-employees') && (
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => openDeleteDialog(employee.id)}
+                                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{t('Delete')}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </TooltipProvider>
+                        )}
+                    </div>
+                );
+            }
         }] : [])
     ];
 
@@ -451,8 +517,35 @@ export default function Index() {
                                                 </div>
                                             </div>
 
-                                            {/* Body */}
+                                             {/* Body */}
                                             <div className="p-4 flex-1 min-h-0">
+                                                {(() => {
+                                                    const termination = employee.latestTermination || employee.latest_termination;
+                                                    const isCurrentlyTerminated = !!termination && termination.status !== 'rejected' && !termination.rejoin_date;
+                                                    const hasRejoined = !!termination && termination.status !== 'rejected' && !!termination.rejoin_date;
+
+                                                    if (isCurrentlyTerminated) {
+                                                        return (
+                                                            <div className="mb-3">
+                                                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200">
+                                                                    <UserX className="h-3 w-3" />
+                                                                    {t('Terminated')}: {formatDate(termination.termination_date || '')}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    if (hasRejoined) {
+                                                        return (
+                                                            <div className="mb-3">
+                                                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200">
+                                                                    <UserCheck className="h-3 w-3" />
+                                                                    {t('Rejoined')}: {formatDate(termination.rejoin_date || '')}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                                     <div className="text-xs min-w-0">
                                                         <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">{t('Employee Name')}</p>
@@ -489,60 +582,103 @@ export default function Index() {
 
                                             {/* Actions Footer */}
                                             <div className="flex justify-end gap-2 p-3 border-t bg-gray-50/50 flex-shrink-0 mt-auto">
-                                                {employee.user?.is_disable === 1 ? (
-                                                    <Tooltip delayDuration={0}>
-                                                        <TooltipTrigger asChild>
-                                                            <div className="h-9 w-9 p-0 flex items-center justify-center text-gray-400">
-                                                                <Lock className="h-4 w-4" />
-                                                            </div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent><p>{t('User is disabled')}</p></TooltipContent>
-                                                    </Tooltip>
-                                                ) : (
-                                                    <TooltipProvider>
-                                                        {auth.user?.permissions?.includes('view-employees') && (
-                                                            <Tooltip delayDuration={300}>
+                                                {(() => {
+                                                    const termination = employee.latestTermination || employee.latest_termination;
+                                                    const isCurrentlyTerminated = !!termination && termination.status !== 'rejected' && !termination.rejoin_date;
+
+                                                    if (employee.user?.is_disable === 1 && !isCurrentlyTerminated) {
+                                                        return (
+                                                            <Tooltip delayDuration={0}>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="sm" onClick={() => router.get(route('hrm.employees.show', employee.id))} className="h-9 w-9 p-0 text-green-600 hover:text-green-700">
-                                                                        <Eye className="h-4 w-4" />
-                                                                    </Button>
+                                                                    <div className="h-9 w-9 p-0 flex items-center justify-center text-gray-400">
+                                                                        <Lock className="h-4 w-4" />
+                                                                    </div>
                                                                 </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{t('View')}</p>
-                                                                </TooltipContent>
+                                                                <TooltipContent><p>{t('User is disabled')}</p></TooltipContent>
                                                             </Tooltip>
-                                                        )}
-                                                        {auth.user?.permissions?.includes('edit-employees') && (
-                                                            <Tooltip delayDuration={300}>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="sm" onClick={() => router.visit(route('hrm.employees.edit', employee.id))} className="h-9 w-9 p-0 text-blue-600 hover:text-blue-700">
-                                                                        <EditIcon className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{t('Edit')}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        )}
-                                                        {auth.user?.permissions?.includes('delete-employees') && (
-                                                            <Tooltip delayDuration={300}>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        onClick={() => openDeleteDialog(employee.id)}
-                                                                        className="h-9 w-9 p-0 text-red-600 hover:text-red-700"
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{t('Delete')}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        )}
-                                                    </TooltipProvider>
-                                                )}
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <TooltipProvider>
+                                                            {auth.user?.permissions?.includes('view-employees') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" onClick={() => router.get(route('hrm.employees.show', employee.id))} className="h-9 w-9 p-0 text-green-600 hover:text-green-700">
+                                                                            <Eye className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('View')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.includes('edit-employees') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" onClick={() => router.visit(route('hrm.employees.edit', employee.id))} className="h-9 w-9 p-0 text-blue-600 hover:text-blue-700">
+                                                                            <EditIcon className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Edit')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {isCurrentlyTerminated && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => setRejoiningEmployee(employee)}
+                                                                            className="h-9 w-9 p-0 text-emerald-600 hover:text-emerald-700 bg-emerald-50/50"
+                                                                        >
+                                                                            <UserCheck className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Rejoin Employee')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.some((p: string) => ['create-terminations', 'edit-terminations', 'manage-terminations', 'edit-employees'].includes(p)) && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => setTerminatingEmployee(employee)}
+                                                                            className={`h-9 w-9 p-0 ${isCurrentlyTerminated ? 'text-rose-600 hover:text-rose-700 bg-rose-50/50' : 'text-amber-600 hover:text-amber-700'}`}
+                                                                        >
+                                                                            <UserX className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{isCurrentlyTerminated ? t('Manage Termination') : t('Terminate Employee')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.includes('delete-employees') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => openDeleteDialog(employee.id)}
+                                                                            className="h-9 w-9 p-0 text-red-600 hover:text-red-700"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Delete')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                        </TooltipProvider>
+                                                    );
+                                                })()}
                                             </div>
                                         </Card>
                                     ))}
@@ -573,10 +709,6 @@ export default function Index() {
                 </CardContent>
             </Card>
 
-
-
-
-
             <ConfirmationDialog
                 open={deleteState.isOpen}
                 onOpenChange={closeDeleteDialog}
@@ -586,6 +718,25 @@ export default function Index() {
                 onConfirm={confirmDelete}
                 variant="destructive"
             />
+
+            <Dialog open={!!terminatingEmployee} onOpenChange={() => setTerminatingEmployee(null)}>
+                {terminatingEmployee && (
+                    <QuickTerminateModal
+                        employee={terminatingEmployee}
+                        terminationtypes={terminationtypes || []}
+                        onSuccess={() => setTerminatingEmployee(null)}
+                    />
+                )}
+            </Dialog>
+
+            <Dialog open={!!rejoiningEmployee} onOpenChange={() => setRejoiningEmployee(null)}>
+                {rejoiningEmployee && (
+                    <RejoinModal
+                        employee={rejoiningEmployee}
+                        onSuccess={() => setRejoiningEmployee(null)}
+                    />
+                )}
+            </Dialog>
         </AuthenticatedLayout>
     );
 }

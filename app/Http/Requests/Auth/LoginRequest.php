@@ -74,15 +74,28 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Check if user account is disabled
+        // Check if user account is disabled or terminated
         $user = Auth::user();
-        if ($user && !$user->is_enable_login) {
-            Auth::logout();
-            RateLimiter::hit($this->throttleKey());
+        if ($user) {
+            $isTerminated = false;
+            if (class_exists(\Workdo\Hrm\Models\Termination::class)) {
+                $isTerminated = \Workdo\Hrm\Models\Termination::where('employee_id', $user->id)
+                    ->where('status', '!=', 'rejected')
+                    ->whereNull('rejoin_date')
+                    ->where('termination_date', '<=', now()->toDateString())
+                    ->exists();
+            }
 
-            throw ValidationException::withMessages([
-                'email' => __('Your account has been disabled. Please contact the administrator.'),
-            ]);
+            if (!$user->is_enable_login || $user->is_disable == 1 || $isTerminated) {
+                Auth::logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => $isTerminated 
+                        ? __('Your account has been terminated. You cannot log in.')
+                        : __('Your account has been disabled. Please contact the administrator.'),
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());

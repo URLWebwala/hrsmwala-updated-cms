@@ -102,13 +102,17 @@ class AdminTrackerController extends Controller
                         $uq->where('created_by', creatorId());
                     });
                 })
-                ->when($request->user_id, function($q) use ($request) {
+                ->when($request->user_id && $request->user_id !== 'all', function($q) use ($request) {
                     $q->whereHas('session', function($sq) use ($request) {
                         $sq->where('user_id', $request->user_id);
                     });
                 })
-                ->latest()
-                ->paginate(24);
+                ->when($request->date, function($q) use ($request) {
+                    $q->whereDate('captured_at', $request->date);
+                })
+                ->latest('captured_at')
+                ->paginate(24)
+                ->withQueryString();
 
             $screenshots->getCollection()->transform(function ($screenshot) {
                 $screenshot->screenshot_url = url('/storage/' . ltrim($screenshot->file_path, '/'));
@@ -126,6 +130,8 @@ class AdminTrackerController extends Controller
             return Inertia::render('TimeTracker/Admin/Screenshots', [
                 'screenshots' => $screenshots,
                 'employees' => $employees,
+                'selectedDate' => $request->date ?? '',
+                'selectedUser' => $request->user_id ?? 'all',
             ]);
         } else {
             return redirect()->back()->with('error', __('Permission denied'));

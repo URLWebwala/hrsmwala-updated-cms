@@ -3,9 +3,11 @@ import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Pagination } from '@/components/ui/pagination';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Camera, Calendar, User as UserIcon, Maximize2 } from 'lucide-react';
+import { Camera, Calendar, User as UserIcon, Maximize2, X, RefreshCw } from 'lucide-react';
 
 interface Screenshot {
     id: number;
@@ -34,18 +36,47 @@ interface User {
     name: string;
 }
 
-export default function Screenshots({ screenshots, employees }: { screenshots: any, employees: User[] }) {
+export default function Screenshots({ 
+    screenshots, 
+    employees, 
+    selectedDate = '', 
+    selectedUser = 'all' 
+}: { 
+    screenshots: any, 
+    employees: User[], 
+    selectedDate?: string, 
+    selectedUser?: string 
+}) {
     const { t } = useTranslation();
-    const [selectedUser, setSelectedUser] = useState<string>('all');
+    const [currentUser, setCurrentUser] = useState<string>(selectedUser || 'all');
+    const [currentDate, setCurrentDate] = useState<string>(selectedDate || '');
     const [viewingImage, setViewingImage] = useState<string | null>(null);
 
-    const handleUserChange = (userId: string) => {
-        setSelectedUser(userId);
+    const applyFilters = (userId: string, date: string) => {
         const params: any = {};
-        if (userId !== 'all') {
+        if (userId && userId !== 'all') {
             params.user_id = userId;
         }
-        router.get(route('timetracker.admin.screenshots'), params, { preserveState: true });
+        if (date) {
+            params.date = date;
+        }
+        router.get(route('timetracker.admin.screenshots'), params, { preserveState: true, replace: true });
+    };
+
+    const handleUserChange = (userId: string) => {
+        setCurrentUser(userId);
+        applyFilters(userId, currentDate);
+    };
+
+    const handleDateChange = (date: string) => {
+        setCurrentDate(date);
+        applyFilters(currentUser, date);
+    };
+
+    const handleClearFilters = () => {
+        setCurrentUser('all');
+        setCurrentDate('');
+        router.get(route('timetracker.admin.screenshots'), {}, { preserveState: true, replace: true });
     };
 
     const formatSeconds = (seconds: number) => {
@@ -61,7 +92,7 @@ export default function Screenshots({ screenshots, employees }: { screenshots: a
             <Head title={t('Screenshots')} />
 
             <div className="p-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
                     <div>
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             <Camera className="w-6 h-6" />
@@ -72,9 +103,17 @@ export default function Screenshots({ screenshots, employees }: { screenshots: a
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <Select value={selectedUser} onValueChange={handleUserChange}>
-                            <SelectTrigger className="w-56">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="w-48">
+                            <DatePicker
+                                value={currentDate}
+                                onChange={handleDateChange}
+                                placeholder={t('Filter by Date')}
+                            />
+                        </div>
+
+                        <Select value={currentUser} onValueChange={handleUserChange}>
+                            <SelectTrigger className="w-52">
                                 <SelectValue placeholder={t('Filter by Employee')} />
                             </SelectTrigger>
                             <SelectContent>
@@ -84,6 +123,18 @@ export default function Screenshots({ screenshots, employees }: { screenshots: a
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        {(currentUser !== 'all' || currentDate) && (
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={handleClearFilters}
+                                className="text-muted-foreground hover:text-foreground h-9 px-2 text-xs gap-1"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                                {t('Clear')}
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -144,6 +195,20 @@ export default function Screenshots({ screenshots, employees }: { screenshots: a
                         </div>
                     )}
                 </div>
+
+                {/* Pagination */}
+                {screenshots.links && screenshots.links.length > 3 && (
+                    <div className="mt-8 flex justify-center">
+                        <Pagination 
+                            data={screenshots} 
+                            routeName="timetracker.admin.screenshots" 
+                            filters={{ 
+                                user_id: currentUser !== 'all' ? currentUser : undefined, 
+                                date: currentDate || undefined 
+                            }} 
+                        />
+                    </div>
+                )}
 
                 {/* Simple Modal for Image Preview */}
                 {viewingImage && (

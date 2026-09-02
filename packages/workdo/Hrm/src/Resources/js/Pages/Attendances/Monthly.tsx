@@ -81,10 +81,40 @@ export default function Monthly() {
 
     const renderDayHeaders = () => {
         const headers = [];
+        const [yearStr, monthStr] = (filters.month || getCurrentMonth()).split('-');
+        const year = parseInt(yearStr, 10) || new Date().getFullYear();
+        const monthIndex = (parseInt(monthStr, 10) || (new Date().getMonth() + 1)) - 1;
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
         for (let i = 1; i <= daysInMonth; i++) {
+            const dateObj = new Date(year, monthIndex, i);
+            const dayOfWeek = dateObj.getDay();
+            const dayName = dayNames[dayOfWeek];
+            const isSunday = dayOfWeek === 0;
+            const isSaturday = dayOfWeek === 6;
+
             headers.push(
-                <th key={i} className="px-1 py-3 text-center text-[10px] font-bold text-muted-foreground border-x border-border min-w-[35px]">
-                    {i.toString().padStart(2, '0')}
+                <th 
+                    key={i} 
+                    className={cn(
+                        "px-1 py-2 text-center border-x border-border min-w-[36px] transition-colors select-none",
+                        isSunday ? "bg-rose-50/60 dark:bg-rose-950/20" : isSaturday ? "bg-indigo-50/40 dark:bg-indigo-950/20" : "bg-muted/10"
+                    )}
+                >
+                    <div className="flex flex-col items-center justify-center gap-0.5">
+                        <span className={cn(
+                            "text-[9px] font-bold uppercase tracking-wider",
+                            isSunday ? "text-rose-600 dark:text-rose-400" : isSaturday ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"
+                        )}>
+                            {t(dayName)}
+                        </span>
+                        <span className={cn(
+                            "text-[11px] font-extrabold",
+                            isSunday ? "text-rose-700 dark:text-rose-300" : isSaturday ? "text-indigo-700 dark:text-indigo-300" : "text-foreground"
+                        )}>
+                            {i.toString().padStart(2, '0')}
+                        </span>
+                    </div>
                 </th>
             );
         }
@@ -323,20 +353,36 @@ export default function Monthly() {
                                                         <span className="truncate">{emp.name}</span>
                                                     </div>
                                                 </td>
-                                                {Object.entries(emp.attendance).map(([day, status]: any) => (
-                                                    <td key={day} className="px-1 py-1 text-center border-b border-x border-border/30 min-w-[35px]">
-                                                        {status ? (
-                                                            <div className={cn(
-                                                                "w-6 h-6 mx-auto rounded-sm flex items-center justify-center text-[10px] font-bold shadow-sm border",
-                                                                getStatusColor(status)
-                                                            )}>
-                                                                {status}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="w-1 h-1 mx-auto bg-border rounded-full" />
-                                                        )}
-                                                    </td>
-                                                ))}
+                                                {Object.entries(emp.attendance).map(([day, status]: any) => {
+                                                    const [yearStr, monthStr] = (filters.month || getCurrentMonth()).split('-');
+                                                    const year = parseInt(yearStr, 10) || new Date().getFullYear();
+                                                    const monthIndex = (parseInt(monthStr, 10) || (new Date().getMonth() + 1)) - 1;
+                                                    const dayNum = parseInt(day, 10);
+                                                    const dateObj = new Date(year, monthIndex, dayNum);
+                                                    const isSunday = dateObj.getDay() === 0;
+                                                    const isSaturday = dateObj.getDay() === 6;
+
+                                                    return (
+                                                        <td 
+                                                            key={day} 
+                                                            className={cn(
+                                                                "px-1 py-1 text-center border-b border-x border-border/30 min-w-[36px]",
+                                                                isSunday ? "bg-rose-50/20 dark:bg-rose-950/10" : isSaturday ? "bg-indigo-50/10 dark:bg-indigo-950/10" : ""
+                                                            )}
+                                                        >
+                                                            {status ? (
+                                                                <div className={cn(
+                                                                    "w-6 h-6 mx-auto rounded-sm flex items-center justify-center text-[10px] font-bold shadow-sm border",
+                                                                    getStatusColor(status)
+                                                                )}>
+                                                                    {status}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-1 h-1 mx-auto bg-border rounded-full" />
+                                                            )}
+                                                        </td>
+                                                    );
+                                                })}
                                             </tr>
                                         ))
                                     ) : (

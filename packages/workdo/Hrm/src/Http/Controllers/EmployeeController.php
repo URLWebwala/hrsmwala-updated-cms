@@ -15,6 +15,8 @@ use Workdo\Hrm\Models\Designation;
 use Workdo\Hrm\Models\EmployeeDocumentType;
 use Workdo\Hrm\Models\EmployeeDocument;
 use Workdo\Hrm\Models\Shift;
+use Workdo\Hrm\Models\Termination;
+use Workdo\Hrm\Models\TerminationType;
 use Workdo\Hrm\Events\CreateEmployee;
 use Workdo\Hrm\Events\DestroyEmployee;
 use Workdo\Hrm\Events\UpdateEmployee;
@@ -33,8 +35,29 @@ class EmployeeController extends Controller
     public function index()
     {
         if (Auth::user()->can('manage-employees')) {
+            $terminationtypes = TerminationType::where('created_by', creatorId())->select('id', 'termination_type')->get();
+            if ($terminationtypes->isEmpty()) {
+                $defaultTypes = ['Standard Termination', 'Resignation', 'Contract End'];
+                foreach ($defaultTypes as $tName) {
+                    TerminationType::firstOrCreate(
+                        ['termination_type' => $tName, 'created_by' => creatorId()],
+                        ['creator_id' => Auth::id()]
+                    );
+                }
+                $terminationtypes = TerminationType::where('created_by', creatorId())->select('id', 'termination_type')->get();
+            }
+
             $employees = Employee::query()
-                ->with(['user:id,name,avatar,is_disable', 'branch', 'department', 'designation', 'shift'])
+                ->with([
+                    'user:id,name,avatar,is_disable', 
+                    'branch', 
+                    'department', 
+                    'designation', 
+                    'shift',
+                    'latestTermination' => function($q) {
+                        $q->with('terminationType:id,termination_type')->where('status', '!=', 'rejected');
+                    }
+                ])
                 ->where(function ($q) {
                     if (Auth::user()->can('manage-any-employees')) {
                         $q->where('created_by', creatorId());
@@ -67,6 +90,7 @@ class EmployeeController extends Controller
                 'departments' => Department::where('created_by', creatorId())->select('id', 'department_name', 'branch_id')->get(),
                 'designations' => Designation::where('created_by', creatorId())->select('id', 'designation_name', 'branch_id', 'department_id')->get(),
                 'shifts' => Shift::where('created_by', creatorId())->select('id', 'shift_name')->get(),
+                'terminationtypes' => $terminationtypes,
             ]);
         } else {
             return back()->with('error', __('Permission denied'));
@@ -314,6 +338,47 @@ class EmployeeController extends Controller
             $document->delete();
 
             return redirect()->back()->with('success', __('Document deleted successfully'));
+        } else {
+            return redirect()->back()->with('error', __('Permission denied'));
+        }
+    }
+
+    public function rejoin(\Illuminate\Http\Request $request, Employee $employee)
+    {
+        if (Auth::user()->can('edit-employees') || Auth::user()->can('manage-employees')) {
+            if (!$this->checkEmployeeAccess($employee)) {
+                return redirect()->back()->with('error', __('Permission denied'));
+            }
+
+            $request->validate([
+                'rejoin_date' => 'required|date',
+            ]);
+
+            $rejoinDate = $request->rejoin_date;
+
+            $employee->rejoin_date = $rejoinDate;
+            $employee->save();
+
+            // Find any active termination for this employee and set its rejoin_date
+            $terminations = Termination::where('employee_id', $employee->user_id)
+                ->where('status', '!=', 'rejected')
+                ->whereNull('rejoin_date')
+                ->get();
+
+            foreach ($terminations as $term) {
+                $term->rejoin_date = $rejoinDate;
+                $term->save();
+            }
+
+            // Re-enable user login
+            $user = User::find($employee->user_id);
+            if ($user) {
+                $user->is_enable_login = 1;
+                $user->is_disable = 0;
+                $user->save();
+            }
+
+            return redirect()->back()->with('success', __('Employee has been rejoined successfully.'));
         } else {
             return redirect()->back()->with('error', __('Permission denied'));
         }

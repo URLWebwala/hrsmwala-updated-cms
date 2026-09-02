@@ -16,12 +16,12 @@ class StoreTerminationRequest extends FormRequest
         return [
             'employee_id' => 'required|exists:users,id',
             'termination_type_id' => 'required|exists:termination_types,id',
-            'notice_date' => 'required|date|before:termination_date',
+            'notice_date' => 'nullable|date|before_or_equal:termination_date',
             'termination_date' => 'required|date',
             'reason' => 'required|max:255',
             'description' => 'nullable',
             'document' => 'nullable|string',
-
+            'status' => 'nullable|in:pending,approved,rejected',
         ];
     }
 }

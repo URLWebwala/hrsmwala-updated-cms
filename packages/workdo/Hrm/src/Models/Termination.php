@@ -14,6 +14,7 @@ class Termination extends Model
     protected $fillable = [
         'notice_date',
         'termination_date',
+        'rejoin_date',
         'reason',
         'description',
         'document',
@@ -30,6 +31,7 @@ class Termination extends Model
         return [
             'notice_date' => 'date',
             'termination_date' => 'date',
+            'rejoin_date' => 'date',
             'document' => 'string'
         ];
     }
