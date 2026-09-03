@@ -735,19 +735,25 @@ class AttendanceController extends Controller
             $leaves = LeaveApplication::whereIn('employee_id', $allUserIds)
                 ->where('status', 'approved')
                 ->where('created_by', creatorId())
-                ->whereYear('start_date', '<=', $year)
+                ->where('start_date', '<=', $lastDayOfMonth->toDateString())
+                ->where('end_date', '>=', $firstDayOfMonth->toDateString())
                 ->get();
             
-            $holidays = Holiday::where('created_by', creatorId())
-                ->whereYear('start_date', '<=', $year)
+            $holidays = Holiday::with('holidayType')
+                ->where('created_by', creatorId())
+                ->where('start_date', '<=', $lastDayOfMonth->toDateString())
+                ->where('end_date', '>=', $firstDayOfMonth->toDateString())
                 ->get();
 
             $daysInMonth = $monthYear->daysInMonth;
             $workingDays = getCompanyAllSetting(creatorId())['working_days'] ?? '';
             $workingDaysArray = json_decode($workingDays, true) ?? [];
             $saturdayType = getCompanyAllSetting(creatorId())['saturday_type'] ?? 'full';
-            $saturdayWorkingWeeks = json_decode(getCompanyAllSetting(creatorId())['saturday_working_weeks'] ?? '[1, 2, 3, 4, 5]', true);
+            $saturdayWorkingWeeksRaw = json_decode(getCompanyAllSetting(creatorId())['saturday_working_weeks'] ?? '[1, 2, 3, 4, 5]', true);
+            $saturdayWorkingWeeks = is_array($saturdayWorkingWeeksRaw) ? array_map('intval', $saturdayWorkingWeeksRaw) : [1, 2, 3, 4, 5];
+            
             $today = Carbon::now($timezone)->startOfDay();
+            $todayStr = $today->format('Y-m-d');
             $attendanceData = [];
 
             $totalPresent = 0;
@@ -762,6 +768,7 @@ class AttendanceController extends Controller
 
                 for ($day = 1; $day <= $daysInMonth; $day++) {
                     $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
+                    $dateStr = $dateObj->format('Y-m-d');
                     
                     // Check if date is in any termination gap (between termination_date and rejoin_date)
                     $isInTerminationGap = false;
@@ -787,11 +794,21 @@ class AttendanceController extends Controller
                     $status = '';
                     $empDayAtt = isset($allAttendances[$employee->user_id][$day]) ? $allAttendances[$employee->user_id][$day]->first() : null;
 
-                    // Pre-calculate holiday and working day status
-                    $isHoliday = $holidays
-                        ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
-                        ->isNotEmpty();
-                    $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
+                    // Calculate working day status considering Saturday settings
+                    $isWorkingDay = in_array((string)$dateObj->dayOfWeek, array_map('strval', $workingDaysArray)) || in_array($dateObj->dayOfWeek, $workingDaysArray);
+                    if ($dateObj->dayOfWeek === 6 && $isWorkingDay) {
+                        $saturdayWeekNumber = (int) ceil($day / 7);
+                        if (!in_array($saturdayWeekNumber, $saturdayWorkingWeeks)) {
+                            $isWorkingDay = false;
+                        }
+                    }
+
+                    // Pre-calculate holiday matching
+                    $matchingHoliday = $holidays->first(function ($h) use ($dateStr) {
+                        $hStart = Carbon::parse($h->start_date)->format('Y-m-d');
+                        $hEnd = Carbon::parse($h->end_date)->format('Y-m-d');
+                        return $dateStr >= $hStart && $dateStr <= $hEnd;
+                    });
                     
                     if ($empDayAtt) {
                         $status = 'P';
@@ -802,17 +819,28 @@ class AttendanceController extends Controller
                     } else {
                         // Check if leave
                         $onLeave = $leaves->where('employee_id', $employee->user_id)
-                            ->filter(fn($l) => $dateObj->betweenIncluded(Carbon::parse($l->start_date, $timezone)->startOfDay(), Carbon::parse($l->end_date, $timezone)->startOfDay()))
-                            ->isNotEmpty();
+                            ->first(function ($l) use ($dateStr) {
+                                $lStart = Carbon::parse($l->start_date)->format('Y-m-d');
+                                $lEnd = Carbon::parse($l->end_date)->format('Y-m-d');
+                                return $dateStr >= $lStart && $dateStr <= $lEnd;
+                            });
 
                         if ($onLeave) {
                             $status = 'L';
-                            if ($dateObj->lte($today)) {
+                            if ($dateStr <= $todayStr) {
                                 $totalLeave++;
                             }
-                        } elseif ($isHoliday || !$isWorkingDay) {
+                        } elseif ($matchingHoliday) {
+                            $holidayType = strtolower($matchingHoliday->holidayType->holiday_type ?? '');
+                            $holidayName = strtolower($matchingHoliday->name ?? '');
+                            if (str_contains($holidayType, 'festival') || str_contains($holidayName, 'festival')) {
+                                $status = 'F';
+                            } else {
+                                $status = 'O';
+                            }
+                        } elseif (!$isWorkingDay) {
                             $status = 'O';
-                        } elseif ($dateObj->gt($today)) {
+                        } elseif ($dateStr > $todayStr) {
                             $status = '';
                         } else {
                             $status = 'A';
@@ -836,14 +864,24 @@ class AttendanceController extends Controller
 
                 for ($day = 1; $day <= $daysInMonth; $day++) {
                     $dateObj = Carbon::createFromDate($year, $month, $day, $timezone)->startOfDay();
+                    $dateStr = $dateObj->format('Y-m-d');
                     $status = '';
                     $empDayAtt = isset($allAttendances[$user->id][$day]) ? $allAttendances[$user->id][$day]->first() : null;
 
-                    $isHoliday = $holidays
-                        ->filter(fn($h) => $dateObj->betweenIncluded(Carbon::parse($h->start_date, $timezone)->startOfDay(), Carbon::parse($h->end_date, $timezone)->startOfDay()))
-                        ->isNotEmpty();
-                    $isWorkingDay = in_array($dateObj->dayOfWeek, $workingDaysArray);
-                    
+                    $isWorkingDay = in_array((string)$dateObj->dayOfWeek, array_map('strval', $workingDaysArray)) || in_array($dateObj->dayOfWeek, $workingDaysArray);
+                    if ($dateObj->dayOfWeek === 6 && $isWorkingDay) {
+                        $saturdayWeekNumber = (int) ceil($day / 7);
+                        if (!in_array($saturdayWeekNumber, $saturdayWorkingWeeks)) {
+                            $isWorkingDay = false;
+                        }
+                    }
+
+                    $matchingHoliday = $holidays->first(function ($h) use ($dateStr) {
+                        $hStart = Carbon::parse($h->start_date)->format('Y-m-d');
+                        $hEnd = Carbon::parse($h->end_date)->format('Y-m-d');
+                        return $dateStr >= $hStart && $dateStr <= $hEnd;
+                    });
+
                     if ($empDayAtt) {
                         $status = 'P';
                         $totalPresent++;
@@ -851,9 +889,17 @@ class AttendanceController extends Controller
                         if (!empty($empDayAtt->late)) $totalLateCount += (float)$empDayAtt->late;
                         if (!empty($empDayAtt->early_leaving)) $totalEarlyCount += (float)$empDayAtt->early_leaving;
                     } else {
-                        if ($isHoliday || !$isWorkingDay) {
+                        if ($matchingHoliday) {
+                            $holidayType = strtolower($matchingHoliday->holidayType->holiday_type ?? '');
+                            $holidayName = strtolower($matchingHoliday->name ?? '');
+                            if (str_contains($holidayType, 'festival') || str_contains($holidayName, 'festival')) {
+                                $status = 'F';
+                            } else {
+                                $status = 'O';
+                            }
+                        } elseif (!$isWorkingDay) {
                             $status = 'O';
-                        } elseif ($dateObj->gt($today)) {
+                        } elseif ($dateStr > $todayStr) {
                             $status = '';
                         } else {
                             $status = 'A';
